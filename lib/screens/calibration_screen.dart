@@ -102,7 +102,16 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Calibration Capture')),
+      appBar: AppBar(
+        title: const Text('Calibration Capture'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'How to Measure',
+            onPressed: () => Navigator.of(context).pushNamed('/how_to'),
+          ),
+        ],
+      ),
       body: _capturedImage == null
           ? (_cameraReady
               ? Stack(

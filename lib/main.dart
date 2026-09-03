@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
+import 'screens/how_to_screen.dart';
 import 'screens/setup_screen.dart';
 import 'screens/calibration_screen.dart';
 import 'screens/pedaling_screen.dart';
@@ -20,9 +22,15 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const SetupScreen(),
+      home: const HomeScreen(),
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/setup':
+            return MaterialPageRoute(builder: (context) => const SetupScreen());
+          case '/how_to':
+            return MaterialPageRoute(builder: (context) => const HowToScreen());
+          case '/tables':
+            return MaterialPageRoute(builder: (context) => const FitTablesScreen());
           case '/calibration':
             final args = settings.arguments as Map<String, dynamic>?;
             return MaterialPageRoute(
