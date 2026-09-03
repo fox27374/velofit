@@ -4,18 +4,18 @@ Bike-fitting MVP. Analyzes video of a rider on a stationary trainer, computes
 joint angles + KOPS/saddle-height, compares against target ranges. No
 adjustment recommendations, no accounts/history/cloud — see non-goals below.
 
-## State as of 2026-08-30
+## State as of 2026-09-03
 
-Feature-complete first pass, **not yet run on a real device or emulator**.
-`flutter analyze` / `flutter test` (28 tests) / `flutter build apk --debug`
-all pass, verified directly (not just taken on an agent's word). Two real
-bugs were found by manual code review after the first implementation pass
-and are now fixed and verified — see "Known-fixed bugs" below, worth
-re-checking those spots first if something looks wrong on-device.
+Feature-complete first pass, **still not run on a real device or emulator**.
+`flutter analyze` / `flutter test` (41 tests) / `flutter build apk --debug`
+all pass, verified directly (not just taken on an agent's word). Five real
+bugs have now been found by manual code review across two passes and are
+fixed — see "Known-fixed bugs" below, worth re-checking those spots first if
+something looks wrong on-device.
 
-**Working tree is uncommitted.** Only commit on repo is `flutter create
-scaffold` (bare scaffold). Everything described below is unstaged changes +
-new files — review and commit before doing more work.
+Everything is committed. `417b363` added the home screen, fitting tables and
+capture instructions; `b5605fe` added tap correction and plausibility guards;
+`2d131d3` added the launcher icon. Nothing is pushed.
 
 ## Toolchain (this Mac)
 
@@ -50,13 +50,27 @@ new files — review and commit before doing more work.
 
 ## Pipeline / flow
 
+The app opens on a **home screen** (`lib/screens/home_screen.dart`), not on
+the fit flow: a menu of Bike Fitting, How to Measure and Fitting Tables. The
+numbered flow below is what sits behind `/setup`. `FitTablesScreen` (same
+file) renders the `FitTargets` ranges read-only. `HowToScreen`
+(`how_to_screen.dart`) is the capture guide — distance, phone height, camera
+angle, the left-side/wheel-right framing convention, and not moving the phone
+after calibration; its numbers are derived from the capture geometry below
+and **not yet checked against real captures**. It is also linked from an info
+button on the calibration app bar, where it actually matters.
+
 1. **Setup screen** — wheel+tire outer diameter input (mm, default 700;
    explicitly the outer diameter including tire, not the 622mm ISO
    bead-seat diameter — a common mixup).
 2. **Calibration screen** — single still photo of the stationary bike, user
    taps 4 points in order: top of front wheel, bottom of front wheel,
-   bottom bracket, saddle top. Pixel distance between the two wheel taps +
-   the mm value from setup → `pixelScale` (px/mm). This screen is
+   bottom bracket, saddle top. Taps do not auto-advance: markers are
+   numbered 1-4 and Undo / Retake / Continue are explicit, and Continue runs
+   `calibrationProblem()` (`angle_utils.dart`) before computing anything —
+   a failed check shows the problem and refuses to navigate. Pixel distance
+   between the two wheel taps + the mm value from setup → `pixelScale`
+   (px/mm), via `pixelScaleFromTaps()`. This screen is
    internally coordinate-consistent (all taps + derived scale share one
    widget's on-screen coordinate space) — treat it as the reference
    pattern for "how this must work" if debugging coordinate issues
@@ -73,7 +87,8 @@ new files — review and commit before doing more work.
    "Known-fixed bugs"), and extracts the knee landmark from it in the
    photo's own pixel space.
 4. **Bike-point screen** — shows the pedal-forward photo, user taps the
-   pedal spindle center (for KOPS). Uses a `LayoutBuilder` to get the
+   pedal spindle center (for KOPS); tapping again moves the marker, Clear
+   removes it, Continue advances. Uses a `LayoutBuilder` to get the
    actual on-screen rendered size of the image, converts the knee landmark
    from photo-pixel space into that same on-screen space via
    `photoPixelToWidget` (BoxFit.contain math) before comparing it to the
@@ -81,7 +96,10 @@ new files — review and commit before doing more work.
 5. **Results screen** — displays the 4 angles (already averaged across
    bottom-of-stroke cycles, passed in as plain doubles) vs target ranges
    from `lib/fit_targets.dart`, plus KOPS offset and saddle height in mm
-   (no target range on those two — just reported).
+   (no target range on those two — just reported). Above them,
+   `measurementProblems()` drives a "Recapture recommended" banner. A value
+   that was never measured arrives as `double.nan` (see below) and renders
+   as "Not measured" rather than a red 0.0°.
 
 ## Known-fixed bugs (worth re-checking if something's off on-device)
 
@@ -93,7 +111,8 @@ new files — review and commit before doing more work.
    (wrong crank position for a knee-flexion target that's only meaningful
    at bottom-of-stroke), never averaged. Fixed: `pedaling_screen.dart` now
    buffers landmarks at every bottom-of-stroke cycle and
-   `_computeAveragedAngles()` averages across up to 8 cycles.
+   `_computeAveragedAngles()` averages across up to 8 cycles. **This fix was
+   incomplete** — see bug 5.
 3. **KOPS coordinate-space mismatch** — was subtracting a raw ML-Kit
    landmark coordinate (camera-stream pixel space, e.g. ~1920×1080) from a
    Flutter tap coordinate (on-screen widget/logical-pixel space, e.g.
@@ -102,10 +121,53 @@ new files — review and commit before doing more work.
    what's displayed), and `photoPixelToWidget`/`widgetToPhotoPixel` in
    `lib/angle_utils.dart` do the actual BoxFit.contain scale+letterbox
    math to reconcile it with the tap's on-screen coordinates.
+4. **`RangeError` on the 4th calibration tap** — the instruction banner
+   indexed `_labels[_tappedPoints.length]`, so the rebuild triggered by the
+   final tap read index 4 of a 4-element list. Never seen because nothing
+   had run the flow on a device. Fixed along with the tap-correction work.
+5. **Averaging denominator counted cycles, not valid samples** — the second
+   half of bug 2. `_computeAveragedAngles()` divided every metric by the
+   total cycle count, but a cycle where the pose detector missed a joint
+   skipped that metric's accumulation while still counting in its
+   denominator — so each miss quietly pulled that angle toward zero, and a
+   metric with no valid cycles at all reported a confident 0°. Fixed: counts
+   are per metric, and a metric with zero valid cycles returns
+   `unavailableMeasurement` (`double.nan`).
 
-Both fixes were caught by manual code review after an agent claimed
-completion and its own tests passed — `flutter test` passing does not mean
-the logic is right, worth remembering for the next round too.
+All five were caught by manual code review after an agent claimed completion
+and its own tests passed — `flutter test` passing does not mean the logic is
+right, worth remembering for the next round too.
+
+## Plausibility guards
+
+`calibrationProblem()` and `measurementProblems()` in `lib/angle_utils.dart`
+are bounds on **physical possibility**, deliberately not fit targets (those
+live in `fit_targets.dart` and are much tighter). They exist so a broken
+capture reads as "recapture" instead of as a confident number: wheel
+diameter outside 300-1000mm, wheel taps under 50px apart or given
+bottom-first, saddle tapped below the bottom bracket, saddle height outside
+400-1000mm, KOPS over 250mm, any unmeasured angle.
+
+**These numbers are guesses from the capture geometry, never validated
+against a real capture.** Check them on the first device walkthrough — a
+bound that is too tight will block valid fits, which is worse than one that
+is slightly loose.
+
+Unmeasured values propagate as `double.nan` rather than `null`, so they flow
+through the existing `Map<String, dynamic>` route arguments with no
+signature changes. The cost is that every display site must check `isNaN`;
+the three that exist do.
+
+## Launcher icon
+
+`tool/make_icon.py` draws the source art (a bold V with the amber arc of a
+measured angle at its vertex) at 4x and downsamples for antialiasing, into
+`assets/icon/`. `flutter_launcher_icons` turns that into the Android
+densities, the adaptive-icon XML and the iOS appiconset — rerun with
+`dart run flutter_launcher_icons` after changing the art.
+
+Pillow is not a project dependency and nothing in the app or the build needs
+Python; the script's docstring carries the venv commands to run it.
 
 ## Non-goals (deliberately out of scope, don't reintroduce)
 
@@ -117,16 +179,21 @@ in `lib/fit_targets.dart`), no saved-video-file/scrubbing UI.
 
 ## Next steps
 
-1. Review and commit the current working tree (nothing is committed past
-   the bare scaffold).
-2. **Run it on a real Android device or emulator** — nothing here has
+1. **Run it on a real Android device or emulator** — nothing here has
    exercised the camera + live pose-detection stream on actual hardware.
    This is the biggest unknown: camera image format/rotation handling
    (`_createInputImage` in `pedaling_screen.dart`, NV21 assumed,
    `rotation0deg` hardcoded — real devices often need actual device
    rotation passed in, this was never device-tested) is the most likely
    thing to break first.
-3. Walk the full flow once with a real bike on a trainer and sanity-check
-   the numbers against a tape measure / known bike geometry.
-4. iOS: install full Xcode, then `flutter doctor` again, then retest the
+2. Walk the full flow once with a real bike on a trainer and sanity-check
+   the numbers against a tape measure / known bike geometry. Same trip
+   validates the capture distances/heights in `HowToScreen` and the bounds
+   in the plausibility guards — all three are currently reasoned, not
+   measured.
+3. iOS: install full Xcode, then `flutter doctor` again, then retest the
    iOS branch of the camera-image conversion code (untested so far).
+4. Decide on saving results. It is still a non-goal, but it is the one most
+   likely to be wrong: closing the app loses everything, so you cannot
+   compare before/after an adjustment, which is the point of a fit. Revisit
+   once there are real numbers to compare.
