@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../angle_utils.dart';
 import '../fit_targets.dart';
 
 class ResultsScreen extends StatefulWidget {
@@ -49,7 +50,32 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return Colors.red;
   }
 
+  /// A card for a value that was never measured. Showing 0° here would read
+  /// as a real (and alarming) result.
+  Widget _buildUnavailable(String label) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Not measured',
+              style: TextStyle(fontSize: 24, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMeasurement(String label, double value, double min, double max) {
+    if (value.isNaN) return _buildUnavailable(label);
     final color = _getColor(value, min, max);
     return Card(
       child: Padding(
@@ -75,6 +101,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _buildMeasurementMM(String label, double value) {
+    if (value.isNaN) return _buildUnavailable(label);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -96,6 +123,55 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
+  /// Plausibility warnings, shown above the numbers so an obviously broken
+  /// capture is not read as a fit.
+  List<Widget> _buildWarnings() {
+    final problems = measurementProblems(
+      kneeFlexion: _kneeFlexion,
+      hipAngle: _hipAngle,
+      torsoAngle: _torsoAngle,
+      elbowAngle: _elbowAngle,
+      kopsOffsetMm: widget.kopsOffset,
+      saddleHeightMm: widget.saddleHeight,
+    );
+    if (problems.isEmpty) return const [];
+
+    return [
+      Card(
+        color: Colors.red.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.warning_amber, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Recapture recommended',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade900,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              for (final problem in problems)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text('\u2022 $problem'),
+                ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,6 +179,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          ..._buildWarnings(),
           _buildMeasurement('Knee Flexion', _kneeFlexion,
               FitTargets.kneeFlexionMin, FitTargets.kneeFlexionMax),
           const SizedBox(height: 12),

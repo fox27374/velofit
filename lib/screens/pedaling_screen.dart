@@ -218,19 +218,18 @@ class _PedalingScreenState extends State<PedalingScreen> {
 
   /// Compute averaged angles across all captured bottom-of-stroke cycles.
   Map<String, double> _computeAveragedAngles() {
-    if (_cycleBottomPoses.isEmpty) {
-      return {
-        'kneeFlexion': 0,
-        'hipAngle': 0,
-        'torsoAngle': 0,
-        'elbowAngle': 0,
-      };
-    }
-
     double totalKneeFlexion = 0;
     double totalHipAngle = 0;
     double totalTorsoAngle = 0;
     double totalElbowAngle = 0;
+
+    // Counted per metric, not per cycle: a cycle where the detector missed the
+    // elbow must not drag the elbow average toward zero while still counting
+    // in its denominator.
+    int kneeCount = 0;
+    int hipCount = 0;
+    int torsoCount = 0;
+    int elbowCount = 0;
 
     for (final pose in _cycleBottomPoses) {
       final shoulder = _getLandmark(pose, PoseLandmarkType.leftShoulder);
@@ -246,6 +245,7 @@ class _PedalingScreenState extends State<PedalingScreen> {
           (x: knee.x, y: knee.y),
           (x: ankle.x, y: ankle.y),
         );
+        kneeCount++;
       }
 
       if (shoulder != null && hip != null && knee != null) {
@@ -254,6 +254,7 @@ class _PedalingScreenState extends State<PedalingScreen> {
           (x: hip.x, y: hip.y),
           (x: knee.x, y: knee.y),
         );
+        hipCount++;
       }
 
       if (shoulder != null && hip != null) {
@@ -261,6 +262,7 @@ class _PedalingScreenState extends State<PedalingScreen> {
           (x: shoulder.x, y: shoulder.y),
           (x: hip.x, y: hip.y),
         );
+        torsoCount++;
       }
 
       if (shoulder != null && elbow != null && wrist != null) {
@@ -269,15 +271,18 @@ class _PedalingScreenState extends State<PedalingScreen> {
           (x: elbow.x, y: elbow.y),
           (x: wrist.x, y: wrist.y),
         );
+        elbowCount++;
       }
     }
 
-    final count = _cycleBottomPoses.length.toDouble();
+    double average(double total, int count) =>
+        count == 0 ? unavailableMeasurement : total / count;
+
     return {
-      'kneeFlexion': totalKneeFlexion / count,
-      'hipAngle': totalHipAngle / count,
-      'torsoAngle': totalTorsoAngle / count,
-      'elbowAngle': totalElbowAngle / count,
+      'kneeFlexion': average(totalKneeFlexion, kneeCount),
+      'hipAngle': average(totalHipAngle, hipCount),
+      'torsoAngle': average(totalTorsoAngle, torsoCount),
+      'elbowAngle': average(totalElbowAngle, elbowCount),
     };
   }
 

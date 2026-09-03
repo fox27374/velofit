@@ -176,3 +176,95 @@ Offset widgetToPhotoPixel(
     (widgetPixel.dy - offset.dy) / scale,
   );
 }
+
+/// Sentinel for a measurement no valid pedal cycle produced. Kept as a double
+/// so it flows through the existing route arguments unchanged; every display
+/// site must check `isNaN` rather than printing it.
+const double unavailableMeasurement = double.nan;
+
+/// Checks the four calibration taps before they become a scale factor.
+///
+/// Order is [top of wheel, bottom of wheel, bottom bracket, saddle top], in
+/// widget coordinates, so y grows downward. Returns a problem to show the
+/// user, or null if the taps are usable. A bad tap here silently corrupts
+/// every millimetre figure downstream, so it is worth blocking on.
+String? calibrationProblem(List<Offset> taps, double wheelDiameterMm) {
+  if (taps.length != 4) return 'Tap all four points.';
+
+  if (wheelDiameterMm < 300 || wheelDiameterMm > 1000) {
+    return 'Wheel diameter of ${wheelDiameterMm.toStringAsFixed(0)} mm is not '
+        'a bike wheel. Enter the outer diameter including the tyre, typically '
+        '650–740 mm.';
+  }
+
+  final wheelPixels = (taps[1].dy - taps[0].dy).abs();
+  if (wheelPixels < 50) {
+    return 'The two wheel taps are almost on top of each other. Tap the top '
+        'of the front wheel, then the bottom.';
+  }
+
+  if (taps[0].dy > taps[1].dy) {
+    return 'The wheel taps look swapped: tap the top of the wheel first, then '
+        'the bottom.';
+  }
+
+  if (taps[3].dy > taps[2].dy) {
+    return 'The saddle tap is below the bottom bracket. Tap the bottom '
+        'bracket third, then the top of the saddle.';
+  }
+
+  return null;
+}
+
+/// Pixels per millimetre from the calibration taps. Call only once
+/// [calibrationProblem] has returned null.
+double pixelScaleFromTaps(List<Offset> taps, double wheelDiameterMm) =>
+    (taps[1].dy - taps[0].dy).abs() / wheelDiameterMm;
+
+/// Flags results that are outside anything a real bike fit produces, so a
+/// broken capture reads as "recapture" instead of as a confident number.
+///
+/// These are not fit targets (those live in FitTargets) — they are bounds on
+/// physical possibility, wide enough that a valid fit never trips them.
+List<String> measurementProblems({
+  required double kneeFlexion,
+  required double hipAngle,
+  required double torsoAngle,
+  required double elbowAngle,
+  required double kopsOffsetMm,
+  required double saddleHeightMm,
+}) {
+  final problems = <String>[];
+
+  const angleNames = ['Knee flexion', 'Hip angle', 'Torso angle', 'Elbow angle'];
+  final angles = [kneeFlexion, hipAngle, torsoAngle, elbowAngle];
+  final missing = <String>[];
+  for (var i = 0; i < angles.length; i++) {
+    if (angles[i].isNaN) missing.add(angleNames[i]);
+  }
+  if (missing.isNotEmpty) {
+    problems.add(
+      '${missing.join(', ')} could not be measured — the pose detector never '
+      'saw those joints. Check the rider is fully in frame and well lit.',
+    );
+  }
+
+  if (!saddleHeightMm.isNaN &&
+      (saddleHeightMm < 400 || saddleHeightMm > 1000)) {
+    problems.add(
+      'Saddle height of ${saddleHeightMm.toStringAsFixed(0)} mm is outside '
+      'any real bike (400–1000 mm). The calibration taps or the wheel '
+      'diameter are probably wrong.',
+    );
+  }
+
+  if (!kopsOffsetMm.isNaN && kopsOffsetMm > 250) {
+    problems.add(
+      'KOPS offset of ${kopsOffsetMm.toStringAsFixed(0)} mm is far larger '
+      'than a bike allows. The pedal spindle tap or the knee detection is '
+      'likely off.',
+    );
+  }
+
+  return problems;
+}

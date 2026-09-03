@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../angle_utils.dart';
 
 class CalibrationScreen extends StatefulWidget {
   final double wheelDiameter;
@@ -64,22 +65,34 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
   }
 
   void _handleImageTap(Offset position) {
-    if (_tappedPoints.length < 4) {
-      setState(() => _tappedPoints.add(position));
-    }
-    if (_tappedPoints.length == 4) {
-      _proceed();
-    }
+    if (_tappedPoints.length >= 4) return;
+    setState(() => _tappedPoints.add(position));
+  }
+
+  void _undoTap() {
+    if (_tappedPoints.isEmpty) return;
+    setState(() => _tappedPoints.removeLast());
+  }
+
+  void _retakePhoto() {
+    setState(() {
+      _capturedImage = null;
+      _tappedPoints = [];
+    });
   }
 
   void _proceed() {
-    if (_tappedPoints.length != 4 || _capturedImage == null) return;
+    if (_capturedImage == null) return;
 
-    // Calculate calibration scale: diameter / pixel distance between wheel points
-    final p1 = _tappedPoints[0];
-    final p2 = _tappedPoints[1];
-    final pixelDistance = (p2.dy - p1.dy).abs();
-    final pixelScale = pixelDistance > 0 ? pixelDistance / widget.wheelDiameter : 1;
+    final problem = calibrationProblem(_tappedPoints, widget.wheelDiameter);
+    if (problem != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(problem), duration: const Duration(seconds: 6)),
+      );
+      return;
+    }
+
+    final pixelScale = pixelScaleFromTaps(_tappedPoints, widget.wheelDiameter);
 
     Navigator.of(context).pushNamed(
       '/pedaling',
@@ -152,7 +165,10 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
             padding: const EdgeInsets.all(8),
             color: Colors.black54,
             child: Text(
-              'Tap point ${_tappedPoints.length + 1}: ${_labels[_tappedPoints.length]}',
+              _tappedPoints.length < 4
+                  ? 'Tap point ${_tappedPoints.length + 1}: '
+                      '${_labels[_tappedPoints.length]}'
+                  : 'All four points placed. Check them, then continue.',
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -164,13 +180,47 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
                 child: Container(
                   width: 16,
                   height: 16,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.red, width: 2),
                     shape: BoxShape.circle,
                   ),
+                  child: Text(
+                    '${e.key + 1}',
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ),
+        Positioned(
+          bottom: 16,
+          left: 16,
+          right: 16,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _tappedPoints.isEmpty ? null : _undoTap,
+                icon: const Icon(Icons.undo),
+                label: const Text('Undo'),
+              ),
+              ElevatedButton.icon(
+                onPressed: _retakePhoto,
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Retake'),
+              ),
+              ElevatedButton.icon(
+                onPressed: _tappedPoints.length == 4 ? _proceed : null,
+                icon: const Icon(Icons.check),
+                label: const Text('Continue'),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

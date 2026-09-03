@@ -244,4 +244,93 @@ void main() {
       expect(recoveredPhotoPixel.dy, closeTo(photoPixel.dy, 1.0));
     });
   });
+
+  group('calibrationProblem', () {
+    // top, bottom, bottom bracket, saddle — y grows downward
+    final good = [
+      const Offset(100, 100),
+      const Offset(100, 500),
+      const Offset(300, 450),
+      const Offset(320, 200),
+    ];
+
+    test('accepts sane taps', () {
+      expect(calibrationProblem(good, 700), isNull);
+    });
+
+    test('rejects an incomplete tap set', () {
+      expect(calibrationProblem(good.take(3).toList(), 700), isNotNull);
+    });
+
+    test('rejects an implausible wheel diameter', () {
+      expect(calibrationProblem(good, 26), isNotNull);
+      expect(calibrationProblem(good, 2000), isNotNull);
+    });
+
+    test('rejects two wheel taps on the same spot', () {
+      final taps = [...good];
+      taps[1] = const Offset(100, 120);
+      expect(calibrationProblem(taps, 700), isNotNull);
+    });
+
+    test('rejects wheel taps given bottom-first', () {
+      final taps = [good[1], good[0], good[2], good[3]];
+      expect(calibrationProblem(taps, 700), isNotNull);
+    });
+
+    test('rejects a saddle below the bottom bracket', () {
+      final taps = [...good];
+      taps[3] = const Offset(320, 600);
+      expect(calibrationProblem(taps, 700), isNotNull);
+    });
+
+    test('pixelScaleFromTaps converts back to the wheel diameter', () {
+      final scale = pixelScaleFromTaps(good, 700);
+      expect(pixelsToMm(400, scale), closeTo(700, 0.001));
+    });
+  });
+
+  group('measurementProblems', () {
+    List<String> check({
+      double knee = 30,
+      double hip = 45,
+      double torso = 50,
+      double elbow = 155,
+      double kops = 10,
+      double saddle = 700,
+    }) =>
+        measurementProblems(
+          kneeFlexion: knee,
+          hipAngle: hip,
+          torsoAngle: torso,
+          elbowAngle: elbow,
+          kopsOffsetMm: kops,
+          saddleHeightMm: saddle,
+        );
+
+    test('a normal fit raises nothing', () {
+      expect(check(), isEmpty);
+    });
+
+    test('flags an unmeasured angle instead of trusting it', () {
+      expect(check(elbow: unavailableMeasurement), isNotEmpty);
+    });
+
+    test('flags an impossible saddle height', () {
+      expect(check(saddle: 3000), isNotEmpty);
+      expect(check(saddle: 50), isNotEmpty);
+    });
+
+    test('flags an impossible KOPS offset', () {
+      expect(check(kops: 900), isNotEmpty);
+    });
+
+    test('does not flag unmeasured distances as out of range', () {
+      final problems = check(
+        saddle: unavailableMeasurement,
+        kops: unavailableMeasurement,
+      );
+      expect(problems, isEmpty);
+    });
+  });
 }

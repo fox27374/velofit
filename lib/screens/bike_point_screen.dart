@@ -40,15 +40,16 @@ class _BikePointScreenState extends State<BikePointScreen> {
   Size? _imageWidgetSize;
 
   void _handleImageTap(Offset position) {
-    if (_pedalTapPoint != null) return;
     setState(() => _pedalTapPoint = position);
-    _proceed();
   }
+
+  void _clearTap() => setState(() => _pedalTapPoint = null);
 
   void _proceed() {
     if (_pedalTapPoint == null || _imageWidgetSize == null) return;
 
-    double kopsOffset = 0;
+    // No knee landmark means no KOPS — report it as unmeasured rather than 0.
+    double kopsOffset = unavailableMeasurement;
     if (widget.pedalForwardKneeLandmark != null &&
         widget.pedalForwardImageSize != null) {
       // Convert knee landmark from photo-pixel space to widget-pixel space
@@ -122,20 +123,21 @@ class _BikePointScreenState extends State<BikePointScreen> {
                       _handleImageTap(details.localPosition),
                 ),
               ),
-              if (_pedalTapPoint == null)
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.black54,
-                    child: const Text(
-                      'Tap the pedal spindle center',
-                      style: TextStyle(color: Colors.white),
-                    ),
+              Positioned(
+                top: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.black54,
+                  child: Text(
+                    _pedalTapPoint == null
+                        ? 'Tap the pedal spindle center'
+                        : 'Tap again to move the marker, then continue.',
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
+              ),
               if (_pedalTapPoint != null)
                 Positioned(
                   left: _pedalTapPoint!.dx - 8,
@@ -149,6 +151,26 @@ class _BikePointScreenState extends State<BikePointScreen> {
                     ),
                   ),
                 ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _pedalTapPoint == null ? null : _clearTap,
+                      icon: const Icon(Icons.undo),
+                      label: const Text('Clear'),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _pedalTapPoint == null ? null : _proceed,
+                      icon: const Icon(Icons.check),
+                      label: const Text('Continue'),
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         },
