@@ -138,6 +138,30 @@ All five were caught by manual code review after an agent claimed completion
 and its own tests passed — `flutter test` passing does not mean the logic is
 right, worth remembering for the next round too.
 
+## Known-OPEN bugs
+
+1. **`hipAngle` target is the wrong end of the pedal stroke.** `FitTargets`
+   sets 40-50°, but essentially every published hip-angle target is the
+   *minimum*, at top of stroke, while `pedaling_screen.dart` samples at
+   *bottom* of stroke — which gives the maximum, roughly 45-50° larger. The
+   sourced BDC range is 90-105° (`doc/fit-targets-research.md` §0b), confirmed
+   geometrically: torso 45° above horizontal and thigh ~57° below horizontal at
+   BDC give an interior angle of ~102°.
+
+   **A 40-50° target at BDC is geometrically unreachable, so the app currently
+   scores every rider's hip angle red regardless of how they sit.** Not yet
+   fixed. It predates the bike-type-profile work and should be fixed
+   independently of it — the profile feature is gated on a numbers sign-off,
+   this is not.
+
+2. **KOPS is measured to the wrong landmark for the published figures.**
+   Published KOPS values in mm are to the tibial tuberosity; the app uses the
+   pose knee-joint centre, ~30-40mm posterior. App readings therefore sit a
+   systematic 20-40mm negative against a fitter's plumb line — an offset wider
+   than the whole proposed road target range. Currently harmless, because KOPS
+   is reported without a target; it becomes a real problem the moment KOPS is
+   scored. See `doc/bike-type-profiles.md`, Finding 2.
+
 ## Plausibility guards
 
 `calibrationProblem()` and `measurementProblems()` in `lib/angle_utils.dart`
@@ -174,8 +198,13 @@ Python; the script's docstring carries the venv commands to run it.
 No accounts/cloud sync/session history, no numeric adjustment
 recommendations ("raise saddle Xmm"), no reach/drop measurement, no
 outdoor/unstable capture handling, no bike-parts object-detection model, no
-riding-discipline profile switcher (one road-endurance default constant set
-in `lib/fit_targets.dart`), no saved-video-file/scrubbing UI.
+saved-video-file/scrubbing UI.
+
+**The riding-discipline profile switcher is no longer a non-goal.** Road /
+mountain / triathlon profiles are designed and confirmed in
+`doc/bike-type-profiles.md`, with sourced ranges in
+`doc/fit-targets-research.md`. Not implemented, and gated on signing off those
+numbers. Bike type is *selected by the user*, never detected from the image.
 
 ## Next steps
 

@@ -167,3 +167,113 @@ it today.
 Pre-existing and unchanged by this work: nothing has run on a real device yet,
 and both the plausibility guard bounds and the how-to capture numbers are
 reasoned rather than measured.
+
+---
+
+# Research outcome (2026-09-03)
+
+`doc/fit-targets-research.md` is complete. Numbers are **not yet signed off** and
+nothing below has been implemented. Three findings change the design agreed
+above; they need decisions before implementation starts.
+
+## The design survives, with one exception
+
+Confirmed by the research:
+
+- **Saddle height unscored (Q14) was right, and more strongly than we knew.**
+  No absolute mm target exists at any discipline — the figure is only
+  interpretable as a fraction of inseam (LeMond 0.883 x inseam, Hamley 1.09 x
+  inseam to the pedal axle; a peer-reviewed comparison found no significant
+  difference between the methods, p = 0.917). Keep it as a reported observation.
+- **Tri elbow angle is a definitional change (Q3), not just a range change** —
+  90-110 degrees on aerobars versus 150-170 on the hoods. Confirmed two ways.
+  Under Q3 (a) this is still handled as a range swap.
+- **Re-sourcing road (Q16) was right.** Three of the four placeholders are wrong
+  or off: `kneeFlexion 25-35` is the *static* goniometry range and a video method
+  should use 30-40; `torsoAngle 45-55` is ~5 degrees upright of the sourced
+  40-50; `elbowAngle 150-165` should be 150-170.
+- **Tri KOPS is positive** — unanimous across sources on the sign.
+
+## Finding 1: `hipAngle 40-50` is a live bug in shipped code
+
+Not a bad range — the wrong end of the pedal stroke. Effectively every published
+hip-angle target is the *minimum*, at top of stroke. The app samples at bottom
+of stroke, which yields the *maximum*, roughly 45-50 degrees larger.
+
+Verified independently of the research: with the torso 45 degrees above
+horizontal (hip->shoulder direction (0.707, 0.707)) and the thigh ~57 degrees
+below horizontal at BDC (hip->knee direction (0.545, -0.839)), the interior
+angle is acos(-0.208) ~ 102 degrees. The sourced BDC range is 90-105.
+
+**A 40-50 target at BDC is geometrically unreachable, so the current app scores
+every rider's hip angle red no matter how they sit.** This predates the profile
+work and is worth fixing on its own, ahead of and independently of this feature.
+
+## Finding 2: KOPS landmark mismatch, ~20-40 mm systematic
+
+Published KOPS figures in mm are measured to the **tibial tuberosity**. The app
+uses the **pose knee-joint centre**, roughly 30-40 mm posterior to it. So app
+readings will sit systematically 20-40 mm negative against a fitter's plumb
+line — an offset wider than the entire proposed road target range (-40 to 0 mm).
+
+Consequence for the agreed design: the signed-KOPS scoring from Q4 cannot use
+published plumb-line numbers directly. Calibrate against marker/pose-based
+sources (Velogic) rather than plumb-line ones (SportCoaching), and treat the
+road KOPS range as the softest number in the whole set.
+
+The research also documents a substantial body of opinion that KOPS is a poor
+fitting metric at all — Bontrager's "The Myth of K.O.P.S." and Steve Hogg ("I
+don't own a plumb line... It is irrelevant"). Worth surfacing in the UI next to
+the KOPS card.
+
+## Finding 3: mountain bike is mostly unsourced
+
+No fit-system vendor publishes an MTB metrics table. Velogic has road and
+triathlon pages and no MTB page (404, absent from sitemap); BikeFittr's chart is
+road and tri only; Fit Kit Systems' MTB guide deliberately publishes no numeric
+angle targets.
+
+Sourcing by metric: `kneeFlexion` weak (one named source, internally
+inconsistent with the agreed saddle drop), `hipAngle` **none**, `torsoAngle`
+**none**, `elbowAngle` **none**, `KOPS` one secondary source, `saddleHeight`
+direction agreed but magnitude never measured.
+
+Under Q15 as agreed ("no established target", never a silent road fallback),
+**three of the four MTB angles render grey and unscored** — the MTB profile
+would ship able to score only knee flexion. That is honest, and it is also
+close to useless.
+
+**This is the open decision.** Options:
+
+- **(a)** Hold Q15 exactly: ship MTB with three unscored metrics and a visible
+  note. Honest, nearly inert.
+- **(b)** Ship road ranges under MTB, labelled in the UI as "not
+  discipline-specific". Scores something, is explicit that it is borrowed.
+- **(c)** Ship the researcher's derived numbers, labelled "derived, unsourced".
+  Looks authoritative, has nothing behind it. The research doc itself
+  recommends against this.
+- **(d)** Ship road and triathlon only; drop MTB until a source exists.
+
+Nothing here is decided. My read is (b) over (a): a borrowed-and-labelled range
+is more useful than a grey dash and no less honest, since the label carries the
+same information. (c) is the one to avoid — it is the silent-road-fallback
+failure from Q15 wearing a disguise.
+
+## Other things worth knowing
+
+- **Do not cite the "hip angle ~100 degrees" figure quoted everywhere in tri
+  fitting** as support for the app's hip angle. That is FIST's
+  BB-trochanter-acromion static angle, an unrelated quantity that lands near the
+  same number by coincidence.
+- **Tri `kneeFlexion` sources disagree on the direction** of the difference from
+  road: BikeFittr says less flexion, Bike Fit Adviser more, Velogic none. The
+  proposed 30-42 is a union of disagreeing sources, not a consensus.
+- **Tri `torsoAngle`** has a large elite (10-15) versus age-grouper (20-30)
+  split; the proposed 12-25 straddles it and will be wrong for both ends.
+- **Phil Burt's and Andy Pruitt's books were not accessible** and contribute
+  nothing beyond the 1994 Holmes/Pruitt/Whalen paper. Checking road
+  `torsoAngle`, `elbowAngle` and the MTB rows against them in print is the
+  highest-value follow-up.
+- The app samples at 6 o'clock while Ferrer-Roca's protocol measures with the
+  crank aligned with the seat tube, so app readings run ~1-3 degrees more flexed
+  than that source. Within noise, but systematic.
