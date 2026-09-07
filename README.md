@@ -80,5 +80,9 @@ Bike fit interacts with injury; if something hurts, see a physio or a fitter.
 
 ## License
 
-Not yet licensed — see the repository owner. Note that ML Kit itself ships under
-Google's own terms, separate from whatever license this code carries.
+[Apache License 2.0](LICENSE). Copyright 2026 Daniel Kofler.
+
+Dependencies are separately licensed and permissive: `camera` under BSD-3-Clause
+(The Flutter Authors), `google_mlkit_pose_detection`, `permission_handler` and
+`image` under MIT. Google's ML Kit binaries ship under Google's own terms,
+independent of this project's license.
