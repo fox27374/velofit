@@ -42,7 +42,7 @@ class FitTablesScreen extends StatelessWidget {
 
   static const _rows = [
     ('Knee flexion (bottom of stroke)', FitTargets.kneeFlexionMin, FitTargets.kneeFlexionMax),
-    ('Hip angle', FitTargets.hipAngleMin, FitTargets.hipAngleMax),
+    ('Hip angle (bottom of stroke)', FitTargets.hipAngleMin, FitTargets.hipAngleMax),
     ('Torso angle (from horizontal)', FitTargets.torsoAngleMin, FitTargets.torsoAngleMax),
     ('Elbow angle', FitTargets.elbowAngleMin, FitTargets.elbowAngleMax),
   ];

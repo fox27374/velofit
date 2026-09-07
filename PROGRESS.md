@@ -7,9 +7,9 @@ adjustment recommendations, no accounts/history/cloud — see non-goals below.
 ## State as of 2026-09-03
 
 Feature-complete first pass, **still not run on a real device or emulator**.
-`flutter analyze` / `flutter test` (41 tests) / `flutter build apk --debug`
-all pass, verified directly (not just taken on an agent's word). Five real
-bugs have now been found by manual code review across two passes and are
+`flutter analyze` / `flutter test` (44 tests) / `flutter build apk --debug`
+all pass, verified directly (not just taken on an agent's word). Six real
+bugs have now been found by manual code review across three passes and are
 fixed — see "Known-fixed bugs" below, worth re-checking those spots first if
 something looks wrong on-device.
 
@@ -134,27 +134,27 @@ button on the calibration app bar, where it actually matters.
    are per metric, and a metric with zero valid cycles returns
    `unavailableMeasurement` (`double.nan`).
 
-All five were caught by manual code review after an agent claimed completion
+6. **`hipAngle` target was the wrong end of the pedal stroke.** `FitTargets`
+   set 40-50°, but essentially every published hip-angle target is the
+   *minimum*, at top of stroke, while `pedaling_screen.dart` samples at
+   *bottom* of stroke — which gives the maximum, roughly 45-50° larger. A
+   40-50° target at BDC is geometrically unreachable, so the app scored every
+   rider's hip angle red regardless of how they sat. Fixed: 90-105°, sourced in
+   `doc/fit-targets-research.md`, with the sampling point spelled out in the
+   doc comment and in the Fitting Tables label.
+
+   Guarded by `test/angle_utils_test.dart`, which reconstructs a normal BDC
+   position (torso 45° above horizontal, thigh 57° below) from landmark
+   coordinates, asserts it measures ~102°, and asserts that value scores as
+   good. Any future edit reintroducing a top-of-stroke range fails there.
+
+All six were caught by manual code review after an agent claimed completion
 and its own tests passed — `flutter test` passing does not mean the logic is
 right, worth remembering for the next round too.
 
 ## Known-OPEN bugs
 
-1. **`hipAngle` target is the wrong end of the pedal stroke.** `FitTargets`
-   sets 40-50°, but essentially every published hip-angle target is the
-   *minimum*, at top of stroke, while `pedaling_screen.dart` samples at
-   *bottom* of stroke — which gives the maximum, roughly 45-50° larger. The
-   sourced BDC range is 90-105° (`doc/fit-targets-research.md` §0b), confirmed
-   geometrically: torso 45° above horizontal and thigh ~57° below horizontal at
-   BDC give an interior angle of ~102°.
-
-   **A 40-50° target at BDC is geometrically unreachable, so the app currently
-   scores every rider's hip angle red regardless of how they sit.** Not yet
-   fixed. It predates the bike-type-profile work and should be fixed
-   independently of it — the profile feature is gated on a numbers sign-off,
-   this is not.
-
-2. **KOPS is measured to the wrong landmark for the published figures.**
+1. **KOPS is measured to the wrong landmark for the published figures.**
    Published KOPS values in mm are to the tibial tuberosity; the app uses the
    pose knee-joint centre, ~30-40mm posterior. App readings therefore sit a
    systematic 20-40mm negative against a fitter's plumb line — an offset wider

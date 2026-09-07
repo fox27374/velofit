@@ -194,7 +194,7 @@ Confirmed by the research:
   40-50; `elbowAngle 150-165` should be 150-170.
 - **Tri KOPS is positive** — unanimous across sources on the sign.
 
-## Finding 1: `hipAngle 40-50` is a live bug in shipped code
+## Finding 1: `hipAngle 40-50` was a live bug in shipped code — FIXED
 
 Not a bad range — the wrong end of the pedal stroke. Effectively every published
 hip-angle target is the *minimum*, at top of stroke. The app samples at bottom
@@ -205,9 +205,16 @@ horizontal (hip->shoulder direction (0.707, 0.707)) and the thigh ~57 degrees
 below horizontal at BDC (hip->knee direction (0.545, -0.839)), the interior
 angle is acos(-0.208) ~ 102 degrees. The sourced BDC range is 90-105.
 
-**A 40-50 target at BDC is geometrically unreachable, so the current app scores
-every rider's hip angle red no matter how they sit.** This predates the profile
-work and is worth fixing on its own, ahead of and independently of this feature.
+**A 40-50 target at BDC is geometrically unreachable, so the app scored every
+rider's hip angle red no matter how they sat.**
+
+Fixed independently of this feature, ahead of the numbers sign-off, since the
+old value was not merely doubtful but impossible. `FitTargets.hipAngle` is now
+90-105 with the sampling point documented, and
+`test/angle_utils_test.dart` guards it by reconstruction. The remaining road
+placeholders (`kneeFlexion 25-35`, `torsoAngle 45-55`, `elbowAngle 150-165`)
+are still unchanged and still gated on sign-off — they are wrong-ish, not
+impossible.
 
 ## Finding 2: KOPS landmark mismatch, ~20-40 mm systematic
 

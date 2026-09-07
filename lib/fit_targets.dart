@@ -4,9 +4,17 @@ class FitTargets {
   static const double kneeFlexionMin = 25;
   static const double kneeFlexionMax = 35;
 
-  /// Hip angle: ~45 degrees.
-  static const double hipAngleMin = 40;
-  static const double hipAngleMax = 50;
+  /// Hip angle (shoulder-hip-knee interior) at bottom-of-stroke: 90-105 degrees.
+  ///
+  /// Measured at the BOTTOM of the stroke, which is where the hip is most OPEN,
+  /// so this is the maximum hip angle over the pedal cycle. Published hip-angle
+  /// targets are almost always the minimum, at the TOP of the stroke, and are
+  /// roughly 45-50 degrees smaller — do not compare the two.
+  ///
+  /// Source: Velogic Studio road metrics, the only located source publishing a
+  /// max (bottom-of-stroke) hip angle. See doc/fit-targets-research.md.
+  static const double hipAngleMin = 90;
+  static const double hipAngleMax = 105;
 
   /// Torso angle from horizontal: 45–55 degrees.
   static const double torsoAngleMin = 45;

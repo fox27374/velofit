@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:velofit/angle_utils.dart';
+import 'package:velofit/fit_targets.dart';
 
 void main() {
   group('interiorAngle', () {
@@ -331,6 +332,46 @@ void main() {
         kops: unavailableMeasurement,
       );
       expect(problems, isEmpty);
+    });
+  });
+
+  group('hip angle target is reachable at bottom of stroke', () {
+    // Landmark coordinates in image space, so y grows DOWNWARD. Hip at the
+    // origin, a 550mm torso 45 degrees above horizontal, and a 400mm thigh 57
+    // degrees below horizontal — a normal road position at bottom of stroke.
+    const hip = (x: 0.0, y: 0.0);
+    const shoulder = (x: 389.0, y: -389.0);
+    const knee = (x: 218.0, y: 336.0);
+
+    test('a normal road position measures about 102 degrees', () {
+      expect(hipAngle(shoulder, hip, knee), closeTo(102, 2));
+    });
+
+    test('and that position scores as good', () {
+      // The bug this guards: the target was 40-50, a TOP-of-stroke number.
+      // Nothing measurable at bottom of stroke can reach it, so every rider
+      // scored red. Any future edit that reintroduces a top-of-stroke range
+      // fails here.
+      final measured = hipAngle(shoulder, hip, knee);
+      expect(
+        FitTargets.isGood(measured, FitTargets.hipAngleMin, FitTargets.hipAngleMax),
+        isTrue,
+        reason: 'hip target $FitTargets.hipAngleMin-${FitTargets.hipAngleMax} '
+            'excludes a normal BDC hip angle of $measured',
+      );
+    });
+
+    test('a too-upright rider reads high, and is flagged rather than absurd', () {
+      // Torso 60 degrees above horizontal, same thigh. This SHOULD fail the
+      // road-endurance target — sitting up opens the hip past it — but it must
+      // still be a physically sane number, not a broken one.
+      const uprightShoulder = (x: 275.0, y: -476.0);
+      final measured = hipAngle(uprightShoulder, hip, knee);
+      expect(measured, closeTo(117, 2));
+      expect(
+        FitTargets.isGood(measured, FitTargets.hipAngleMin, FitTargets.hipAngleMax),
+        isFalse,
+      );
     });
   });
 }
