@@ -162,6 +162,26 @@ right, worth remembering for the next round too.
    is reported without a target; it becomes a real problem the moment KOPS is
    scored. See `doc/bike-type-profiles.md`, Finding 2.
 
+2. **The APK ships permissions the README's privacy claim disowns.** The
+   merged manifest declares `INTERNET`, `ACCESS_NETWORK_STATE`, `WAKE_LOCK`,
+   `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERVICE`. None are declared by
+   this app — they arrive transitively via ML Kit's WorkManager dependency
+   (the same one whose Room database R8 breaks). The README opens with "Runs
+   entirely on-device. No accounts, no cloud, no data leaves the phone", so
+   shipping `INTERNET` contradicts the headline claim even though nothing
+   sends anything. Re-check with
+   `aapt2 dump badging <apk> | grep uses-permission` after any dependency
+   change.
+
+   `READ_EXTERNAL_STORAGE` is declared by our own manifest and looks
+   vestigial — camera stills land in app-private storage, which needs no
+   permission.
+
+   Not yet acted on. `RECORD_AUDIO` was removed this way already
+   (`tools:node="remove"` in `android/app/src/main/AndroidManifest.xml`), so
+   the mechanism is proven; `INTERNET` additionally needs confirming that the
+   bundled pose model never reaches out before it can be stripped.
+
 ## Plausibility guards
 
 `calibrationProblem()` and `measurementProblems()` in `lib/angle_utils.dart`
