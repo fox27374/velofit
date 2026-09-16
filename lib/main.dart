@@ -63,7 +63,6 @@ class MyApp extends StatelessWidget {
                 torsoAngle: args['torsoAngle'] ?? 0,
                 elbowAngle: args['elbowAngle'] ?? 0,
                 pedalForwardKneeLandmark: args['pedalForwardKneeLandmark'],
-                pedalForwardImageSize: args['pedalForwardImageSize'],
               ),
             );
           case '/results':

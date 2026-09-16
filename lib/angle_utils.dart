@@ -185,10 +185,15 @@ const double unavailableMeasurement = double.nan;
 /// Checks the four calibration taps before they become a scale factor.
 ///
 /// Order is [top of wheel, bottom of wheel, bottom bracket, saddle top], in
-/// widget coordinates, so y grows downward. Returns a problem to show the
-/// user, or null if the taps are usable. A bad tap here silently corrupts
-/// every millimetre figure downstream, so it is worth blocking on.
-String? calibrationProblem(List<Offset> taps, double wheelDiameterMm) {
+/// photo-pixel coordinates (or widget coordinates for backwards compatibility),
+/// so y grows downward. Returns a problem to show the user, or null if the taps
+/// are usable. A bad tap here silently corrupts every millimetre figure
+/// downstream, so it is worth blocking on.
+String? calibrationProblem(
+  List<Offset> taps,
+  double wheelDiameterMm, {
+  double minWheelPixels = 50,
+}) {
   if (taps.length != 4) return 'Tap all four points.';
 
   if (wheelDiameterMm < 300 || wheelDiameterMm > 1000) {
@@ -198,7 +203,7 @@ String? calibrationProblem(List<Offset> taps, double wheelDiameterMm) {
   }
 
   final wheelPixels = (taps[1].dy - taps[0].dy).abs();
-  if (wheelPixels < 50) {
+  if (wheelPixels < minWheelPixels) {
     return 'The two wheel taps are almost on top of each other. Tap the top '
         'of the front wheel, then the bottom.';
   }

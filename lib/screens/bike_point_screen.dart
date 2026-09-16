@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import '../angle_utils.dart';
+import '../widgets/point_picker.dart';
 
 class BikePointScreen extends StatefulWidget {
   final double wheelDiameter;
@@ -14,7 +16,6 @@ class BikePointScreen extends StatefulWidget {
   final double torsoAngle;
   final double elbowAngle;
   final PoseLandmark? pedalForwardKneeLandmark;
-  final Size? pedalForwardImageSize;
 
   const BikePointScreen({
     super.key,
@@ -28,7 +29,6 @@ class BikePointScreen extends StatefulWidget {
     required this.torsoAngle,
     required this.elbowAngle,
     required this.pedalForwardKneeLandmark,
-    required this.pedalForwardImageSize,
   });
 
   @override
@@ -37,36 +37,52 @@ class BikePointScreen extends StatefulWidget {
 
 class _BikePointScreenState extends State<BikePointScreen> {
   Offset? _pedalTapPoint;
-  Size? _imageWidgetSize;
+  Size? _pedalForwardImageSize;
 
-  void _handleImageTap(Offset position) {
-    setState(() => _pedalTapPoint = position);
+  @override
+  void initState() {
+    super.initState();
+    _loadImageSize();
+  }
+
+  Future<void> _loadImageSize() async {
+    try {
+      final bytes = await File(widget.pedalForwardImage).readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final imageSize = Size(
+        frame.image.width.toDouble(),
+        frame.image.height.toDouble(),
+      );
+      frame.image.dispose();
+
+      if (mounted) {
+        setState(() {
+          _pedalForwardImageSize = imageSize;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading image size: $e');
+    }
   }
 
   void _clearTap() => setState(() => _pedalTapPoint = null);
 
   void _proceed() {
-    if (_pedalTapPoint == null || _imageWidgetSize == null) return;
+    if (_pedalTapPoint == null) return;
 
     // No knee landmark means no KOPS — report it as unmeasured rather than 0.
     double kopsOffset = unavailableMeasurement;
-    if (widget.pedalForwardKneeLandmark != null &&
-        widget.pedalForwardImageSize != null) {
-      // Convert knee landmark from photo-pixel space to widget-pixel space
+    if (widget.pedalForwardKneeLandmark != null) {
+      // Knee landmark is already in photo-pixel space
       final kneeLandmark = widget.pedalForwardKneeLandmark!;
-      final kneePhotoPixel = Offset(kneeLandmark.x, kneeLandmark.y);
-      final kneeWidgetPixel = photoPixelToWidget(
-        kneePhotoPixel,
-        widget.pedalForwardImageSize!,
-        _imageWidgetSize!,
-      );
-
       // Calculate KOPS: horizontal distance between knee and tapped pedal spindle
-      final pixelOffset = (_pedalTapPoint!.dx - kneeWidgetPixel.dx).abs();
+      final pixelOffset = (_pedalTapPoint!.dx - kneeLandmark.x).abs();
       kopsOffset = pixelsToMm(pixelOffset, widget.pixelScale);
     }
 
     // Calculate saddle height: pixel distance between tapped BB and saddle-top (from calibration)
+    // Both are in photo-pixel space
     final saddleHeightPixels =
         (widget.saddlePoint.dy - widget.bbPoint.dy).abs();
     final saddleHeight = pixelsToMm(saddleHeightPixels, widget.pixelScale);
@@ -90,91 +106,58 @@ class _BikePointScreenState extends State<BikePointScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Bike Point Tap')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Stack(
-            children: [
-              Center(
-                child: SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  child: Builder(
-                    builder: (context) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        final renderBox = context.findRenderObject() as RenderBox?;
-                        if (renderBox != null && _imageWidgetSize == null) {
-                          setState(() {
-                            _imageWidgetSize =
-                                renderBox.size;
-                          });
-                        }
-                      });
-                      return Image.file(
-                        File(widget.pedalForwardImage),
-                        fit: BoxFit.contain,
-                      );
-                    },
+      body: _pedalForwardImageSize == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                Positioned.fill(
+                  child: PointPicker(
+                    imageFile: File(widget.pedalForwardImage),
+                    photoSize: _pedalForwardImageSize!,
+                    points: _pedalTapPoint != null ? [_pedalTapPoint!] : [],
+                    onChanged: (points) => setState(() {
+                      _pedalTapPoint = points.isNotEmpty ? points[0] : null;
+                    }),
+                    maxPoints: 1,
                   ),
                 ),
-              ),
-              Positioned.fill(
-                child: GestureDetector(
-                  onTapDown: (details) =>
-                      _handleImageTap(details.localPosition),
-                ),
-              ),
-              Positioned(
-                top: 16,
-                left: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  color: Colors.black54,
-                  child: Text(
-                    _pedalTapPoint == null
-                        ? 'Tap the pedal spindle center'
-                        : 'Tap again to move the marker, then continue.',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-              if (_pedalTapPoint != null)
                 Positioned(
-                  left: _pedalTapPoint!.dx - 8,
-                  top: _pedalTapPoint!.dy - 8,
+                  top: 16,
+                  left: 16,
+                  right: 16,
                   child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.green, width: 2),
-                      shape: BoxShape.circle,
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.black54,
+                    child: Text(
+                      _pedalTapPoint == null
+                          ? 'Tap the pedal spindle center'
+                          : 'Tap again to move the marker, then continue.',
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
-              Positioned(
-                bottom: 16,
-                left: 16,
-                right: 16,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _pedalTapPoint == null ? null : _clearTap,
-                      icon: const Icon(Icons.undo),
-                      label: const Text('Clear'),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _pedalTapPoint == null ? null : _proceed,
-                      icon: const Icon(Icons.check),
-                      label: const Text('Continue'),
-                    ),
-                  ],
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _pedalTapPoint == null ? null : _clearTap,
+                        icon: const Icon(Icons.undo),
+                        label: const Text('Clear'),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: _pedalTapPoint == null ? null : _proceed,
+                        icon: const Icon(Icons.check),
+                        label: const Text('Continue'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
+              ],
+            ),
     );
   }
 }

@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../angle_utils.dart';
+import '../widgets/camera_fill.dart';
+import '../widgets/point_picker.dart';
 
 class CalibrationScreen extends StatefulWidget {
   final double wheelDiameter;
@@ -17,7 +20,9 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
   late CameraController _cameraController;
   bool _cameraReady = false;
   XFile? _capturedImage;
+  Size? _photoSize;
   List<Offset> _tappedPoints = [];
+  int? _activeIndex;
   final List<String> _labels = [
     'Top of front wheel',
     'Bottom of front wheel',
@@ -58,8 +63,20 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
     if (!_cameraReady) return;
     try {
       final image = await _cameraController.takePicture();
+
+      // Decode photo to get pixel dimensions
+      final bytes = await image.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final photoSize = Size(
+        frame.image.width.toDouble(),
+        frame.image.height.toDouble(),
+      );
+      frame.image.dispose();
+
       setState(() {
         _capturedImage = image;
+        _photoSize = photoSize;
         _tappedPoints = [];
       });
     } catch (e) {
@@ -67,9 +84,19 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
     }
   }
 
-  void _handleImageTap(Offset position) {
-    if (_tappedPoints.length >= 4) return;
-    setState(() => _tappedPoints.add(position));
+  /// A point is created on touch-down, so while one is being positioned the
+  /// plain tap count already names the next point. Name the one under the
+  /// finger instead.
+  String _bannerText() {
+    final active = _activeIndex;
+    if (active != null) {
+      return 'Point ${active + 1}: ${_labels[active]} — drag to adjust';
+    }
+    if (_tappedPoints.length < 4) {
+      return 'Tap point ${_tappedPoints.length + 1}: '
+          '${_labels[_tappedPoints.length]}';
+    }
+    return 'All four points placed. Check them, then continue.';
   }
 
   void _undoTap() {
@@ -80,14 +107,20 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
   void _retakePhoto() {
     setState(() {
       _capturedImage = null;
+      _photoSize = null;
       _tappedPoints = [];
+      _activeIndex = null;
     });
   }
 
   void _proceed() {
-    if (_capturedImage == null) return;
+    if (_capturedImage == null || _photoSize == null) return;
 
-    final problem = calibrationProblem(_tappedPoints, widget.wheelDiameter);
+    final problem = calibrationProblem(
+      _tappedPoints,
+      widget.wheelDiameter,
+      minWheelPixels: _photoSize!.shortestSide * 0.05,
+    );
     if (problem != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(problem), duration: const Duration(seconds: 6)),
@@ -132,7 +165,7 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
           ? (_cameraReady
               ? Stack(
                   children: [
-                    CameraPreview(_cameraController),
+                    Positioned.fill(child: FillPreview(_cameraController)),
                     Positioned(
                       bottom: 16,
                       left: 0,
@@ -152,12 +185,21 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
   }
 
   Widget _buildCalibrationTapScreen() {
+    if (_photoSize == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Stack(
       children: [
-        Image.file(File(_capturedImage!.path), fit: BoxFit.contain),
         Positioned.fill(
-          child: GestureDetector(
-            onTapDown: (details) => _handleImageTap(details.localPosition),
+          child: PointPicker(
+            imageFile: File(_capturedImage!.path),
+            photoSize: _photoSize!,
+            points: _tappedPoints,
+            onChanged: (points) => setState(() => _tappedPoints = points),
+            maxPoints: 4,
+            onActiveIndexChanged: (index) =>
+                setState(() => _activeIndex = index),
           ),
         ),
         Positioned(
@@ -168,37 +210,11 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
             padding: const EdgeInsets.all(8),
             color: Colors.black54,
             child: Text(
-              _tappedPoints.length < 4
-                  ? 'Tap point ${_tappedPoints.length + 1}: '
-                      '${_labels[_tappedPoints.length]}'
-                  : 'All four points placed. Check them, then continue.',
+              _bannerText(),
               style: const TextStyle(color: Colors.white),
             ),
           ),
         ),
-        ..._tappedPoints.asMap().entries.map(
-              (e) => Positioned(
-                left: e.value.dx - 8,
-                top: e.value.dy - 8,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red, width: 2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '${e.key + 1}',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
         Positioned(
           bottom: 16,
           left: 16,
