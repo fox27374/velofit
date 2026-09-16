@@ -1,9 +1,10 @@
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import '../angle_utils.dart';
+import '../widgets/camera_fill.dart';
 
 class PedalingScreen extends StatefulWidget {
   final double wheelDiameter;
@@ -28,10 +29,18 @@ class PedalingScreen extends StatefulWidget {
 class _PedalingScreenState extends State<PedalingScreen> {
   late CameraController _cameraController;
   late PoseDetector _poseDetector;
+  CameraDescription? _camera;
   bool _cameraReady = false;
   int _cyclesDetected = 0;
   final List<double> _ankleYValues = [];
   final List<double> _ankleXValues = [];
+
+  /// A peak is only confirmed [_peakWindow] frames after it happened, so the
+  /// pose at the bottom of the stroke has to be kept until then.
+  static const int _peakWindow = 3;
+  final List<List<PoseLandmark>> _recentPoses = [];
+
+  int _posesSeen = 0;
 
   // Buffers for averaging angles across bottom-of-stroke cycles
   final List<List<PoseLandmark>> _cycleBottomPoses = [];
@@ -40,7 +49,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
   // For pedal-forward JPEG and its pose detection
   String? _pedalForwardImagePath;
   PoseLandmark? _pedalForwardKneeLandmark;
-  Size? _pedalForwardImageSize;
 
   bool _processingFrame = false;
   int _frameCount = 0;
@@ -58,10 +66,15 @@ class _PedalingScreenState extends State<PedalingScreen> {
     final cameras = await availableCameras();
     if (cameras.isEmpty) return;
 
+    _camera = cameras[0];
     _cameraController = CameraController(
       cameras[0],
       ResolutionPreset.high,
       enableAudio: false,
+      // Without this the stream is 3-plane YUV_420_888 and the NV21 buffer
+      // handed to ML Kit below is two thirds short, so nothing is ever
+      // detected. CameraX still reports the format as yuv420 either way.
+      imageFormatGroup: ImageFormatGroup.nv21,
     );
 
     try {
@@ -110,12 +123,22 @@ class _PedalingScreenState extends State<PedalingScreen> {
         }
       }
 
+      _posesSeen++;
+      if (_frameCount % 30 == 0) {
+        debugPrint('[velofit] frames=$_frameCount poses=$_posesSeen '
+            'samples=${_ankleYValues.length} cycles=$_cyclesDetected');
+      }
+
       if (ankle != null && mounted) {
         final a = ankle;
         setState(() {
           _ankleYValues.add(a.y);
           _ankleXValues.add(a.x);
-          _updateCycleCount(landmarksList);
+          _recentPoses.add(landmarksList);
+          if (_recentPoses.length > _peakWindow + 1) {
+            _recentPoses.removeAt(0);
+          }
+          _updateCycleCount();
         });
       }
     } catch (e) {
@@ -125,16 +148,19 @@ class _PedalingScreenState extends State<PedalingScreen> {
 
   InputImage? _createInputImage(CameraImage image) {
     try {
-      final plane = image.planes[0];
-      final bytes = Uint8List.fromList(plane.bytes);
-      final width = image.width;
-      final height = image.height;
+      final camera = _camera;
+      if (camera == null) return null;
+
+      final builder = BytesBuilder(copy: false);
+      for (final plane in image.planes) {
+        builder.add(plane.bytes);
+      }
 
       return InputImage.fromBytes(
-        bytes: bytes,
+        bytes: builder.takeBytes(),
         metadata: InputImageMetadata(
-          size: Size(width.toDouble(), height.toDouble()),
-          rotation: InputImageRotation.rotation0deg,
+          size: Size(image.width.toDouble(), image.height.toDouble()),
+          rotation: _inputImageRotation(camera),
           format: InputImageFormat.nv21,
           bytesPerRow: image.planes[0].bytesPerRow,
         ),
@@ -145,18 +171,51 @@ class _PedalingScreenState extends State<PedalingScreen> {
     }
   }
 
-  void _updateCycleCount(List<PoseLandmark> currentPose) {
-    if (_ankleYValues.length < 15) return;
+  static const Map<DeviceOrientation, int> _orientationDegrees = {
+    DeviceOrientation.portraitUp: 0,
+    DeviceOrientation.landscapeLeft: 90,
+    DeviceOrientation.portraitDown: 180,
+    DeviceOrientation.landscapeRight: 270,
+  };
 
-    // Check for y-peak (bottom-of-stroke)
-    final yPeakWindow = 3;
-    if (isPeak(_ankleYValues, _ankleYValues.length - 1, yPeakWindow)) {
+  /// The rotation that brings the sensor buffer upright. Hardcoding 0 here
+  /// hands ML Kit a sideways rider, and "down" stops being +y, which the
+  /// bottom-of-stroke detection depends on.
+  InputImageRotation _inputImageRotation(CameraDescription camera) {
+    final compensation =
+        _orientationDegrees[_cameraController.value.deviceOrientation] ?? 0;
+    final degrees = camera.lensDirection == CameraLensDirection.front
+        ? (camera.sensorOrientation + compensation) % 360
+        : (camera.sensorOrientation - compensation + 360) % 360;
+
+    switch (degrees) {
+      case 90:
+        return InputImageRotation.rotation90deg;
+      case 180:
+        return InputImageRotation.rotation180deg;
+      case 270:
+        return InputImageRotation.rotation270deg;
+      default:
+        return InputImageRotation.rotation0deg;
+    }
+  }
+
+  void _updateCycleCount() {
+    if (_ankleYValues.length < 15) return;
+    if (_recentPoses.length < _peakWindow + 1) return;
+
+    // Check for y-peak (bottom-of-stroke). isPeak needs _peakWindow samples on
+    // BOTH sides, so the newest index it can ever confirm is _peakWindow back
+    // from the end — passing the last index made it return false every time.
+    final yPeakIndex = _ankleYValues.length - 1 - _peakWindow;
+    if (isPeak(_ankleYValues, yPeakIndex, _peakWindow)) {
       if (_ankleXValues.length >= 10) {
         final xPeakWindow = 3;
         for (int i = _ankleXValues.length - 10; i < _ankleXValues.length; i++) {
           if (i >= 0 && i < _ankleXValues.length && isPeak(_ankleXValues, i, xPeakWindow)) {
-            // Capture this cycle's pose at the bottom-of-stroke instant
-            _cycleBottomPoses.add(currentPose);
+            // The pose from the peak frame, not the current one _peakWindow
+            // frames later — 200ms off at 15fps skews every angle.
+            _cycleBottomPoses.add(_recentPoses.first);
             if (_cycleBottomPoses.length > _maxCycleBuffer) {
               _cycleBottomPoses.removeAt(0);
             }
@@ -179,16 +238,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
       await _cameraController.stopImageStream();
       final file = await _cameraController.takePicture();
 
-      // Get image dimensions by decoding the JPEG
-      final bytes = await file.readAsBytes();
-      final codec = await ui.instantiateImageCodec(bytes);
-      final frame = await codec.getNextFrame();
-      final imageSize = Size(
-        frame.image.width.toDouble(),
-        frame.image.height.toDouble(),
-      );
-      frame.image.dispose();
-
       // Run pose detection on the pedal-forward JPEG
       final inputImage = InputImage.fromFilePath(file.path);
       final poses = await _poseDetector.processImage(inputImage);
@@ -208,7 +257,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
         setState(() {
           _pedalForwardImagePath = file.path;
           _pedalForwardKneeLandmark = kneeLandmark;
-          _pedalForwardImageSize = imageSize;
         });
       }
     } catch (e) {
@@ -314,7 +362,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
         'torsoAngle': averagedAngles['torsoAngle'] ?? 0,
         'elbowAngle': averagedAngles['elbowAngle'] ?? 0,
         'pedalForwardKneeLandmark': _pedalForwardKneeLandmark,
-        'pedalForwardImageSize': _pedalForwardImageSize,
       },
     );
   }
@@ -333,7 +380,7 @@ class _PedalingScreenState extends State<PedalingScreen> {
       body: _cameraReady
           ? Stack(
               children: [
-                CameraPreview(_cameraController),
+                Positioned.fill(child: FillPreview(_cameraController)),
                 Positioned(
                   top: 16,
                   left: 16,

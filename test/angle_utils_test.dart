@@ -166,6 +166,22 @@ void main() {
       expect(isPeak(samples, 2, 2), true);
       expect(isPeak(samples, 6, 2), true);
     });
+
+    // A peak needs `window` samples on BOTH sides to be confirmed, so the
+    // newest sample can never be one. The pedaling screen asked about the
+    // newest index and so counted zero cycles forever; callers must lag the
+    // candidate by `window`.
+    test('newest sample is never a peak, however peaked it looks', () {
+      final rising = [1.0, 2.0, 3.0, 4.0, 5.0, 9.0];
+      expect(isPeak(rising, rising.length - 1, 3), false);
+      expect(isPeak(rising, rising.length - 1, 1), false);
+    });
+
+    test('a peak is confirmed once it is window samples back', () {
+      // Bottom of stroke at index 4, then three more frames arrive.
+      final samples = [1.0, 2.0, 3.0, 4.0, 9.0, 4.0, 3.0, 2.0];
+      expect(isPeak(samples, samples.length - 1 - 3, 3), true);
+    });
   });
 
   group('photoPixelToWidget', () {
