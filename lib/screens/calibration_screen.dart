@@ -41,6 +41,9 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
     _cameraController = CameraController(
       cameras[0],
       ResolutionPreset.high,
+      // Stills only. Without this the controller defaults to audio on and
+      // Android prompts for the microphone, which this app never uses.
+      enableAudio: false,
     );
 
     try {
