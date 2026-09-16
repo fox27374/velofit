@@ -34,6 +34,15 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+
+            // ML Kit drags in WorkManager, which loads Room's generated
+            // WorkDatabase_Impl by class name. R8 renames it, so a minified
+            // build dies before Flutter starts with "Failed to create an
+            // instance of androidx.work.impl.WorkDatabase".
+            // ponytail: minification off wholesale; write R8 keep rules for
+            // WorkManager, Room and ML Kit if APK size ever matters.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
