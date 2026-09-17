@@ -9,6 +9,12 @@ class BikePointScreen extends StatefulWidget {
   final double wheelDiameter;
   final double pixelScale;
   final String pedalForwardImage;
+  final double medianKneeX;
+  final double kneeXSpreadMm;
+  final double calibrationPhotoWidth;
+  final double calibrationPhotoHeight;
+  final double streamImageWidth;
+  final double streamImageHeight;
   final Offset bbPoint;
   final Offset saddlePoint;
   final double kneeFlexion;
@@ -22,6 +28,12 @@ class BikePointScreen extends StatefulWidget {
     required this.wheelDiameter,
     required this.pixelScale,
     required this.pedalForwardImage,
+    required this.medianKneeX,
+    required this.kneeXSpreadMm,
+    required this.calibrationPhotoWidth,
+    required this.calibrationPhotoHeight,
+    required this.streamImageWidth,
+    required this.streamImageHeight,
     required this.bbPoint,
     required this.saddlePoint,
     required this.kneeFlexion,
@@ -71,15 +83,9 @@ class _BikePointScreenState extends State<BikePointScreen> {
   void _proceed() {
     if (_pedalTapPoint == null) return;
 
-    // No knee landmark means no KOPS — report it as unmeasured rather than 0.
-    double kopsOffset = unavailableMeasurement;
-    if (widget.pedalForwardKneeLandmark != null) {
-      // Knee landmark is already in photo-pixel space
-      final kneeLandmark = widget.pedalForwardKneeLandmark!;
-      // Calculate KOPS: horizontal distance between knee and tapped pedal spindle
-      final pixelOffset = (_pedalTapPoint!.dx - kneeLandmark.x).abs();
-      kopsOffset = pixelsToMm(pixelOffset, widget.pixelScale);
-    }
+    // Calculate KOPS: horizontal distance between median knee-x and tapped pedal spindle
+    final pixelOffset = (_pedalTapPoint!.dx - widget.medianKneeX).abs();
+    final kopsOffset = pixelsToMm(pixelOffset, widget.pixelScale);
 
     // Calculate saddle height: pixel distance between tapped BB and saddle-top (from calibration)
     // Both are in photo-pixel space
@@ -98,6 +104,11 @@ class _BikePointScreenState extends State<BikePointScreen> {
         'elbowAngle': widget.elbowAngle,
         'kopsOffset': kopsOffset,
         'saddleHeight': saddleHeight,
+        'kneeXSpreadMm': widget.kneeXSpreadMm,
+        'calibrationPhotoWidth': widget.calibrationPhotoWidth,
+        'calibrationPhotoHeight': widget.calibrationPhotoHeight,
+        'streamImageWidth': widget.streamImageWidth,
+        'streamImageHeight': widget.streamImageHeight,
       },
     );
   }

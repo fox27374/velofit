@@ -6,9 +6,11 @@ saddle height, then compares them against target ranges.
 
 Runs entirely on-device. No accounts, no cloud, no data leaves the phone.
 
-> **Status: pre-alpha. Never run on a physical device.** It analyzes, builds and
-> passes its tests, but no measurement it produces has been checked against a
-> tape measure. Do not make changes to your bike based on its numbers yet.
+> **Status: pre-alpha.** It now runs on a physical Android device and completes
+> the capture flow, but no measurement it produces has been checked against a
+> tape measure, and every threshold in the cycle-detection gate is reasoned
+> rather than measured. Do not make changes to your bike based on its numbers
+> yet.
 
 ## How it works
 
@@ -16,10 +18,12 @@ Runs entirely on-device. No accounts, no cloud, no data leaves the phone.
 2. **Calibration** — take one still photo of the bike and tap four points: top
    and bottom of the front wheel, the bottom bracket, the saddle top. The wheel
    taps give a millimetre-per-pixel scale for everything that follows.
-3. **Pedaling** — the live camera stream runs pose detection at ~15 fps,
-   detecting each bottom-of-stroke instant from the ankle's motion and
-   snapshotting the pose. After five cycles it captures a still at the
-   pedal-forward instant.
+3. **Pedaling** — the live camera stream runs pose detection at full frame
+   rate, tracking the ankle's motion. A cadence validity gate arms once
+   pedaling is detected as steady (40–110 rpm cadence, ±20% consistent
+   intervals, ≥150 mm ankle vertical travel). Once armed, each bottom-of-stroke
+   cycle is confirmed by ankle-X extremum, and that frame is captured and
+   encoded to JPEG on a background isolate. Five valid cycles are kept.
 4. **Bike point** — tap the pedal spindle on that still, for the KOPS offset.
 5. **Results** — four joint angles averaged across cycles, versus target ranges,
    plus KOPS and saddle height in mm.
@@ -34,8 +38,10 @@ under **How to Measure**; in short:
 
 - Phone on a tripod, 2.5–3 m to the side, lens at bottom-bracket height.
 - Square to the bike, phone level. No tilt, no zoom.
-- Film the **non-drive (left) side**, with the **front wheel to the right** of
-  frame. The app relies on this to tell pedal-forward from pedal-back.
+- Film the **non-drive (left) side**. Framing the **front wheel to the right**
+  is the documented setup, but the app no longer depends on it: which
+  direction counts as pedal-forward is derived from your calibration taps, by
+  comparing the front wheel's x against the bottom bracket's.
 - **Do not move the phone between the calibration photo and the pedaling
   capture.** The scale comes from that photo and is reused for every millimetre
   figure afterwards.

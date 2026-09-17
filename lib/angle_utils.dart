@@ -1,6 +1,31 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+// Constants for pedaling capture validity gate.
+// These are reasoned and unvalidated against real captures.
+
+/// Minimum cadence in RPM. Below this, the rider is pedaling too slowly.
+const int minCadenceRpm = 40;
+
+/// Maximum cadence in RPM. Above this, pedaling is unrealistically fast.
+const int maxCadenceRpm = 110;
+
+/// Tolerance for interval consistency: intervals must be within ±20% of
+/// the running median to count as steady pedaling.
+const double intervalConsistencyTolerance = 0.20;
+
+/// Number of consecutive valid intervals required to arm the gate and
+/// start counting cycles (requires K=3 intervals, which involves 4 peaks).
+const int intervalsBeforeArming = 3;
+
+/// Minimum ankle vertical travel per stroke in millimeters. Below this,
+/// the rider is not pedaling with sufficient amplitude.
+const double minAnkleVerticalTravelMm = 150.0;
+
+/// Maximum spread in knee-x across 5 kept frames in millimeters before
+/// warning that knee detection may be unreliable.
+const double maxKneeXSpreadMm = 15.0;
+
 /// Compute interior angle at vertex given three points.
 /// Returns angle in degrees [0, 180].
 double interiorAngle(
@@ -103,6 +128,70 @@ bool isPeak(List<double> samples, int index, int windowSamples) {
     if (i != index && samples[i] > val) return false;
   }
   return true;
+}
+
+/// Compute the median of a list of doubles. Assumes the list is non-empty.
+double median(List<double> values) {
+  if (values.isEmpty) return 0;
+  final sorted = List<double>.from(values)..sort();
+  final mid = sorted.length ~/ 2;
+  if (sorted.length % 2 == 1) {
+    return sorted[mid];
+  } else {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+}
+
+/// Check if a sequence of intervals implies steady pedaling within the
+/// valid cadence and consistency range. Returns true if all intervals pass.
+/// [intervals]: time deltas between consecutive peaks, in seconds
+/// [unused]: kept for backward compatibility; no longer used
+/// Returns true if all intervals satisfy cadence and consistency bounds.
+/// One confirmed peak per crank revolution; cadence = 60 seconds / interval seconds.
+bool areIntervalsValid(List<double> intervals, double unused) {
+  if (intervals.isEmpty) return false;
+
+  // intervals are already in seconds
+  final intervalSeconds = intervals;
+
+  // Cadence = 60 / interval_seconds (one peak per revolution)
+  final rpms = intervalSeconds.map((s) => 60 / s).toList();
+
+  // Check cadence bounds
+  for (final rpm in rpms) {
+    if (rpm < minCadenceRpm || rpm > maxCadenceRpm) {
+      return false;
+    }
+  }
+
+  // Check consistency: each interval must be within ±20% of the running median
+  final medianInterval = median(intervalSeconds);
+  final minInterval = medianInterval * (1 - intervalConsistencyTolerance);
+  final maxInterval = medianInterval * (1 + intervalConsistencyTolerance);
+
+  for (final interval in intervalSeconds) {
+    if (interval < minInterval || interval > maxInterval) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/// Compute the vertical travel of the ankle in pixels, given a list of
+/// ankle Y values. Returns the difference between min and max.
+double ankleVerticalTravelPixels(List<double> ankleYValues) {
+  if (ankleYValues.isEmpty) return 0;
+  return ankleYValues.reduce((a, b) => a > b ? a : b) -
+      ankleYValues.reduce((a, b) => a < b ? a : b);
+}
+
+/// Compute the spread (max - min) of X values in millimeters.
+double xSpreadMm(List<double> xValuesPixels, double pixelScale) {
+  if (xValuesPixels.isEmpty) return 0;
+  final maxX = xValuesPixels.reduce((a, b) => a > b ? a : b);
+  final minX = xValuesPixels.reduce((a, b) => a < b ? a : b);
+  return pixelsToMm(maxX - minX, pixelScale);
 }
 
 /// Convert a point from photo-pixel space to widget-pixel space using BoxFit.contain.
@@ -218,7 +307,30 @@ String? calibrationProblem(
         'bracket third, then the top of the saddle.';
   }
 
+  // Check that the wheel and bottom bracket x are not nearly the same
+  // (phone must be square to the bike, not angled)
+  final wheelX = (taps[0].dx + taps[1].dx) / 2; // Average wheel x
+  final bbX = taps[2].dx;
+  final xDiff = (wheelX - bbX).abs();
+  if (xDiff < 10) {
+    // Threshold for "too close": less than 10 pixels means phone is not
+    // square to the bike frame
+    return 'The front wheel and bottom bracket taps are nearly at the same '
+        'horizontal position. Hold the phone more square to the bike.';
+  }
+
   return null;
+}
+
+/// Determine which ankle-X extremum means pedal-forward based on calibration taps.
+/// Returns true if pedal-forward is maximum ankle-x, false if minimum.
+/// [taps]: calibration taps in order [wheel-top, wheel-bottom, bb, saddle]
+bool isPedalForwardMaxX(List<Offset> taps) {
+  if (taps.length < 3) return true; // Safe default
+  final wheelX = (taps[0].dx + taps[1].dx) / 2; // Average wheel x
+  final bbX = taps[2].dx;
+  // If wheel is to the right of BB, pedal-forward is max ankle-x
+  return wheelX > bbX;
 }
 
 /// Pixels per millimetre from the calibration taps. Call only once
@@ -238,6 +350,7 @@ List<String> measurementProblems({
   required double elbowAngle,
   required double kopsOffsetMm,
   required double saddleHeightMm,
+  double? kneeXSpreadMm,
 }) {
   final problems = <String>[];
 
@@ -268,6 +381,15 @@ List<String> measurementProblems({
       'KOPS offset of ${kopsOffsetMm.toStringAsFixed(0)} mm is far larger '
       'than a bike allows. The pedal spindle tap or the knee detection is '
       'likely off.',
+    );
+  }
+
+  if (kneeXSpreadMm != null &&
+      !kneeXSpreadMm.isNaN &&
+      kneeXSpreadMm > maxKneeXSpreadMm) {
+    problems.add(
+      'Knee position spread of ${kneeXSpreadMm.toStringAsFixed(0)} mm is too '
+      'large. The knee detection may be unreliable — recapture recommended.',
     );
   }
 

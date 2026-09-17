@@ -1,15 +1,22 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
+import 'package:image/image.dart' as img;
 import '../angle_utils.dart';
+import '../capture_gate.dart';
 import '../widgets/camera_fill.dart';
 
 class PedalingScreen extends StatefulWidget {
   final double wheelDiameter;
   final double pixelScale;
   final String calibrationImage;
+  final double calibrationPhotoWidth;
+  final double calibrationPhotoHeight;
+  final List<Offset> calibrationTaps;
   final Offset bbPoint;
   final Offset saddlePoint;
 
@@ -18,6 +25,9 @@ class PedalingScreen extends StatefulWidget {
     required this.wheelDiameter,
     required this.pixelScale,
     required this.calibrationImage,
+    required this.calibrationPhotoWidth,
+    required this.calibrationPhotoHeight,
+    required this.calibrationTaps,
     required this.bbPoint,
     required this.saddlePoint,
   });
@@ -26,39 +36,90 @@ class PedalingScreen extends StatefulWidget {
   State<PedalingScreen> createState() => _PedalingScreenState();
 }
 
+/// Single captured frame: NV21 bytes, dimensions, and pose landmarks.
+class _FrameData {
+  final Uint8List nv21Bytes;
+  final int width;
+  final int height;
+  final List<PoseLandmark> landmarks;
+
+  /// Same clock the gate stamps its samples with, so a keep request can name
+  /// exactly one buffered frame.
+  final int timestampMs;
+
+  _FrameData({
+    required this.nv21Bytes,
+    required this.width,
+    required this.height,
+    required this.landmarks,
+    required this.timestampMs,
+  });
+}
+
+/// A kept pedal-forward frame with its knee landmark and knee-x value.
+class _PedalForwardFrame {
+  final String path; // Path to the encoded JPEG
+  final PoseLandmark kneeLandmark;
+  final double kneeX; // In calibration photo pixels
+  final int streamImageWidth;
+  final int streamImageHeight;
+
+  _PedalForwardFrame({
+    required this.path,
+    required this.kneeLandmark,
+    required this.kneeX,
+    required this.streamImageWidth,
+    required this.streamImageHeight,
+  });
+}
+
 class _PedalingScreenState extends State<PedalingScreen> {
   late CameraController _cameraController;
   late PoseDetector _poseDetector;
   CameraDescription? _camera;
   bool _cameraReady = false;
-  int _cyclesDetected = 0;
-  final List<double> _ankleYValues = [];
-  final List<double> _ankleXValues = [];
 
-  /// A peak is only confirmed [_peakWindow] frames after it happened, so the
-  /// pose at the bottom of the stroke has to be kept until then.
-  static const int _peakWindow = 3;
-  final List<List<PoseLandmark>> _recentPoses = [];
+  // Rolling buffer of the last 8 processed frames (for pedal-forward capture)
+  final List<_FrameData> _frameBuffer = [];
+  static const int _frameBufferSize = 8;
 
-  int _posesSeen = 0;
-
-  // Buffers for averaging angles across bottom-of-stroke cycles
+  // Buffers for angle computation (from bottom-of-stroke cycles)
   final List<List<PoseLandmark>> _cycleBottomPoses = [];
   static const int _maxCycleBuffer = 8;
 
-  // For pedal-forward JPEG and its pose detection
-  String? _pedalForwardImagePath;
-  PoseLandmark? _pedalForwardKneeLandmark;
+  // The state machine
+  late CaptureGate _gate;
 
-  bool _processingFrame = false;
+  // Map from gate sample index to frame buffer index for keeping frames
+  final Map<int, _FrameData> _keptSampleFrames = {};
+  final List<_PedalForwardFrame> _keptFrames = [];
+
+  // Timing
+  late Stopwatch _stopwatch;
+  static const int _timeoutMs = 60000;
+
+  // Frame rate tracking
   int _frameCount = 0;
-  bool _capturingFrame = false;
+  late DateTime _fpsStartTime;
+  double _achievedFps = 0;
+
+  // Whether we're capturing
+  bool _isCapturing = true;
+  bool _processingFrame = false;
 
   @override
   void initState() {
     super.initState();
     final options = PoseDetectorOptions();
     _poseDetector = PoseDetector(options: options);
+    _gate = CaptureGate(
+      pixelScale: widget.pixelScale,
+      calibrationPhotoWidth: widget.calibrationPhotoWidth,
+      calibrationPhotoHeight: widget.calibrationPhotoHeight,
+      calibrationTaps: widget.calibrationTaps,
+    );
+    _stopwatch = Stopwatch()..start();
+    _fpsStartTime = DateTime.now();
     _initCamera();
   }
 
@@ -71,9 +132,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
       cameras[0],
       ResolutionPreset.high,
       enableAudio: false,
-      // Without this the stream is 3-plane YUV_420_888 and the NV21 buffer
-      // handed to ML Kit below is two thirds short, so nothing is ever
-      // detected. CameraX still reports the format as yuv420 either way.
       imageFormatGroup: ImageFormatGroup.nv21,
     );
 
@@ -88,13 +146,9 @@ class _PedalingScreenState extends State<PedalingScreen> {
 
   void _startPoseStream() {
     _cameraController.startImageStream((CameraImage image) {
-      if (_processingFrame || !mounted) return;
-
-      _frameCount++;
-      if (_frameCount % 2 != 0) return; // Process every 2nd frame (~15fps)
+      if (_processingFrame || !mounted || !_isCapturing) return;
 
       _processingFrame = true;
-
       _detectPose(image).then((_) {
         _processingFrame = false;
       });
@@ -103,47 +157,185 @@ class _PedalingScreenState extends State<PedalingScreen> {
 
   Future<void> _detectPose(CameraImage image) async {
     try {
-      // Convert camera image to InputImage for pose detection
+      _frameCount++;
+
+      // Update FPS
+      final now = DateTime.now();
+      final elapsedSeconds = now.difference(_fpsStartTime).inMilliseconds / 1000.0;
+      if (elapsedSeconds > 0) {
+        _achievedFps = _frameCount / elapsedSeconds;
+      }
+
+      // Convert camera image to InputImage
       final inputImage = _createInputImage(image);
       if (inputImage == null) return;
 
       final poses = await _poseDetector.processImage(inputImage);
-      if (poses.isEmpty) return;
 
-      final pose = poses[0];
-      final landmarksList = pose.landmarks.values.toList();
-
-      // Extract ankle landmarks - handle both left and right
+      // Extract ankle from pose
       PoseLandmark? ankle;
-      for (final landmark in landmarksList) {
-        if (landmark.type == PoseLandmarkType.leftAnkle ||
-            landmark.type == PoseLandmarkType.rightAnkle) {
-          ankle = landmark;
+      List<PoseLandmark> landmarksList = [];
+      if (poses.isNotEmpty) {
+        final pose = poses[0];
+        landmarksList = pose.landmarks.values.toList();
+        for (final landmark in landmarksList) {
+          if (landmark.type == PoseLandmarkType.leftAnkle ||
+              landmark.type == PoseLandmarkType.rightAnkle) {
+            ankle = landmark;
+            break;
+          }
+        }
+      }
+
+      if (!mounted) return;
+
+      // Log periodically
+      if (_frameCount % 30 == 0) {
+        debugPrint('[velofit] frames=$_frameCount fps=${_achievedFps.toStringAsFixed(1)} '
+            'cyclesAfterArming=${_gate.cyclesCountedAfterArming} gateArmed=${_gate.gateArmed} kept=${_keptFrames.length}');
+      }
+
+      // One clock read per frame: the buffered frame and the gate sample must
+      // carry the SAME stamp, or a keep request can never name a buffered
+      // frame.
+      final timestampMs = _stopwatch.elapsedMilliseconds;
+      _gate.streamImageWidth = image.width.toDouble();
+
+      setState(() {
+        // Store frame in buffer
+        _frameBuffer.add(_FrameData(
+          nv21Bytes: _extractNV21Bytes(image),
+          width: image.width,
+          height: image.height,
+          landmarks: landmarksList,
+          timestampMs: timestampMs,
+        ));
+        if (_frameBuffer.length > _frameBufferSize) {
+          _frameBuffer.removeAt(0);
+        }
+
+        // Process sample through gate
+        if (ankle != null) {
+          final sample = AnkleSample(
+            x: ankle.x,
+            y: ankle.y,
+            timestampMs: timestampMs,
+            landmarks: landmarksList,
+          );
+
+          _gate.processSample(sample, timeoutMs: _timeoutMs);
+
+          // Handle gate state
+          if (_gate.captureTimedOut) {
+            _isCapturing = false;
+          }
+
+          if (_gate.shouldReset) {
+            _keptSampleFrames.clear();
+            _keptFrames.clear();
+            _cycleBottomPoses.clear();
+          }
+
+          // Keep frame if requested. The request names the confirmed
+          // extremum by timestamp; _frameBuffer.last is the CURRENT frame, a
+          // lookahead window later, where the knee has visibly moved on.
+          if (_gate.keepThisFrame != null) {
+            final request = _gate.keepThisFrame!;
+            _FrameData? match;
+            for (final frame in _frameBuffer) {
+              if (frame.timestampMs == request.timestampMs) {
+                match = frame;
+                break;
+              }
+            }
+            if (match == null) {
+              debugPrint('[velofit] Extremum frame ${request.timestampMs}ms '
+                  'fell out of the buffer, skipped');
+            } else {
+              _keptSampleFrames[request.timestampMs] = match;
+            }
+          }
+
+          // Store bottom-of-stroke pose if gate is armed
+          if (_gate.gateArmed && _gate.cyclesCountedAfterArming > 0) {
+            _cycleBottomPoses.add(landmarksList);
+            if (_cycleBottomPoses.length > _maxCycleBuffer) {
+              _cycleBottomPoses.removeAt(0);
+            }
+          }
+
+          // Check if capture is complete
+          if (_gate.isCaptureComplete() && _keptFrames.length < 5) {
+            _encodeKeptFrames();
+          }
+        } else {
+          // No ankle detected
+          if (_gate.cyclesCountedAfterArming == 0 && !_gate.gateArmed) {
+            // Still looking for rider
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Pose detection error: $e');
+    }
+  }
+
+  void _encodeKeptFrames() async {
+    // Encode all kept frames
+    for (final entry in _keptSampleFrames.entries) {
+      if (_keptFrames.length >= 5) break;
+
+      final frame = entry.value;
+      late PoseLandmark knee;
+      var foundKnee = false;
+      for (final landmark in frame.landmarks) {
+        if (landmark.type == PoseLandmarkType.leftKnee) {
+          knee = landmark;
+          foundKnee = true;
           break;
         }
       }
 
-      _posesSeen++;
-      if (_frameCount % 30 == 0) {
-        debugPrint('[velofit] frames=$_frameCount poses=$_posesSeen '
-            'samples=${_ankleYValues.length} cycles=$_cyclesDetected');
-      }
+      if (!foundKnee) continue;
 
-      if (ankle != null && mounted) {
-        final a = ankle;
-        setState(() {
-          _ankleYValues.add(a.y);
-          _ankleXValues.add(a.x);
-          _recentPoses.add(landmarksList);
-          if (_recentPoses.length > _peakWindow + 1) {
-            _recentPoses.removeAt(0);
-          }
-          _updateCycleCount();
-        });
+      // Rescale knee-x from stream to calibration photo pixels
+      final streamToCalibrationScale = widget.calibrationPhotoWidth / frame.width;
+      final kneeXCalibration = knee.x * streamToCalibrationScale;
+
+      // Encode frame to JPEG
+      try {
+        final jpegPath = await compute(
+          _encodeNV21ToJpeg,
+          (frame.nv21Bytes, frame.width, frame.height),
+        );
+
+        if (mounted) {
+          setState(() {
+            _keptFrames.add(_PedalForwardFrame(
+              path: jpegPath,
+              kneeLandmark: knee,
+              kneeX: kneeXCalibration,
+              streamImageWidth: frame.width,
+              streamImageHeight: frame.height,
+            ));
+          });
+        }
+      } catch (e) {
+        debugPrint('[velofit] JPEG encoding error: $e');
       }
-    } catch (e) {
-      debugPrint('Pose detection error: $e');
     }
+
+    if (_keptFrames.length >= 5) {
+      _isCapturing = false;
+    }
+  }
+
+  Uint8List _extractNV21Bytes(CameraImage image) {
+    final builder = BytesBuilder(copy: false);
+    for (final plane in image.planes) {
+      builder.add(plane.bytes);
+    }
+    return builder.takeBytes();
   }
 
   InputImage? _createInputImage(CameraImage image) {
@@ -178,9 +370,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
     DeviceOrientation.landscapeRight: 270,
   };
 
-  /// The rotation that brings the sensor buffer upright. Hardcoding 0 here
-  /// hands ML Kit a sideways rider, and "down" stops being +y, which the
-  /// bottom-of-stroke detection depends on.
   InputImageRotation _inputImageRotation(CameraDescription camera) {
     final compensation =
         _orientationDegrees[_cameraController.value.deviceOrientation] ?? 0;
@@ -200,80 +389,12 @@ class _PedalingScreenState extends State<PedalingScreen> {
     }
   }
 
-  void _updateCycleCount() {
-    if (_ankleYValues.length < 15) return;
-    if (_recentPoses.length < _peakWindow + 1) return;
-
-    // Check for y-peak (bottom-of-stroke). isPeak needs _peakWindow samples on
-    // BOTH sides, so the newest index it can ever confirm is _peakWindow back
-    // from the end — passing the last index made it return false every time.
-    final yPeakIndex = _ankleYValues.length - 1 - _peakWindow;
-    if (isPeak(_ankleYValues, yPeakIndex, _peakWindow)) {
-      if (_ankleXValues.length >= 10) {
-        final xPeakWindow = 3;
-        for (int i = _ankleXValues.length - 10; i < _ankleXValues.length; i++) {
-          if (i >= 0 && i < _ankleXValues.length && isPeak(_ankleXValues, i, xPeakWindow)) {
-            // The pose from the peak frame, not the current one _peakWindow
-            // frames later — 200ms off at 15fps skews every angle.
-            _cycleBottomPoses.add(_recentPoses.first);
-            if (_cycleBottomPoses.length > _maxCycleBuffer) {
-              _cycleBottomPoses.removeAt(0);
-            }
-
-            _cyclesDetected++;
-            if (_cyclesDetected == 5 && !_capturingFrame) {
-              _capturingFrame = true;
-              _capturePedalForwardFrame();
-            }
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  Future<void> _capturePedalForwardFrame() async {
-    if (_pedalForwardImagePath != null) return;
-    try {
-      await _cameraController.stopImageStream();
-      final file = await _cameraController.takePicture();
-
-      // Run pose detection on the pedal-forward JPEG
-      final inputImage = InputImage.fromFilePath(file.path);
-      final poses = await _poseDetector.processImage(inputImage);
-
-      PoseLandmark? kneeLandmark;
-      if (poses.isNotEmpty) {
-        final pose = poses[0];
-        try {
-          kneeLandmark = pose.landmarks.values
-              .firstWhere((l) => l.type == PoseLandmarkType.leftKnee);
-        } catch (e) {
-          debugPrint('Knee landmark not found in pedal-forward frame');
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          _pedalForwardImagePath = file.path;
-          _pedalForwardKneeLandmark = kneeLandmark;
-        });
-      }
-    } catch (e) {
-      debugPrint('Pedal-forward frame capture error: $e');
-    }
-  }
-
-  /// Compute averaged angles across all captured bottom-of-stroke cycles.
   Map<String, double> _computeAveragedAngles() {
     double totalKneeFlexion = 0;
     double totalHipAngle = 0;
     double totalTorsoAngle = 0;
     double totalElbowAngle = 0;
 
-    // Counted per metric, not per cycle: a cycle where the detector missed the
-    // elbow must not drag the elbow average toward zero while still counting
-    // in its denominator.
     int kneeCount = 0;
     int hipCount = 0;
     int torsoCount = 0;
@@ -334,7 +455,6 @@ class _PedalingScreenState extends State<PedalingScreen> {
     };
   }
 
-  /// Get a landmark from a pose by type.
   PoseLandmark? _getLandmark(
     List<PoseLandmark> pose,
     PoseLandmarkType type,
@@ -347,30 +467,63 @@ class _PedalingScreenState extends State<PedalingScreen> {
   }
 
   void _proceed() {
+    if (_keptFrames.length < 5) return;
+
+    // Compute angles from bottom-of-stroke cycles
     final averagedAngles = _computeAveragedAngles();
+
+    // Compute median knee-x and spread
+    final kneeXValues = _keptFrames.map((f) => f.kneeX).toList();
+    final medianKneeX = median(kneeXValues);
+    final kneeXSpreadMm = xSpreadMm(kneeXValues, widget.pixelScale);
+
+    // Use the first kept frame's dimensions as representative stream dimensions
+    final firstFrame = _keptFrames[0];
+
     Navigator.of(context).pushNamed(
       '/bike_point',
       arguments: {
         'wheelDiameter': widget.wheelDiameter,
         'pixelScale': widget.pixelScale,
-        'calibrationImage': widget.calibrationImage,
-        'pedalForwardImage': _pedalForwardImagePath ?? widget.calibrationImage,
+        'pedalForwardImage': firstFrame.path,
+        'medianKneeX': medianKneeX,
+        'kneeXSpreadMm': kneeXSpreadMm,
+        'calibrationPhotoWidth': widget.calibrationPhotoWidth,
+        'calibrationPhotoHeight': widget.calibrationPhotoHeight,
+        'streamImageWidth': firstFrame.streamImageWidth.toDouble(),
+        'streamImageHeight': firstFrame.streamImageHeight.toDouble(),
         'bbPoint': widget.bbPoint,
         'saddlePoint': widget.saddlePoint,
         'kneeFlexion': averagedAngles['kneeFlexion'] ?? 0,
         'hipAngle': averagedAngles['hipAngle'] ?? 0,
         'torsoAngle': averagedAngles['torsoAngle'] ?? 0,
         'elbowAngle': averagedAngles['elbowAngle'] ?? 0,
-        'pedalForwardKneeLandmark': _pedalForwardKneeLandmark,
+        'pedalForwardKneeLandmark': _keptFrames[0].kneeLandmark,
       },
     );
   }
 
   @override
   void dispose() {
+    _stopwatch.stop();
     _cameraController.dispose();
     _poseDetector.close();
     super.dispose();
+  }
+
+  Color _getStatusColor() {
+    if (_gate.failureReason != null) return Colors.red;
+    if (!_gate.gateArmed) return Colors.red;
+    if (_keptFrames.length < 5) return Colors.amber;
+    return Colors.green;
+  }
+
+  String _getStatusText() {
+    if (_gate.failureReason != null) return _gate.failureReason!;
+    if (!_gate.hasRider()) return 'No rider detected';
+    if (!_gate.gateArmed) return 'Rider seen, no steady pedaling';
+    if (_keptFrames.length < 5) return 'Detecting...';
+    return 'Captured OK';
   }
 
   @override
@@ -381,35 +534,71 @@ class _PedalingScreenState extends State<PedalingScreen> {
           ? Stack(
               children: [
                 Positioned.fill(child: FillPreview(_cameraController)),
+                // Status band
                 Positioned(
-                  top: 16,
-                  left: 16,
+                  top: 0,
+                  left: 0,
+                  right: 0,
                   child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Cycles detected: $_cyclesDetected',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: _getStatusColor(),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _getStatusText(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (_gate.gateArmed)
+                          Text(
+                            '${_gate.getAverageCadenceRpm().toStringAsFixed(0)} RPM',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Counting ${_keptFrames.length}/5',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'FPS: ${_achievedFps.toStringAsFixed(1)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                // Done button
                 Positioned(
                   bottom: 16,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: ElevatedButton(
-                      onPressed: _cyclesDetected >= 5 ? _proceed : null,
-                      child: Text(_cyclesDetected >= 5
-                          ? 'Done ($_cyclesDetected cycles)'
-                          : 'Capture at least 5 cycles'),
+                      onPressed:
+                          _keptFrames.length >= 5 && !_isCapturing ? _proceed : null,
+                      child: _isCapturing
+                          ? const Text('Capturing...')
+                          : Text('Done (${_keptFrames.length} frames, '
+                              '${_achievedFps.toStringAsFixed(1)} fps)'),
                     ),
                   ),
                 ),
@@ -418,4 +607,62 @@ class _PedalingScreenState extends State<PedalingScreen> {
           : const Center(child: Text('Initializing camera...')),
     );
   }
+}
+
+/// Encode NV21 bytes to JPEG using the image package.
+/// Runs off the UI isolate via compute().
+Future<String> _encodeNV21ToJpeg(
+  (Uint8List, int, int) data,
+) async {
+  final (nv21Bytes, width, height) = data;
+
+  try {
+    // Convert NV21 to RGB
+    final image = img.Image(width: width, height: height);
+    _nv21ToRgb(nv21Bytes, image);
+
+    // Encode to JPEG
+    final jpegBytes = img.encodeJpg(image);
+
+    // Save to app-private storage
+    final dir = await _getAppPrivateDir();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final path = '$dir/pedal_forward_$timestamp.jpg';
+    final file = File(path);
+    await file.writeAsBytes(jpegBytes);
+
+    return path;
+  } catch (e) {
+    debugPrint('[velofit] JPEG encoding error: $e');
+    rethrow;
+  }
+}
+
+void _nv21ToRgb(Uint8List nv21, img.Image image) {
+  final width = image.width;
+  final height = image.height;
+  final ySize = width * height;
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      final pixelIndex = y * width + x;
+      final yIndex = pixelIndex;
+      final uvIndex = ySize + (y ~/ 2) * width + (x ~/ 2) * 2;
+
+      final yVal = nv21[yIndex] & 0xFF;
+      final vVal = (nv21[uvIndex] & 0xFF) - 128;
+      final uVal = (nv21[uvIndex + 1] & 0xFF) - 128;
+
+      var r = (yVal + 1.402 * vVal).toInt().clamp(0, 255);
+      var g = (yVal - 0.344136 * uVal - 0.714136 * vVal).toInt().clamp(0, 255);
+      var b = (yVal + 1.772 * uVal).toInt().clamp(0, 255);
+
+      image.setPixelRgba(x, y, r, g, b, 255);
+    }
+  }
+}
+
+Future<String> _getAppPrivateDir() async {
+  final dir = Directory.systemTemp.createTempSync('velofit_pedal');
+  return dir.path;
 }

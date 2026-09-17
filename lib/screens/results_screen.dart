@@ -11,6 +11,11 @@ class ResultsScreen extends StatefulWidget {
   final double elbowAngle;
   final double kopsOffset;
   final double saddleHeight;
+  final double? kneeXSpreadMm;
+  final double calibrationPhotoWidth;
+  final double calibrationPhotoHeight;
+  final double streamImageWidth;
+  final double streamImageHeight;
 
   const ResultsScreen({
     super.key,
@@ -22,6 +27,11 @@ class ResultsScreen extends StatefulWidget {
     required this.elbowAngle,
     required this.kopsOffset,
     required this.saddleHeight,
+    this.kneeXSpreadMm,
+    required this.calibrationPhotoWidth,
+    required this.calibrationPhotoHeight,
+    required this.streamImageWidth,
+    required this.streamImageHeight,
   });
 
   @override
@@ -123,6 +133,26 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
+  String? _checkAspectRatioProblem() {
+    if (widget.calibrationPhotoWidth == 0 ||
+        widget.calibrationPhotoHeight == 0 ||
+        widget.streamImageWidth == 0 ||
+        widget.streamImageHeight == 0) {
+      return null; // Dimensions not available
+    }
+
+    final calibAspect =
+        widget.calibrationPhotoWidth / widget.calibrationPhotoHeight;
+    final streamAspect = widget.streamImageWidth / widget.streamImageHeight;
+    final aspectRatio = streamAspect / calibAspect;
+
+    // Allow ±5% tolerance
+    if (aspectRatio < 0.95 || aspectRatio > 1.05) {
+      return 'Camera aspect ratio differs from calibration photo. Results may be scaled incorrectly.';
+    }
+    return null;
+  }
+
   /// Plausibility warnings, shown above the numbers so an obviously broken
   /// capture is not read as a fit.
   List<Widget> _buildWarnings() {
@@ -133,7 +163,15 @@ class _ResultsScreenState extends State<ResultsScreen> {
       elbowAngle: _elbowAngle,
       kopsOffsetMm: widget.kopsOffset,
       saddleHeightMm: widget.saddleHeight,
+      kneeXSpreadMm: widget.kneeXSpreadMm,
     );
+
+    // Add aspect ratio warning if applicable
+    final aspectRatioProblem = _checkAspectRatioProblem();
+    if (aspectRatioProblem != null) {
+      problems.add(aspectRatioProblem);
+    }
+
     if (problems.isEmpty) return const [];
 
     return [

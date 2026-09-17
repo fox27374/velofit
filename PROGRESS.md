@@ -4,18 +4,61 @@ Bike-fitting MVP. Analyzes video of a rider on a stationary trainer, computes
 joint angles + KOPS/saddle-height, compares against target ranges. No
 adjustment recommendations, no accounts/history/cloud — see non-goals below.
 
-## State as of 2026-09-03
+## State as of 2026-09-17
 
-Feature-complete first pass, **still not run on a real device or emulator**.
-`flutter analyze` / `flutter test` (44 tests) / `flutter build apk --debug`
-all pass, verified directly (not just taken on an agent's word). Six real
-bugs have now been found by manual code review across three passes and are
-fixed — see "Known-fixed bugs" below, worth re-checking those spots first if
-something looks wrong on-device.
+**First real-device session done** (Redmi Note 9 Pro, Android 11, release
+APK). The app installs, launches, films, calibrates and completes the capture
+flow. `flutter analyze` / `flutter test` (75 tests) / `flutter build apk
+--release` all pass, verified directly rather than taken on an agent's word —
+which mattered: an agent reported "analyze: no issues" twice when there was a
+warning, and reported tests for behaviour it had not tested.
 
-Everything is committed. `417b363` added the home screen, fitting tables and
-capture instructions; `b5605fe` added tap correction and plausibility guards;
-`2d131d3` added the launcher icon. Nothing is pushed.
+Device testing found that almost nothing in the capture path actually worked,
+and none of it was visible from the desk:
+
+- The release APK died before Flutter started. R8 renames WorkManager's
+  generated `WorkDatabase_Impl`, which Room loads by name. Debug builds do
+  not run R8, so this could only ever appear on a release install.
+- Cycle detection could never count. `isPeak` was asked about the newest
+  sample, which it can never confirm.
+- ML Kit was fed a third of a frame — NV21 metadata over a single YUV plane,
+  because the controller never requested `ImageFormatGroup.nv21` — and a
+  hardcoded `rotation0deg`, so it saw a sideways rider.
+- Mounting the bike scored five "cycles", because any ankle-Y local maximum
+  counted. The whole results set from that run was mount, not pedaling.
+- The "pedal-forward" still was taken at a bottom-of-stroke detection plus
+  shutter latency, so it was neither pedal-forward nor synchronised to
+  anything. KOPS was systematically wrong even with perfect pedaling.
+
+The capture redesign that followed (cycle validity gate, stream-sourced
+pedal-forward frames) is designed, implemented and unit-tested, **but has
+never been ridden**. See "Next steps".
+
+### What device testing is and is not
+
+Verified on hardware: install, launch, camera preview filling the frame in
+landscape, calibration photo and four-point tapping, pose detection producing
+landmarks, cycle counting reaching five, and the flow reaching the bike-point
+and results screens.
+
+NOT verified on hardware: anything the redesign changed, and every number the
+app prints. No measurement has been compared to a tape measure.
+
+### Working notes on process
+
+The bugs that survived longest all had the same shape: **a condition
+evaluated at an index where it cannot hold.** `isPeak` on the newest sample;
+the X-extremum check nested under the Y-peak branch; the kept frame's
+landmarks read from the current frame instead of the confirmed extremum a
+lookahead window back. Unit tests of the pure helpers passed in every case —
+the helpers were correct. What caught them was pushing a synthesised
+pedaling signal (sinusoidal ankle x and y, 90° out of phase) through the
+whole state machine and asserting on the phase of the frames it chose.
+`test/capture_gate_test.dart` is that test; keep it, and extend it rather
+than adding more isolated helper tests, whenever capture behaviour changes.
+
+Commits from this session sit on the `device-testing-fixes` branch, not
+`main`. Nothing is pushed.
 
 ## Toolchain (this Mac)
 
@@ -70,22 +113,31 @@ button on the calibration app bar, where it actually matters.
    `calibrationProblem()` (`angle_utils.dart`) before computing anything —
    a failed check shows the problem and refuses to navigate. Pixel distance
    between the two wheel taps + the mm value from setup → `pixelScale`
-   (px/mm), via `pixelScaleFromTaps()`. This screen is
-   internally coordinate-consistent (all taps + derived scale share one
-   widget's on-screen coordinate space) — treat it as the reference
-   pattern for "how this must work" if debugging coordinate issues
-   elsewhere.
-3. **Pedaling screen** — live camera stream, ~15fps pose detection
-   (`google_mlkit_pose_detection`, every 2nd frame). Tracks the ankle
-   landmark's (x,y) in a rolling buffer; simple local-max peak detection
-   (`isPeak` in `lib/angle_utils.dart`) finds bottom-of-stroke (y-peak,
-   since image y grows downward) and pedal-forward (x-peak, since front
-   wheel is framed to the right) instants. On each bottom-of-stroke peak,
-   snapshots that cycle's full landmark set into a buffer (last 8). Once 5
-   cycles are captured, takes a still photo at the pedal-forward instant,
-   re-runs pose detection on *that photo file* (not the stream frame — see
-   "Known-fixed bugs"), and extracts the knee landmark from it in the
-   photo's own pixel space.
+   (px/mm), via `pixelScaleFromTaps()`. Taps are stored in **photo-pixel**
+   space, not widget space, so `pixelScale` is px/mm *of the calibration
+   photo* and survives a device rotation between screens — treat that as the
+   reference pattern for "how this must work" if debugging coordinate issues
+   elsewhere. Anything measured on a stream frame must be rescaled into
+   calibration-photo pixels by the width ratio before it meets `pixelScale`.
+   The taps also decide which ankle-x extremum means pedal-forward (front
+   wheel x vs bottom bracket x), so the filming convention is derived rather
+   than assumed.
+3. **Pedaling screen** — live camera stream runs pose detection at full
+   frame rate (`google_mlkit_pose_detection`). Tracks the ankle landmark's
+   (x,y) in a rolling buffer. A **cycle validity gate** arms once pedaling
+   is proven periodic and large: cadence must be 40–110 rpm, each
+   inter-peak interval within ±20% of the running median, and ankle vertical
+   travel ≥150 mm (in real mm via `pixelScale`). The gate arms after K=3
+   consecutive valid intervals. Once armed, each bottom-of-stroke (ankle-Y
+   peak) confirms a cycle; each cycle's full landmark set is stored for
+   angle averaging. For pedal-forward capture, the rolling frame buffer keeps
+   the last 8 stream frames (raw NV21 bytes, dimensions, landmarks). When
+   each cycle's ankle-X extremum (max or min depending on wheel position) is
+   confirmed, that frame is encoded to JPEG on a compute isolate (YUV→RGB
+   conversion + `image` package), keeping one per cycle for 5 total. Breaks
+   (irregular/missed strokes) pause counting; gaps >3 seconds reset the gate
+   and buffer. A 60-second timeout stops the capture if the gate never arms
+   or pedaling stops.
 4. **Bike-point screen** — shows the pedal-forward photo, user taps the
    pedal spindle center (for KOPS); tapping again moves the marker, Clear
    removes it, Continue advances. Uses a `LayoutBuilder` to get the
@@ -102,6 +154,33 @@ button on the calibration app bar, where it actually matters.
    as "Not measured" rather than a red 0.0°.
 
 ## Known-fixed bugs (worth re-checking if something's off on-device)
+
+### Found by the 2026-09-17 device session
+
+- **Release APK crashed at startup** — R8 vs WorkManager's Room database.
+  `isMinifyEnabled = false` in `android/app/build.gradle.kts`.
+- **`isPeak` asked about the newest sample** — can never be confirmed, so no
+  cycle was ever counted. Callers must lag the candidate by the window;
+  `test/angle_utils_test.dart` pins this contract.
+- **NV21 metadata over one YUV plane** — controller now requests
+  `ImageFormatGroup.nv21` and all planes are concatenated.
+- **`rotation0deg` hardcoded** — now derived from sensor and device
+  orientation.
+- **Pose stored from the wrong frame** — a peak is confirmed a lookahead
+  window after it happens; the pose from the peak frame is now kept.
+- **Camera preview collapsed in landscape** — bare `CameraPreview` in a
+  `Stack`; `FillPreview` covers the box using the controller's own
+  orientation.
+- **Measurement taps were widget-space** — rotating the phone between
+  screens silently corrupted every millimetre. Now photo-pixel.
+- **Microphone permission prompt** — `enableAudio` defaulted true on the
+  calibration controller, and the plugin merged `RECORD_AUDIO`.
+- **Kept frame was the wrong frame** — the KOPS frame and its knee landmark
+  were read from the current frame rather than the confirmed extremum, about
+  48° of crank rotation late at 80 rpm, in precisely the coordinate KOPS
+  measures.
+
+### Found earlier by code review
 
 1. **Saddle height mixed frames** — was computing BB-to-*pedal-tap*
    distance instead of BB-to-*saddle-tap* distance. Fixed: both points now
@@ -187,15 +266,29 @@ right, worth remembering for the next round too.
 `calibrationProblem()` and `measurementProblems()` in `lib/angle_utils.dart`
 are bounds on **physical possibility**, deliberately not fit targets (those
 live in `fit_targets.dart` and are much tighter). They exist so a broken
-capture reads as "recapture" instead of as a confident number: wheel
-diameter outside 300-1000mm, wheel taps under 50px apart or given
-bottom-first, saddle tapped below the bottom bracket, saddle height outside
-400-1000mm, KOPS over 250mm, any unmeasured angle.
+capture reads as "recapture" instead of as a confident number.
 
-**These numbers are guesses from the capture geometry, never validated
-against a real capture.** Check them on the first device walkthrough — a
-bound that is too tight will block valid fits, which is worse than one that
-is slightly loose.
+**Calibration checks** (`calibrationProblem`): wheel diameter outside
+300-1000mm; wheel taps too close together (the threshold is a parameter —
+the calibration screen passes 5% of the photo's shortest side, since a fixed
+50px was tuned for widget pixels and means nothing on a 1280x720 photo);
+wheel taps given bottom-first;
+saddle tapped below the bottom bracket; wheel and bottom-bracket x within
+10px (phone not square to bike).
+
+**Measurement checks** (`measurementProblems`): saddle height outside
+400-1000mm; KOPS over 250mm; any unmeasured angle; knee-x spread across
+the 5 kept pedal-forward frames > 15mm (indicating unreliable knee detection).
+
+**Gate parameters** (in `lib/angle_utils.dart`, marked as reasoned and
+unvalidated): minimum cadence 40 rpm, maximum cadence 110 rpm, interval
+consistency tolerance ±20%, arming threshold K=3 intervals, minimum ankle
+vertical travel 150 mm, maximum knee-x spread 15 mm.
+
+**These numbers are guesses from the capture geometry and pilot expectations,
+never validated against real captures.** Check them on the first device
+walkthrough — a bound that is too tight will block valid fits, which is
+worse than one that is slightly loose.
 
 Unmeasured values propagate as `double.nan` rather than `null`, so they flow
 through the existing `Map<String, dynamic>` route arguments with no
@@ -228,13 +321,15 @@ numbers. Bike type is *selected by the user*, never detected from the image.
 
 ## Next steps
 
-1. **Run it on a real Android device or emulator** — nothing here has
-   exercised the camera + live pose-detection stream on actual hardware.
-   This is the biggest unknown: camera image format/rotation handling
-   (`_createInputImage` in `pedaling_screen.dart`, NV21 assumed,
-   `rotation0deg` hardcoded — real devices often need actual device
-   rotation passed in, this was never device-tested) is the most likely
-   thing to break first.
+1. **Validate the new gate and frame-capture pipeline on a real device** —
+   the cycle validity gate (cadence, consistency, vertical travel thresholds)
+   and the stream-sourced pedal-forward frame capture have never been tested
+   on real hardware or against real bike fits. Priorities: (a) verify the
+   gate arms and disarms correctly without false positives; (b) check that
+   the 5 kept pedal-forward frames cover the full pedal-forward range without
+   duplicates; (c) validate the 15mm knee-x spread warning against a fitter's
+   hand-measured knee position; (d) check that frame rate stays above 20fps
+   even with concurrent JPEG encoding.
 2. Walk the full flow once with a real bike on a trainer and sanity-check
    the numbers against a tape measure / known bike geometry. Same trip
    validates the capture distances/heights in `HowToScreen` and the bounds
