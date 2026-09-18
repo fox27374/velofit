@@ -4,6 +4,29 @@ Bike-fitting MVP. Analyzes video of a rider on a stationary trainer, computes
 joint angles + KOPS/saddle-height, compares against target ranges. No
 adjustment recommendations, no accounts/history/cloud — see non-goals below.
 
+## Direction change, 2026-09-18: web app
+
+**The Flutter app is being replaced by a web app.** Design agreed and
+recorded in `doc/web-redesign.md`: the phone's camera app records a video,
+the browser analyses it afterwards (MediaPipe pose, self-hosted), frames at
+6/3/12 o'clock are picked from the ankle's loop, dynamic targets. Vite +
+TypeScript + Preact, GitHub Pages. Everything below this section describes
+the Flutter app and stays as the record of what was learned.
+
+**Gated on a spike** — branch `spike-video-frames`, folder `spike/`, never to
+be merged. It measures whether a phone browser reaches every frame of a
+recorded video and how long pose takes over it. Headless Chrome on the Mac
+with a synthetic video: 100% of seeks land on the exact frame (once frames
+are addressed by observed timestamp, not a fixed grid — phone video is often
+variable frame rate), ~45 ms per seek, ~24 ms per pose frame, 1x playback
+missed ~3% of frames. **Not yet run on the Redmi with a real pedaling
+video** — that is the next step.
+
+To run it: `cd spike && npm install && npm run setup && npm run dev`
+(`setup` copies the WASM and downloads the lite/full models, which are
+gitignored). Phone over USB: `adb reverse tcp:5173 tcp:5173`, open
+`http://localhost:5173`. Or over Wi-Fi at the Mac's LAN IP, port 5173.
+
 ## State as of 2026-09-17
 
 **First real-device session done** (Redmi Note 9 Pro, Android 11, release
@@ -321,23 +344,15 @@ numbers. Bike type is *selected by the user*, never detected from the image.
 
 ## Next steps
 
-1. **Validate the new gate and frame-capture pipeline on a real device** —
-   the cycle validity gate (cadence, consistency, vertical travel thresholds)
-   and the stream-sourced pedal-forward frame capture have never been tested
-   on real hardware or against real bike fits. Priorities: (a) verify the
-   gate arms and disarms correctly without false positives; (b) check that
-   the 5 kept pedal-forward frames cover the full pedal-forward range without
-   duplicates; (c) validate the 15mm knee-x spread warning against a fitter's
-   hand-measured knee position; (d) check that frame rate stays above 20fps
-   even with concurrent JPEG encoding.
-2. Walk the full flow once with a real bike on a trainer and sanity-check
-   the numbers against a tape measure / known bike geometry. Same trip
-   validates the capture distances/heights in `HowToScreen` and the bounds
-   in the plausibility guards — all three are currently reasoned, not
-   measured.
-3. iOS: install full Xcode, then `flutter doctor` again, then retest the
-   iOS branch of the camera-image conversion code (untested so far).
-4. Decide on saving results. It is still a non-goal, but it is the one most
-   likely to be wrong: closing the app loses everything, so you cannot
-   compare before/after an adjustment, which is the point of a fit. Revisit
-   once there are real numbers to compare.
+1. **Run the spike on the Redmi** with a 20-30 s real pedaling video (empty
+   bike ~2 s, then steady pedaling, left side to camera, good light, 60 fps if
+   offered). Pass criteria in `doc/web-redesign.md`: >= 99% of frames
+   reachable, analysis <= 2 min, a clean ankle loop. If 1x playback misses
+   frames, retry at playback rate 0.5.
+2. Pass: merge `device-testing-fixes` into `main`, tag `flutter-final`,
+   delete the Flutter code, build the web app via the `coder` agent. Fail:
+   try the lite model / fewer refined frames, else fall back to static photos
+   (see the design doc).
+3. The Flutter next steps (validating the live-stream gate on a ride, iOS via
+   Xcode, the transitive INTERNET permission) are superseded by the web
+   redesign and should not be worked on.
