@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>velofit spike: video frames</title>
+  <style>
+    body { font: 14px system-ui, sans-serif; margin: 12px; }
+    fieldset { margin-bottom: 8px; }
+    label { display: inline-block; margin: 4px 8px 4px 0; }
+    button { font-size: 16px; padding: 8px 12px; margin: 4px 4px 4px 0; }
+    pre { white-space: pre-wrap; background: #f3f3f3; padding: 8px; font-size: 12px; }
+    canvas { border: 1px solid #ccc; max-width: 100%; display: block; margin: 6px 0; }
+    video { width: 160px; }
+    input[type=number] { width: 5em; }
+  </style>
+</head>
+<body>
+  <h3>velofit spike: video frame access + pose timing</h3>
+  <fieldset>
+    <input id="file" type="file" accept="video/*" capture="environment" />
+    <br />
+    <label>model <select id="model"><option>full</option><option>lite</option></select></label>
+    <label>delegate <select id="delegate"><option>GPU</option><option>CPU</option></select></label>
+    <label>playback rate <input id="rate" type="number" value="1" step="0.25" min="0.1" /></label>
+    <br />
+    <label>start s <input id="start" type="number" value="0" step="1" min="0" /></label>
+    <label>max s <input id="max" type="number" value="30" step="1" min="1" /></label>
+    <label>coarse step <input id="step" type="number" value="4" step="1" min="1" /></label>
+    <br />
+    <button id="deliver">1. Frame delivery</button>
+    <button id="analyse">2. Analyse</button>
+    <button id="copy">Save JSON</button>
+  </fieldset>
+  <div id="status">Pick a video.</div>
+  <pre id="out"></pre>
+  <canvas id="loop" width="400" height="400"></canvas>
+  <canvas id="trace" width="800" height="240"></canvas>
+  <canvas id="frame" width="480" height="270"></canvas>
+  <video id="video" muted playsinline preload="auto"></video>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
