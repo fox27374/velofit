@@ -145,18 +145,48 @@ export function matchBikes(
 }
 
 /**
- * Bike character from stack-to-reach ratio. The research doc allows this
- * ratio to classify *bikes* (§5.2) while refusing it as a rider target, so it
- * belongs to a preference, never to a prediction.
+ * Bike character from stack-to-reach ratio. The research doc allows this ratio
+ * to classify *bikes* (§5.2) while refusing it as a rider target, so it may
+ * sort a shortlist and may never predict a body.
  *
- * The 1.5 split is retailer convention, not a rider-side study.
+ * The split is the median of the rider's own matches, not a fixed threshold.
+ * A constant 1.50 — the retailer convention — called every small frame racy,
+ * because the ratio rises with frame size: at 1600 mm every match including
+ * both endurance Domanes came out "racy" and the upright group was empty.
+ * Relative means "racier than half of what fits you", which is all the ratio
+ * was ever licensed to say.
  */
-export const CHARACTER_SPLIT = 1.5
-
 export type Character = 'racy' | 'relaxed'
 
-export function characterOf(row: { stack: number; reach: number }): Character {
-  return row.stack / row.reach < CHARACTER_SPLIT ? 'racy' : 'relaxed'
+export function ratioOf(row: { stack: number; reach: number }): number {
+  return row.stack / row.reach
+}
+
+export interface CharacterSplit<T> {
+  racy: T[]
+  relaxed: T[]
+  /** Null when the rows cannot be meaningfully split; show one list. */
+  median: number | null
+}
+
+export function splitByCharacter<T extends { stack: number; reach: number }>(
+  rows: T[]
+): CharacterSplit<T> {
+  const ratios = rows.map(ratioOf).sort((a, b) => a - b)
+  const spread = ratios.length > 1 && ratios[0] !== ratios[ratios.length - 1]
+  if (!spread) return { racy: [], relaxed: [], median: null }
+
+  const mid = ratios.length / 2
+  const median =
+    ratios.length % 2 === 0
+      ? (ratios[mid - 1] + ratios[mid]) / 2
+      : ratios[Math.floor(mid)]
+
+  return {
+    racy: rows.filter((r) => ratioOf(r) < median),
+    relaxed: rows.filter((r) => ratioOf(r) >= median),
+    median,
+  }
 }
 
 /**

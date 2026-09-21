@@ -4,10 +4,11 @@ import {
   matchBikes,
   getStackReachWindow,
   getFrameGeometryRange,
-  characterOf,
+  splitByCharacter,
+  ratioOf,
   headlineSizes,
-  CHARACTER_SPLIT,
   type Character,
+  type BikeSize,
 } from './matcher'
 
 type TabType = 'results' | 'manual'
@@ -298,6 +299,27 @@ function InputForm({
   )
 }
 
+/** One bike in the shortlist. */
+function BikeRow({ bike }: { bike: BikeSize }) {
+  return (
+    <div className="buyfit-result">
+      <strong>
+        {bike.brand} {bike.model}
+      </strong>{' '}
+      ({bike.year})
+      <br />
+      Size {bike.size}: Stack {bike.stack} mm, Reach {bike.reach} mm, ETT {bike.ett} mm, Seat
+      Tube {bike.seatTube} mm
+      <br />
+      <span className="buyfit-delta">
+        Δ Stack {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm, Δ Reach{' '}
+        {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm, ratio{' '}
+        {ratioOf(bike).toFixed(2)}
+      </span>
+    </div>
+  )
+}
+
 /**
  * Results screen showing all outputs with badges
  */
@@ -331,11 +353,10 @@ function ResultsScreen({
     : []
 
   const headline = headlineSizes(height)
-  const racy = matches.filter((b) => characterOf(b) === 'racy')
-  const relaxed = matches.filter((b) => characterOf(b) === 'relaxed')
+  const split = splitByCharacter(matches)
   const groups: { key: Character; title: string; rows: typeof matches }[] = [
-    { key: 'racy', title: 'Racier, lower front end', rows: racy },
-    { key: 'relaxed', title: 'More upright', rows: relaxed },
+    { key: 'racy', title: 'Racier half of your matches', rows: split.racy },
+    { key: 'relaxed', title: 'More upright half', rows: split.relaxed },
   ]
   // Preferred group first. Two groups, so this is a flip, not a sort.
   if (preference === 'relaxed') groups.reverse()
@@ -443,48 +464,35 @@ function ResultsScreen({
             <div>
               <h3>Bikes in Your Height Band</h3>
               <p className="buyfit-note">
-                Split by stack-to-reach ratio at {CHARACTER_SPLIT.toFixed(2)} — a retailer
-                convention for sorting bikes, with no rider-side study behind it. Every bike listed
-                fits your window; the groups are about what you want, not what fits.
+                Every bike listed fits your window; the groups are about what you want, not what
+                fits. They are split at the median stack-to-reach ratio of your own matches, so
+                "racier" means racier than half of what fits you — not a category the bike carries
+                around. A fixed threshold would call every small frame racy, because the ratio
+                rises with frame size.
               </p>
 
-              {groups.map((group) => (
+              {split.median === null && (
+                <div className="buyfit-results">
+                  {matches.map((bike) => (
+                    <BikeRow key={`${bike.brand}-${bike.model}-${bike.size}`} bike={bike} />
+                  ))}
+                </div>
+              )}
+
+              {split.median !== null &&
+                groups.map((group) => (
                 <div key={group.key}>
                   <h4>
                     {group.title}
                     {preference === group.key && ' — your preference'}
                   </h4>
-                  {group.rows.length === 0 ? (
-                    <p className="buyfit-note">
-                      Nothing in the database at your size. That is a gap in the data, not a
-                      verdict on the bikes.
-                    </p>
-                  ) : (
-                    <div className="buyfit-results">
-                      {group.rows.map((bike) => (
-                        <div
-                          key={`${bike.brand}-${bike.model}-${bike.size}`}
-                          className="buyfit-result"
-                        >
-                          <strong>
-                            {bike.brand} {bike.model}
-                          </strong>{' '}
-                          ({bike.year})
-                          <br />
-                          Size {bike.size}: Stack {bike.stack} mm, Reach {bike.reach} mm, ETT{' '}
-                          {bike.ett} mm, Seat Tube {bike.seatTube} mm
-                          <br />
-                          <span className="buyfit-delta">
-                            Δ Stack {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm,
-                            Δ Reach {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm,
-                            ratio {(bike.stack / bike.reach).toFixed(2)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="buyfit-results">
+                    {group.rows.map((bike) => (
+                      <BikeRow key={`${bike.brand}-${bike.model}-${bike.size}`} bike={bike} />
+                    ))}
+                  </div>
                 </div>
-              ))}
+                ))}
             </div>
           )}
         </div>

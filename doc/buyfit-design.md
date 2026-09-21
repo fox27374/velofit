@@ -147,10 +147,17 @@ Domane SLR ML come back at an identical distance from the window centre. A
 states what they want rather than being told what they are.
 
 One preference only: **riding position**, racier or more upright, split on the
-bike's stack-to-reach ratio at **1.50**. The research doc permits this ratio to
-classify *bikes* while refusing it as a rider target, so it may sort a
-shortlist and may never predict a body. The 1.50 threshold is retailer
-convention with no rider-side study behind it, and the UI says so.
+bike's stack-to-reach ratio. The research doc permits this ratio to classify
+*bikes* while refusing it as a rider target, so it may sort a shortlist and may
+never predict a body.
+
+**The split is the median of the rider's own matches, not a fixed threshold.**
+The retailer convention of 1.50 was tried first and failed on real data: the
+ratio rises with frame size, so at 1600 mm every match came out "racier",
+including both Domane trims, which are Trek's endurance bikes. The upright
+group rendered empty. Relative means "racier than half of what fits you",
+which is all this ratio was ever licensed to say. With fewer than two matches,
+or when every match shares one ratio, the shortlist is shown unsplit.
 
 The shortlist shows **both groups, always**, with the preferred one first and
 labelled. Filtering would risk an empty list against a small database, and

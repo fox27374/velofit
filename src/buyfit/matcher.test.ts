@@ -3,7 +3,7 @@ import {
   matchBikes,
   getStackReachWindow,
   getFrameGeometryRange,
-  characterOf,
+  splitByCharacter,
   headlineSizes,
   type Bike,
 } from './matcher'
@@ -152,12 +152,35 @@ describe('getFrameGeometryRange', () => {
   })
 })
 
-describe('characterOf', () => {
-  it('splits on the stack-to-reach ratio, boundary counting as relaxed', () => {
-    expect(characterOf({ stack: 562, reach: 389 })).toBe('racy') // 1.445, Madone
-    expect(characterOf({ stack: 596, reach: 377 })).toBe('relaxed') // 1.581, Domane
-    expect(characterOf({ stack: 600, reach: 400 })).toBe('relaxed') // exactly 1.5
-    expect(characterOf({ stack: 599, reach: 400 })).toBe('racy')
+describe('splitByCharacter', () => {
+  const row = (stack: number, reach: number) => ({ stack, reach })
+
+  it('splits at the median of these rows, not a fixed threshold', () => {
+    // Ratios 1.40, 1.44, 1.47, 1.58 -> median 1.455.
+    const rows = [row(545, 388), row(562, 389), row(558, 380), row(596, 377)]
+    const split = splitByCharacter(rows)
+    expect(split.racy.map((r) => r.stack)).toEqual([545, 562])
+    expect(split.relaxed.map((r) => r.stack)).toEqual([558, 596])
+  })
+
+  it('never leaves a group empty when the ratios differ', () => {
+    // The old fixed 1.50 put all of these in one group.
+    const rows = [row(515, 377), row(530, 378), row(540, 368), row(555, 371)]
+    const split = splitByCharacter(rows)
+    expect(split.racy.length).toBeGreaterThan(0)
+    expect(split.relaxed.length).toBeGreaterThan(0)
+  })
+
+  it('refuses to split a single row', () => {
+    expect(splitByCharacter([row(562, 389)]).median).toBeNull()
+  })
+
+  it('refuses to split rows that all share one ratio', () => {
+    expect(splitByCharacter([row(560, 400), row(560, 400)]).median).toBeNull()
+  })
+
+  it('has nothing to split when there are no rows', () => {
+    expect(splitByCharacter([]).median).toBeNull()
   })
 })
 
