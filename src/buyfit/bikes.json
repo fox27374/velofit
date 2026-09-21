@@ -304,5 +304,68 @@
         "riderHeightMax": 1980
       }
     ]
+  },
+  {
+    "brand": "Giant",
+    "model": "Propel Advanced Pro 0",
+    "year": 2026,
+    "verified": "2026-09-21",
+    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026.",
+    "sizes": [
+      {
+        "size": "XS",
+        "stack": 515,
+        "reach": 377,
+        "ett": 520,
+        "seatTube": 484,
+        "riderHeightMin": 1570,
+        "riderHeightMax": 1690
+      },
+      {
+        "size": "S",
+        "stack": 530,
+        "reach": 383,
+        "ett": 535,
+        "seatTube": 505,
+        "riderHeightMin": 1650,
+        "riderHeightMax": 1750
+      },
+      {
+        "size": "M",
+        "stack": 546,
+        "reach": 388,
+        "ett": 550,
+        "seatTube": 528.5,
+        "riderHeightMin": 1710,
+        "riderHeightMax": 1810
+      },
+      {
+        "size": "M/L",
+        "stack": 565,
+        "reach": 392,
+        "ett": 565,
+        "seatTube": 554,
+        "riderHeightMin": 1770,
+        "riderHeightMax": 1870
+      },
+      {
+        "size": "L",
+        "stack": 582,
+        "reach": 402,
+        "ett": 580,
+        "seatTube": 576,
+        "riderHeightMin": 1830,
+        "riderHeightMax": 1930
+      },
+      {
+        "size": "XL",
+        "stack": 596,
+        "reach": 412,
+        "ett": 600,
+        "seatTube": 595,
+        "riderHeightMin": 1890,
+        "riderHeightMax": 1990
+      }
+    ]
   }
 ]
