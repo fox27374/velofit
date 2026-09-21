@@ -4,6 +4,27 @@ Bike-fitting MVP. Analyzes video of a rider on a stationary trainer, computes
 joint angles + KOPS/saddle-height, compares against target ranges. No
 adjustment recommendations, no accounts/history/cloud — see non-goals below.
 
+## Migration done, 2026-09-21
+
+`main` is now the web app: Vite + TypeScript + Preact at the repo root, a home
+screen with four entries, a GitHub Pages workflow. The Flutter tree is deleted
+and recoverable in full with `git checkout flutter-final`.
+
+The migration ran **ahead of the spike**, not after it as planned below. The
+reason is a second feature, **BuyFit** — frame sizing from body measurements,
+no video, no pose, no camera — agreed in a grilling session the same day and
+recorded in `doc/buyfit-design.md`. It ships first because it is blocked on
+nothing, while the video flow is blocked on a real pedaling video existing.
+Even a failed spike falls back to static photos in a web app, so the platform
+choice was never the thing at risk.
+
+What BuyFit rests on is in `doc/frame-sizing-research.md`, and it is not
+flattering: Holliday & Swart (2021, n = 50) could not predict handlebar reach
+(adj R² = −0.10) or saddle setback (0.07, n.s.) from anthropometry at all.
+Saddle height is predictable and still carries a ±20–25 mm band. The design
+prints the unsupported outputs anyway, as wide windows behind a "No source"
+badge — a deliberate, recorded overrule of the research.
+
 ## Direction change, 2026-09-18: web app
 
 **The Flutter app is being replaced by a web app.** Design agreed and
@@ -344,15 +365,22 @@ numbers. Bike type is *selected by the user*, never detected from the image.
 
 ## Next steps
 
-1. **Run the spike on the Redmi** with a 20-30 s real pedaling video (empty
+1. **Build BuyFit** to `doc/buyfit-design.md`, via the `coder` agent: the
+   three-field form with SVG measuring instructions, the sizing math and the
+   matcher in plain TypeScript under Vitest, the results screen with per-line
+   Sourced / Weak / No source badges, and the manual stack/reach check.
+2. **Hand-check Holliday & Swart's regression tables** against the PDF before
+   shipping anything that quotes them. They were machine-read, and they carry
+   both the one positive result and both null results.
+3. **Type the geometry database**: ~15 road models, per size stack, reach,
+   effective top tube, seat tube and the maker's own rider-height band, from
+   each maker's published chart. No scraping.
+4. **Run the spike on the Redmi** with a 20-30 s real pedaling video (empty
    bike ~2 s, then steady pedaling, left side to camera, good light, 60 fps if
    offered). Pass criteria in `doc/web-redesign.md`: >= 99% of frames
    reachable, analysis <= 2 min, a clean ankle loop. If 1x playback misses
-   frames, retry at playback rate 0.5.
-2. Pass: merge `device-testing-fixes` into `main`, tag `flutter-final`,
-   delete the Flutter code, build the web app via the `coder` agent. Fail:
-   try the lite model / fewer refined frames, else fall back to static photos
-   (see the design doc).
-3. The Flutter next steps (validating the live-stream gate on a ride, iOS via
+   frames, retry at playback rate 0.5. Pass: build the fitting flow. Fail: try
+   the lite model / fewer refined frames, else fall back to static photos.
+5. The Flutter next steps (validating the live-stream gate on a ride, iOS via
    Xcode, the transitive INTERNET permission) are superseded by the web
    redesign and should not be worked on.

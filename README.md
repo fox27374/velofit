@@ -1,18 +1,26 @@
 # velofit
 
-Bike fitting from your phone. Film yourself pedaling on a stationary trainer,
-and the app measures your joint angles, knee-over-pedal-spindle offset and
-saddle height, then compares them against target ranges.
+Bike fitting from your phone, in the browser. Two features:
 
-Runs entirely on-device. No accounts, no cloud, no data leaves the phone.
+- **Bike Fitting** — film yourself pedaling on a stationary trainer, and the
+  app measures your joint angles, knee-over-pedal-spindle offset and saddle
+  height, then compares them against target ranges.
+- **BuyFit** — enter three body measurements and narrow down which frame to
+  buy, before you own a bike to film.
 
-> **Status: pre-alpha.** It now runs on a physical Android device and completes
-> the capture flow, but no measurement it produces has been checked against a
-> tape measure, and every threshold in the cycle-detection gate is reasoned
-> rather than measured. Do not make changes to your bike based on its numbers
-> yet.
+Runs entirely on the device. No accounts, no cloud, no data leaves the browser.
 
-## How it works
+> **Status: rebuild in progress.** `main` holds the web rewrite, which is
+> currently a scaffold and a home screen — neither feature is reimplemented
+> yet. The Flutter app that did complete the capture flow on an Android device
+> is at the tag `flutter-final` (`git checkout flutter-final`).
+>
+> No measurement this project produces has ever been checked against a tape
+> measure. Do not make changes to your bike based on its numbers yet.
+
+## How the fitting flow works
+
+Described as designed; see `doc/web-redesign.md` for the web version of it.
 
 1. **Setup** — enter your wheel + tyre outer diameter in mm.
 2. **Calibration** — take one still photo of the bike and tap four points: top
@@ -48,15 +56,16 @@ under **How to Measure**; in short:
 
 ## Building
 
-Needs the Flutter SDK (developed against 3.47.2 stable).
+Needs Node. Vite + TypeScript + Preact.
 
 ```sh
-flutter pub get
-flutter run                 # or: flutter build apk
+npm install
+npm run dev                 # or: npm run build && npm run preview
 ```
 
-Android works. iOS builds have never been exercised — the camera-image
-conversion path has an untested iOS branch.
+Pushing to `main` builds and deploys to GitHub Pages. Testing on a phone over
+USB: `npm run dev`, then `adb reverse tcp:5173 tcp:5173` and open
+`http://localhost:5173`.
 
 ## Accuracy, honestly
 
@@ -79,16 +88,22 @@ Bike fit interacts with injury; if something hurts, see a physio or a fitter.
 
 - [`PROGRESS.md`](PROGRESS.md) — current state, architecture decisions, fixed
   and open bugs.
+- [`doc/web-redesign.md`](doc/web-redesign.md) — the agreed design of the web
+  fitting flow.
+- [`doc/buyfit-design.md`](doc/buyfit-design.md) — the agreed design of BuyFit,
+  including where it deliberately overrules the evidence.
 - [`doc/bike-type-profiles.md`](doc/bike-type-profiles.md) — designed but
   unimplemented road / mountain / triathlon profiles.
 - [`doc/fit-targets-research.md`](doc/fit-targets-research.md) — sourced target
   ranges with citations.
+- [`doc/frame-sizing-research.md`](doc/frame-sizing-research.md) — what the
+  literature does and does not support about sizing a frame from body
+  measurements. Short version: saddle height yes, reach no.
 
 ## License
 
 [Apache License 2.0](LICENSE). Copyright 2026 Daniel Kofler.
 
-Dependencies are separately licensed and permissive: `camera` under BSD-3-Clause
-(The Flutter Authors), `google_mlkit_pose_detection`, `permission_handler` and
-`image` under MIT. Google's ML Kit binaries ship under Google's own terms,
-independent of this project's license.
+Dependencies are separately licensed and permissive: Preact, Vite and Vitest
+under MIT. MediaPipe, once the pose detection lands, ships under Apache-2.0
+with Google's own model terms, independent of this project's license.
