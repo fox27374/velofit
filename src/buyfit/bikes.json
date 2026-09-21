@@ -6,12 +6,123 @@
     "verified": "2026-09-21",
     "source": "Trek published geometry and size charts. Chart values are cm; stored here as mm.",
     "sizes": [
-      { "size": "XS", "stack": 507, "reach": 370, "ett": 517, "seatTube": 404, "riderHeightMin": 1430, "riderHeightMax": 1580 },
-      { "size": "S", "stack": 530, "reach": 378, "ett": 532, "seatTube": 440, "riderHeightMin": 1580, "riderHeightMax": 1620 },
-      { "size": "M", "stack": 546, "reach": 384, "ett": 545, "seatTube": 476, "riderHeightMin": 1620, "riderHeightMax": 1730 },
-      { "size": "ML", "stack": 562, "reach": 389, "ett": 557, "seatTube": 512, "riderHeightMin": 1730, "riderHeightMax": 1790 },
-      { "size": "L", "stack": 582, "reach": 394, "ett": 568, "seatTube": 548, "riderHeightMin": 1790, "riderHeightMax": 1880 },
-      { "size": "XL", "stack": 610, "reach": 402, "ett": 584, "seatTube": 609, "riderHeightMin": 1880, "riderHeightMax": 1990 }
+      {
+        "size": "XS",
+        "stack": 507,
+        "reach": 370,
+        "ett": 517,
+        "seatTube": 404,
+        "riderHeightMin": 1430,
+        "riderHeightMax": 1580
+      },
+      {
+        "size": "S",
+        "stack": 530,
+        "reach": 378,
+        "ett": 532,
+        "seatTube": 440,
+        "riderHeightMin": 1580,
+        "riderHeightMax": 1620
+      },
+      {
+        "size": "M",
+        "stack": 546,
+        "reach": 384,
+        "ett": 545,
+        "seatTube": 476,
+        "riderHeightMin": 1620,
+        "riderHeightMax": 1730
+      },
+      {
+        "size": "ML",
+        "stack": 562,
+        "reach": 389,
+        "ett": 557,
+        "seatTube": 512,
+        "riderHeightMin": 1730,
+        "riderHeightMax": 1790
+      },
+      {
+        "size": "L",
+        "stack": 582,
+        "reach": 394,
+        "ett": 568,
+        "seatTube": 548,
+        "riderHeightMin": 1790,
+        "riderHeightMax": 1880
+      },
+      {
+        "size": "XL",
+        "stack": 610,
+        "reach": 402,
+        "ett": 584,
+        "seatTube": 609,
+        "riderHeightMin": 1880,
+        "riderHeightMax": 1990
+      }
+    ]
+  },
+  {
+    "brand": "Trek",
+    "model": "Domane",
+    "year": 2026,
+    "verified": "2026-09-21",
+    "source": "Trek published geometry and size charts. Chart values are cm; stored here as mm. Trim level not recorded - Domane AL geometry differs from SLR/SL.",
+    "sizes": [
+      {
+        "size": "XS",
+        "stack": 524,
+        "reach": 368,
+        "ett": 520,
+        "seatTube": 444,
+        "riderHeightMin": 1430,
+        "riderHeightMax": 1580
+      },
+      {
+        "size": "S",
+        "stack": 555,
+        "reach": 371,
+        "ett": 530,
+        "seatTube": 476,
+        "riderHeightMin": 1580,
+        "riderHeightMax": 1620
+      },
+      {
+        "size": "M",
+        "stack": 575,
+        "reach": 374,
+        "ett": 541,
+        "seatTube": 500,
+        "riderHeightMin": 1620,
+        "riderHeightMax": 1730
+      },
+      {
+        "size": "ML",
+        "stack": 596,
+        "reach": 377,
+        "ett": 553,
+        "seatTube": 533,
+        "riderHeightMin": 1730,
+        "riderHeightMax": 1790
+      },
+      {
+        "size": "L",
+        "stack": 618,
+        "reach": 380,
+        "ett": 562,
+        "seatTube": 553,
+        "riderHeightMin": 1790,
+        "riderHeightMax": 1880
+      },
+      {
+        "size": "XL",
+        "stack": 648,
+        "reach": 384,
+        "ett": 575,
+        "seatTube": 593,
+        "riderHeightMin": 1880,
+        "riderHeightMax": 1990
+      }
     ]
   }
 ]
