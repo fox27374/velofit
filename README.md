@@ -10,10 +10,12 @@ Bike fitting from your phone, in the browser. Two features:
 
 Runs entirely on the device. No accounts, no cloud, no data leaves the browser.
 
-> **Status: rebuild in progress.** `main` holds the web rewrite, which is
-> currently a scaffold and a home screen — neither feature is reimplemented
-> yet. The Flutter app that did complete the capture flow on an Android device
-> is at the tag `flutter-final` (`git checkout flutter-final`).
+> **Status: BuyFit works, Bike Fitting does not yet.** `main` holds the web
+> rewrite. BuyFit is live at
+> [fox27374.github.io/velofit](https://fox27374.github.io/velofit/) with six
+> road models in its geometry database. The fitting flow is still a menu entry:
+> the Flutter app that did complete the capture flow on an Android device is at
+> the tag `flutter-final` (`git checkout flutter-final`).
 >
 > No measurement this project produces has ever been checked against a tape
 > measure. Do not make changes to your bike based on its numbers yet.
@@ -107,5 +109,6 @@ Bike fit interacts with injury; if something hurts, see a physio or a fitter.
 Dependencies are separately licensed and permissive: Preact, Vite and Vitest
 under MIT. The bundled typeface is Archivo (Omnibus-Type), under the SIL Open
 Font License 1.1 — self-hosted in `public/fonts/` rather than linked from
-Google Fonts, so that loading the app really does send nothing anywhere. MediaPipe, once the pose detection lands, ships under Apache-2.0
-with Google's own model terms, independent of this project's license.
+Google Fonts, so that loading the app really does send nothing anywhere.
+MediaPipe, once the pose detection lands, ships under Apache-2.0 with Google's
+own model terms, independent of this project's license.
