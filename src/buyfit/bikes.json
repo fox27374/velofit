@@ -1,0 +1,17 @@
+[
+  {
+    "brand": "Trek",
+    "model": "Madone SLR 9 AXS Gen 8",
+    "year": 2026,
+    "verified": "2026-09-21",
+    "source": "Trek published geometry and size charts. Chart values are cm; stored here as mm.",
+    "sizes": [
+      { "size": "XS", "stack": 507, "reach": 370, "ett": 517, "seatTube": 404, "riderHeightMin": 1430, "riderHeightMax": 1580 },
+      { "size": "S", "stack": 530, "reach": 378, "ett": 532, "seatTube": 440, "riderHeightMin": 1580, "riderHeightMax": 1620 },
+      { "size": "M", "stack": 546, "reach": 384, "ett": 545, "seatTube": 476, "riderHeightMin": 1620, "riderHeightMax": 1730 },
+      { "size": "ML", "stack": 562, "reach": 389, "ett": 557, "seatTube": 512, "riderHeightMin": 1730, "riderHeightMax": 1790 },
+      { "size": "L", "stack": 582, "reach": 394, "ett": 568, "seatTube": 548, "riderHeightMin": 1790, "riderHeightMax": 1880 },
+      { "size": "XL", "stack": 610, "reach": 402, "ett": 584, "seatTube": 609, "riderHeightMin": 1880, "riderHeightMax": 1990 }
+    ]
+  }
+]

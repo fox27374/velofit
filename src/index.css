@@ -58,3 +58,231 @@ nav button span {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+input,
+select {
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(217, 139, 30, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+form {
+  display: grid;
+  gap: 1rem;
+}
+
+strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+p {
+  margin: 0.5rem 0;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+/* BuyFit specific styles */
+
+.buyfit-diagram {
+  width: 100px;
+  height: 200px;
+  margin-bottom: 0.5rem;
+}
+
+.buyfit-diagram-wide {
+  width: 200px;
+  height: 120px;
+  margin-bottom: 0.5rem;
+}
+
+.buyfit-diagram-container {
+  margin-bottom: 0.5rem;
+}
+
+.buyfit-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.buyfit-field {
+  display: block;
+}
+
+.buyfit-input {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.buyfit-select {
+  margin-left: 0.5rem;
+}
+
+.buyfit-help {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0.25rem 0;
+}
+
+.buyfit-button-primary {
+  padding: 0.75rem;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.buyfit-button-primary:hover {
+  opacity: 0.9;
+}
+
+.buyfit-button-back {
+  margin-top: 2rem;
+  padding: 0.5rem 1rem;
+}
+
+.buyfit-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.buyfit-tab {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.buyfit-tab.active {
+  border-bottom-color: var(--accent);
+  color: var(--fg);
+  font-weight: bold;
+}
+
+.buyfit-outputs {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.buyfit-output {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+
+.buyfit-output:first-child {
+  border-top: none;
+}
+
+.buyfit-no-window {
+  background-color: rgba(166, 77, 77, 0.1);
+  padding: 0.75rem;
+  border-radius: 0.4rem;
+}
+
+.buyfit-note {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0.5rem 0;
+}
+
+.buyfit-results {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.buyfit-result {
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.buyfit-delta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.buyfit-verdict {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.4rem;
+  color: white;
+}
+
+.buyfit-verdict-fits {
+  background-color: #2d7a3a;
+}
+
+.buyfit-verdict-bad {
+  background-color: #a64d4d;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: 0.5rem;
+}
+
+.badge-sourced {
+  background-color: #2d7a3a;
+}
+
+.badge-weak {
+  background-color: #b89c3a;
+}
+
+.badge-no-source {
+  background-color: #a64d4d;
+}
+
+.badge:hover {
+  opacity: 0.9;
+}

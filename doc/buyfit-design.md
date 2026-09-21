@@ -80,7 +80,13 @@ screenshot; a single disclaimer at the top of the screen does not.
 | Handlebar width | shoulder width ±20 mm, stating which width convention is meant | Weak |
 | Crank length | 165–175 mm, with "this barely matters" said out loud | Weak |
 | Stack/reach window | height → the maker's own size label → min–max of that label's stack and reach across the database | No source |
-| Frame size, seat tube, ETT, reach, setback, stem | wide windows from what bikes in the window ship with | No source, basis stated as *not from your body* |
+| Frame size, seat tube, ETT | wide windows from what bikes in the window ship with | No source, basis stated as *not from your body* |
+
+**Setback and stem were dropped from that line during implementation**, and
+this overrules the agreed list. Makers do not publish saddle setback or stem
+length per size in their geometry charts — Trek's Madone chart, the first real
+model typed in, carries neither — so the database has no field to range over
+and there is nothing to print. Four honest numbers beat six with two invented.
 
 The handlebar width convention must be stated on both input and output: the
 UCI regulates three different definitions of handlebar width simultaneously.
@@ -93,8 +99,16 @@ their terms, and in the EU their compiled collection carries *sui generis*
 database right independent of the individual figures, which are facts and free.
 
 Road only. ~15 models in v1 — roughly 90 rows, enough to find every schema
-problem that 100 would. Generated later; the schema and the matcher are built
-now against a synthetic table.
+problem that 100 would. The matcher is tested against a synthetic table, never
+against the shipped data, so typing in real bikes cannot break the tests.
+
+First real model in: **Trek Madone SLR 9 AXS Gen 8 (2026)**, six sizes, stack
+reach ETT and seat tube from Trek's geometry chart, rider-height bands from
+Trek's separate size chart. Both charts are in cm; the database is mm.
+
+Trek's size chart also publishes an **inseam band per size**, which the schema
+does not yet carry. Worth adding as a second filter once more models are typed
+in — inseam beats height as a predictor everywhere else in this feature.
 
 Per model and size: **stack, reach, effective top tube, seat tube, and the
 maker's own rider-height band** (the height band is what Q21's window

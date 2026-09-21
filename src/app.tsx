@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks'
+import { BuyFit } from './buyfit/BuyFit'
 
 type Screen = 'home' | 'fit' | 'howto' | 'tables' | 'buyfit'
 
@@ -45,6 +46,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>('home')
 
   if (screen === 'home') return <Home go={setScreen} />
+  if (screen === 'buyfit') return <BuyFit />
 
   const title = entries.find((e) => e.screen === screen)!.title
   return (
