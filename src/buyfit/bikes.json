@@ -64,10 +64,10 @@
   },
   {
     "brand": "Trek",
-    "model": "Domane",
+    "model": "Domane SLR",
     "year": 2026,
     "verified": "2026-09-21",
-    "source": "Trek published geometry and size charts. Chart values are cm; stored here as mm. Trim level not recorded - Domane AL geometry differs from SLR/SL.",
+    "source": "Trek published geometry and size charts. Chart values are cm; stored here as mm.",
     "sizes": [
       {
         "size": "XS",
@@ -122,6 +122,78 @@
         "seatTube": 593,
         "riderHeightMin": 1880,
         "riderHeightMax": 1990
+      }
+    ]
+  },
+  {
+    "brand": "Trek",
+    "model": "Domane AL",
+    "year": 2026,
+    "verified": "2026-09-21",
+    "source": "Trek published geometry and size charts. Chart values are cm; stored here as mm. Trek's height bands for this model leave gaps: 153-156 cm and 174 cm boundaries are not continuous.",
+    "sizes": [
+      {
+        "size": "44",
+        "stack": 510,
+        "reach": 360,
+        "ett": 507,
+        "seatTube": 390,
+        "riderHeightMin": 1500,
+        "riderHeightMax": 1530
+      },
+      {
+        "size": "49",
+        "stack": 540,
+        "reach": 368,
+        "ett": 516,
+        "seatTube": 440,
+        "riderHeightMin": 1560,
+        "riderHeightMax": 1630
+      },
+      {
+        "size": "52",
+        "stack": 561,
+        "reach": 371,
+        "ett": 530,
+        "seatTube": 475,
+        "riderHeightMin": 1630,
+        "riderHeightMax": 1680
+      },
+      {
+        "size": "54",
+        "stack": 575,
+        "reach": 374,
+        "ett": 542,
+        "seatTube": 500,
+        "riderHeightMin": 1680,
+        "riderHeightMax": 1740
+      },
+      {
+        "size": "56",
+        "stack": 591,
+        "reach": 377,
+        "ett": 554,
+        "seatTube": 525,
+        "riderHeightMin": 1740,
+        "riderHeightMax": 1800
+      },
+      {
+        "size": "58",
+        "stack": 611,
+        "reach": 380,
+        "ett": 567,
+        "seatTube": 548,
+        "riderHeightMin": 1800,
+        "riderHeightMax": 1850
+      },
+      {
+        "size": "61",
+        "stack": 646,
+        "reach": 385,
+        "ett": 586,
+        "seatTube": 576,
+        "riderHeightMin": 1850,
+        "riderHeightMax": 1910
       }
     ]
   }
