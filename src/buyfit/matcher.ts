@@ -143,3 +143,37 @@ export function matchBikes(
     })
     .sort((a, b) => a.distanceFromCentre - b.distanceFromCentre)
 }
+
+/**
+ * Bike character from stack-to-reach ratio. The research doc allows this
+ * ratio to classify *bikes* (§5.2) while refusing it as a rider target, so it
+ * belongs to a preference, never to a prediction.
+ *
+ * The 1.5 split is retailer convention, not a rider-side study.
+ */
+export const CHARACTER_SPLIT = 1.5
+
+export type Character = 'racy' | 'relaxed'
+
+export function characterOf(row: { stack: number; reach: number }): Character {
+  return row.stack / row.reach < CHARACTER_SPLIT ? 'racy' : 'relaxed'
+}
+
+/**
+ * The size label that appears most often in the rider's height band, for the
+ * "you are roughly a ..." headline. Ties return every tied label, because a
+ * tie is the honest answer: the label means different things per brand.
+ */
+export function headlineSizes(
+  riderHeight: number,
+  db: Bike[] = database
+): string[] {
+  const counts = new Map<string, number>()
+  for (const row of rowsForHeight(riderHeight, db)) {
+    counts.set(row.size, (counts.get(row.size) ?? 0) + 1)
+  }
+  if (counts.size === 0) return []
+
+  const most = Math.max(...counts.values())
+  return [...counts.entries()].filter(([, n]) => n === most).map(([s]) => s)
+}

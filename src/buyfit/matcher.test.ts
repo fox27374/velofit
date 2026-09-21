@@ -3,6 +3,8 @@ import {
   matchBikes,
   getStackReachWindow,
   getFrameGeometryRange,
+  characterOf,
+  headlineSizes,
   type Bike,
 } from './matcher'
 
@@ -147,5 +149,32 @@ describe('getFrameGeometryRange', () => {
 
   it('is null when no bike covers the height', () => {
     expect(getFrameGeometryRange(2100, db)).toBeNull()
+  })
+})
+
+describe('characterOf', () => {
+  it('splits on the stack-to-reach ratio, boundary counting as relaxed', () => {
+    expect(characterOf({ stack: 562, reach: 389 })).toBe('racy') // 1.445, Madone
+    expect(characterOf({ stack: 596, reach: 377 })).toBe('relaxed') // 1.581, Domane
+    expect(characterOf({ stack: 600, reach: 400 })).toBe('relaxed') // exactly 1.5
+    expect(characterOf({ stack: 599, reach: 400 })).toBe('racy')
+  })
+})
+
+describe('headlineSizes', () => {
+  it('returns the most common label in the height band', () => {
+    // At 1750 the band holds Alfa M, Bravo M and Bravo L: M wins.
+    expect(headlineSizes(1750, db)).toEqual(['M'])
+  })
+
+  it('returns every tied label rather than picking one', () => {
+    // At 1700 the band holds Alfa S, Alfa M and Bravo M... M appears twice.
+    expect(headlineSizes(1700, db)).toEqual(['M'])
+    // A rider only Bravo L covers gives a single label with count 1.
+    expect(headlineSizes(1820, db)).toEqual(['L'])
+  })
+
+  it('is empty when no bike covers the height', () => {
+    expect(headlineSizes(2100, db)).toEqual([])
   })
 })

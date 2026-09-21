@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'preact/hooks'
 import { calculateSizing, checkManualFit } from './sizing'
-import { matchBikes, getStackReachWindow, getFrameGeometryRange } from './matcher'
+import {
+  matchBikes,
+  getStackReachWindow,
+  getFrameGeometryRange,
+  characterOf,
+  headlineSizes,
+  CHARACTER_SPLIT,
+  type Character,
+} from './matcher'
 
 type TabType = 'results' | 'manual'
 
@@ -9,6 +17,9 @@ interface Measurements {
   height: number | null
   shoulderWidth: number | null
 }
+
+/** What the rider wants, as opposed to what their body implies. */
+type Preference = Character | 'none'
 
 /**
  * Measuring diagrams. Line art, no text: the labels clipped at the viewBox
@@ -120,23 +131,25 @@ function InputForm({
   onSubmit,
   onHome,
 }: {
-  onSubmit: (measurements: Required<Measurements>) => void
+  onSubmit: (measurements: Required<Measurements>, preference: Preference) => void
   onHome: () => void
 }) {
   const [inseam, setInseam] = useState<string>('')
   const [height, setHeight] = useState<string>('')
   const [shoulderWidth, setShoulderWidth] = useState<string>('')
   const [unit, setUnit] = useState<'mm' | 'cm'>('mm')
+  const [preference, setPreference] = useState<Preference>('none')
 
   useEffect(() => {
     const stored = localStorage.getItem('buyfit_measurements')
     if (stored) {
       try {
-        const { inseam, height, shoulderWidth, unit } = JSON.parse(stored)
+        const { inseam, height, shoulderWidth, unit, preference } = JSON.parse(stored)
         setInseam(inseam)
         setHeight(height)
         setShoulderWidth(shoulderWidth)
         setUnit(unit)
+        if (preference) setPreference(preference)
       } catch {
         // Ignore parse errors
       }
@@ -159,9 +172,12 @@ function InputForm({
     if (inseamMm > 0 && heightMm > 0 && shoulderWidthMm > 0) {
       localStorage.setItem(
         'buyfit_measurements',
-        JSON.stringify({ inseam, height, shoulderWidth, unit })
+        JSON.stringify({ inseam, height, shoulderWidth, unit, preference })
       )
-      onSubmit({ inseam: inseamMm, height: heightMm, shoulderWidth: shoulderWidthMm })
+      onSubmit(
+        { inseam: inseamMm, height: heightMm, shoulderWidth: shoulderWidthMm },
+        preference
+      )
     }
   }
 
@@ -242,6 +258,27 @@ function InputForm({
 
       <div className="buyfit-field">
         <label>
+          <strong>Riding position you want</strong>
+          <p className="buyfit-help">
+            A preference, not a measurement — it sorts the shortlist, it does not change your
+            numbers. Racier bikes sit lower and longer; upright ones put the bars higher.
+          </p>
+          <select
+            value={preference}
+            onChange={(e) =>
+              setPreference((e.target as HTMLSelectElement).value as Preference)
+            }
+            className="buyfit-select"
+          >
+            <option value="none">No preference</option>
+            <option value="racy">Racier, lower front end</option>
+            <option value="relaxed">More upright</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="buyfit-field">
+        <label>
           <strong>Unit</strong>
           <select
             value={unit}
@@ -266,9 +303,11 @@ function InputForm({
  */
 function ResultsScreen({
   measurements,
+  preference,
   onBack,
 }: {
   measurements: Required<Measurements>
+  preference: Preference
   onBack: () => void
 }) {
   const [tab, setTab] = useState<TabType>('results')
@@ -291,6 +330,16 @@ function ResultsScreen({
       )
     : []
 
+  const headline = headlineSizes(height)
+  const racy = matches.filter((b) => characterOf(b) === 'racy')
+  const relaxed = matches.filter((b) => characterOf(b) === 'relaxed')
+  const groups: { key: Character; title: string; rows: typeof matches }[] = [
+    { key: 'racy', title: 'Racier, lower front end', rows: racy },
+    { key: 'relaxed', title: 'More upright', rows: relaxed },
+  ]
+  // Preferred group first. Two groups, so this is a flip, not a sort.
+  if (preference === 'relaxed') groups.reverse()
+
   return (
     <div>
       <div className="buyfit-tabs">
@@ -311,6 +360,21 @@ function ResultsScreen({
       {tab === 'results' && (
         <div>
           <div className="buyfit-outputs">
+            {headline.length > 0 && (
+              <div className="buyfit-output buyfit-headline">
+                <strong>Your size is roughly {headline.join(' or ')}</strong>
+                <Badge
+                  type="No source"
+                  anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
+                />
+                <p className="buyfit-note">
+                  The most common size label among bikes whose maker lists your height. A label is
+                  not a measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat
+                  this as a starting point for the shortlist below, not an answer.
+                </p>
+              </div>
+            )}
+
             <div className="buyfit-output">
               <strong>Saddle Height</strong>
               <Badge type="Sourced" anchor="21-saddle-height--the-one-that-works-and-how-well" />
@@ -378,24 +442,49 @@ function ResultsScreen({
           {matches.length > 0 && (
             <div>
               <h3>Bikes in Your Height Band</h3>
-              <div className="buyfit-results">
-                {matches.map((bike) => (
-                  <div key={`${bike.brand}-${bike.model}-${bike.size}`} className="buyfit-result">
-                    <strong>
-                      {bike.brand} {bike.model}
-                    </strong>{' '}
-                    ({bike.year})
-                    <br />
-                    Size {bike.size}: Stack {bike.stack} mm, Reach {bike.reach} mm, ETT{' '}
-                    {bike.ett} mm, Seat Tube {bike.seatTube} mm
-                    <br />
-                    <span className="buyfit-delta">
-                      Δ Stack {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm,
-                      Δ Reach {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <p className="buyfit-note">
+                Split by stack-to-reach ratio at {CHARACTER_SPLIT.toFixed(2)} — a retailer
+                convention for sorting bikes, with no rider-side study behind it. Every bike listed
+                fits your window; the groups are about what you want, not what fits.
+              </p>
+
+              {groups.map((group) => (
+                <div key={group.key}>
+                  <h4>
+                    {group.title}
+                    {preference === group.key && ' — your preference'}
+                  </h4>
+                  {group.rows.length === 0 ? (
+                    <p className="buyfit-note">
+                      Nothing in the database at your size. That is a gap in the data, not a
+                      verdict on the bikes.
+                    </p>
+                  ) : (
+                    <div className="buyfit-results">
+                      {group.rows.map((bike) => (
+                        <div
+                          key={`${bike.brand}-${bike.model}-${bike.size}`}
+                          className="buyfit-result"
+                        >
+                          <strong>
+                            {bike.brand} {bike.model}
+                          </strong>{' '}
+                          ({bike.year})
+                          <br />
+                          Size {bike.size}: Stack {bike.stack} mm, Reach {bike.reach} mm, ETT{' '}
+                          {bike.ett} mm, Seat Tube {bike.seatTube} mm
+                          <br />
+                          <span className="buyfit-delta">
+                            Δ Stack {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm,
+                            Δ Reach {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm,
+                            ratio {(bike.stack / bike.reach).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -528,10 +617,25 @@ function ManualCheckTab({
  */
 export function BuyFit({ onHome }: { onHome: () => void }) {
   const [measurements, setMeasurements] = useState<Required<Measurements> | null>(null)
+  const [preference, setPreference] = useState<Preference>('none')
 
   if (measurements) {
-    return <ResultsScreen measurements={measurements} onBack={() => setMeasurements(null)} />
+    return (
+      <ResultsScreen
+        measurements={measurements}
+        preference={preference}
+        onBack={() => setMeasurements(null)}
+      />
+    )
   }
 
-  return <InputForm onSubmit={setMeasurements} onHome={onHome} />
+  return (
+    <InputForm
+      onSubmit={(m, p) => {
+        setPreference(p)
+        setMeasurements(m)
+      }}
+      onHome={onHome}
+    />
+  )
 }

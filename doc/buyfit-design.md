@@ -50,6 +50,24 @@ served by a blank space, and a badged wide window is more honest than the
 calculator sites they would otherwise use. The research doc stands unedited as
 the record of what the evidence actually supports.
 
+### Who it is for, and what that rules out
+
+**BuyFit is for someone who does not own a bike yet.** Confirmed on
+2026-09-21 after the alternative was put and rejected.
+
+The alternative was the only method the research doc calls honest arithmetic
+rather than a black box: stack/reach matching from a bar position already
+known to work, measured off a bike that fits. It would move the search window
+from `No source` to a defensible derivation, and it is the single largest
+badge improvement available anywhere in this feature.
+
+It is rejected because it assumes the thing BuyFit exists to precede. A rider
+buying their first bike has no position to copy, and a rider whose current
+bike was never fitted — the common case — would be copying a position that was
+never right. **The stack/reach window therefore keeps its `No source` badge
+permanently.** Do not reopen this: it is a decision about who the tool serves,
+not about evidence.
+
 ### Inputs
 
 Inseam, height, shoulder width. Nothing else — every field must have a
@@ -120,6 +138,40 @@ Filter to the window, sort by distance from its centre, list **every** model
 and size that fits with its mm deltas. Never a single winner, never a 0–100
 score: the window usually contains several sizes across several bikes, which is
 the true answer and the useful one when a shop has three of them in stock.
+
+### Preference, and why it is allowed to exist
+
+Body measurements cannot rank two bikes that both fit — the Madone ML and the
+Domane SLR ML come back at an identical distance from the window centre. A
+**preference** breaks that tie, and it is honest by construction: the rider
+states what they want rather than being told what they are.
+
+One preference only: **riding position**, racier or more upright, split on the
+bike's stack-to-reach ratio at **1.50**. The research doc permits this ratio to
+classify *bikes* while refusing it as a rider target, so it may sort a
+shortlist and may never predict a body. The 1.50 threshold is retailer
+convention with no rider-side study behind it, and the UI says so.
+
+The shortlist shows **both groups, always**, with the preferred one first and
+labelled. Filtering would risk an empty list against a small database, and
+re-ranking alone would hide why a bike placed where it did. An empty group is
+reported as a gap in the data, not a verdict on the bikes.
+
+Budget, groupset and brand are deliberately absent: they are properties of a
+*build*, not a frame. One Domane SLR exists at several prices with identical
+geometry, so a price field would need a whole build-level table under every
+frame.
+
+### Headline size
+
+The results screen opens with "your size is roughly X" — the most common size
+label among bikes whose maker lists the rider's height, with every tied label
+shown rather than one picked. It carries a `No source` badge and states that
+two bikes both marked 54 can differ by 50 mm of stack.
+
+It exists because "what frame size am I?" is the question people arrive with,
+and a page that refuses to answer it sends them to a calculator-clone site that
+will. The badge and the shortlist underneath carry the honesty.
 
 Second tab on the results screen: **type any bike's stack and reach** from the
 maker's chart and get fits / too long / too tall in mm. With 15 models in the
