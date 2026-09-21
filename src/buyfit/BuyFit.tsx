@@ -5,6 +5,7 @@ import {
   compareToBand,
   type SizingOutput,
 } from './sizing'
+import { StackReachPlot } from './StackReachPlot'
 import {
   matchBikes,
   getStackReachWindow,
@@ -262,7 +263,7 @@ function InputForm({
         </label>
       </div>
 
-      <div className="buyfit-field">
+      <div className="buyfit-field buyfit-field--plain">
         <label>
           <strong>Riding position you want</strong>
           <p className="buyfit-help">
@@ -283,7 +284,7 @@ function InputForm({
         </label>
       </div>
 
-      <div className="buyfit-field">
+      <div className="buyfit-field buyfit-field--plain">
         <label>
           <strong>Unit</strong>
           <select
@@ -315,21 +316,20 @@ function BikeRow({ bike, sizing }: { bike: BikeSize; sizing: SizingOutput }) {
   return (
     <div className="buyfit-result">
       <strong>
-        {bike.brand} {bike.model}
-      </strong>{' '}
-      ({bike.year})
-      <br />
-      Size {bike.size}: Stack {bike.stack} mm, Reach {bike.reach} mm, ETT {bike.ett} mm, Seat
-      Tube {bike.seatTube} mm
-      <br />
+        {bike.brand} {bike.model} <span className="buyfit-result-size">{bike.year}</span>
+      </strong>
+      <span className="buyfit-result-size">size {bike.size}</span>
       <span className="buyfit-delta">
-        Δ Stack {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm, Δ Reach{' '}
-        {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm, ratio{' '}
-        {ratioOf(bike).toFixed(2)}
+        Stack {bike.stack} mm, reach {bike.reach} mm, top tube {bike.ett} mm, seat tube{' '}
+        {bike.seatTube} mm
+      </span>
+      <span className="buyfit-delta">
+        {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm stack,{' '}
+        {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm reach from the middle of
+        your window · ratio {ratioOf(bike).toFixed(2)}
       </span>
       {(bike.barWidth || bike.crankLength) && (
         <>
-          <br />
           <span className="buyfit-spec">
             Ships with
             {bike.barWidth && (
@@ -417,55 +417,75 @@ function ResultsScreen({
 
       {tab === 'results' && (
         <div>
-          <div className="buyfit-outputs">
-            {headline.length > 0 && (
-              <div className="buyfit-output buyfit-headline">
-                <strong>Your size is roughly {headline.join(' or ')}</strong>
-                <Badge
-                  type="No source"
-                  anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
-                />
-                <p className="buyfit-note">
-                  The most common size label among bikes whose maker lists your height. A label is
-                  not a measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat
-                  this as a starting point for the shortlist below, not an answer.
-                </p>
+          {headline.length > 0 && (
+            <div className="buyfit-headline">
+              <h2>Your size is roughly {headline.join(' or ')}</h2>
+              <Badge
+                type="No source"
+                anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
+              />
+              <p className="buyfit-note">
+                The most common size label among bikes whose maker lists your height. A label is
+                not a measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat
+                this as a starting point for the shortlist below, not an answer.
+              </p>
+            </div>
+          )}
+
+          {fitWindow && matches.length > 0 && (
+            <>
+              <StackReachPlot bikes={matches} fitWindow={fitWindow} median={split.median} />
+              <div className="plot-legend">
+                <b className="is-racy">racier half</b>
+                <b className="is-upright">more upright half</b>
+                <span>window: stack {fitWindow.stackMin}–{fitWindow.stackMax},
+                  reach {fitWindow.reachMin}–{fitWindow.reachMax} mm</span>
               </div>
-            )}
+            </>
+          )}
 
+          <div className="buyfit-measures">
             <div className="buyfit-output">
-              <strong>Saddle Height</strong>
+              <strong>Saddle height</strong>
+              <span className="buyfit-value">
+                {sizing.saddleHeightMin}–{sizing.saddleHeightMax} mm
+              </span>
               <Badge type="Sourced" anchor="21-saddle-height--the-one-that-works-and-how-well" />
-              <p>
-                {sizing.saddleHeightMin}–{sizing.saddleHeightMax} mm BB centre to saddle top.
-                Starting point; expect to adjust by up to 20 mm.
+              <p className="buyfit-note">
+                BB centre to saddle top. A starting point; expect to adjust by up to 20 mm.
               </p>
             </div>
 
             <div className="buyfit-output">
-              <strong>Handlebar Width</strong>
+              <strong>Handlebar width</strong>
+              <span className="buyfit-value">
+                {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm
+              </span>
               <Badge type="Weak" anchor="31-handlebar-width-from-shoulder-width" />
-              <p>
-                {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm centre-to-centre.
-              </p>
+              <p className="buyfit-note">Measured centre to centre.</p>
             </div>
 
             <div className="buyfit-output">
-              <strong>Crank Length</strong>
+              <strong>Crank length</strong>
+              <span className="buyfit-value">{sizing.crankLength}</span>
               <Badge type="Weak" anchor="32-crank-length-from-inseam-or-height" />
-              <p>{sizing.crankLength}; shorter if you have limited hip flexion.</p>
+              <p className="buyfit-note">
+                Go shorter if you have limited hip flexion. The evidence says the choice inside
+                this range barely matters.
+              </p>
             </div>
 
             {fitWindow ? (
               <div className="buyfit-output">
-                <strong>Stack/Reach Search Window</strong>
+                <strong>Stack and reach</strong>
+                <span className="buyfit-value">
+                  {fitWindow.stackMin}–{fitWindow.stackMax} / {fitWindow.reachMin}–
+                  {fitWindow.reachMax} mm
+                </span>
                 <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
                 <p className="buyfit-note">
-                  Basis: what bikes in your height band ship with, not your body.
-                </p>
-                <p>
-                  Stack {fitWindow.stackMin}–{fitWindow.stackMax} mm, Reach{' '}
-                  {fitWindow.reachMin}–{fitWindow.reachMax} mm.
+                  A search window taken from what bikes in your height band ship with — not from
+                  your body. Frame reach cannot be predicted from body measurements.
                 </p>
               </div>
             ) : (
@@ -480,18 +500,13 @@ function ResultsScreen({
 
             {geometry ? (
               <div className="buyfit-output">
-                <strong>Frame Geometry (Size, Seat Tube, ETT)</strong>
+                <strong>Frame geometry</strong>
                 <Badge type="No source" anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable" />
+                <span className="buyfit-value">{geometry.sizes.join(' · ')}</span>
                 <p className="buyfit-note">
-                  Basis: what bikes in your height band ship with, not your body. Wide windows.
-                  Frame size labels are not comparable across brands.
-                </p>
-                <p>
-                  Size labels: {geometry.sizes.join(', ')}
-                  <br />
-                  Seat Tube: {geometry.seatTubeMin}–{geometry.seatTubeMax} mm
-                  <br />
-                  Effective Top Tube: {geometry.ettMin}–{geometry.ettMax} mm
+                  Seat tube {geometry.seatTubeMin}–{geometry.seatTubeMax} mm, effective top tube{' '}
+                  {geometry.ettMin}–{geometry.ettMax} mm. Taken from the bikes in your height band,
+                  not from your body, and size labels do not carry between brands.
                 </p>
               </div>
             ) : null}
@@ -499,7 +514,7 @@ function ResultsScreen({
 
           {matches.length > 0 && (
             <div>
-              <h3>Bikes in Your Height Band</h3>
+              <h3 className="buyfit-group-title">Bikes that fit your window</h3>
               <p className="buyfit-note">
                 Every bike listed fits your window; the groups are about what you want, not what
                 fits. They are split at the median stack-to-reach ratio of your own matches, so
@@ -523,9 +538,9 @@ function ResultsScreen({
               {split.median !== null &&
                 groups.map((group) => (
                 <div key={group.key}>
-                  <h4>
+                  <h4 className="buyfit-group-title">
                     {group.title}
-                    {preference === group.key && ' — your preference'}
+                    {preference === group.key && ' — what you asked for'}
                   </h4>
                   <div className="buyfit-results">
                     {group.rows.map((bike) => (

@@ -105,5 +105,7 @@ Bike fit interacts with injury; if something hurts, see a physio or a fitter.
 [Apache License 2.0](LICENSE). Copyright 2026 Daniel Kofler.
 
 Dependencies are separately licensed and permissive: Preact, Vite and Vitest
-under MIT. MediaPipe, once the pose detection lands, ships under Apache-2.0
+under MIT. The bundled typeface is Archivo (Omnibus-Type), under the SIL Open
+Font License 1.1 — self-hosted in `public/fonts/` rather than linked from
+Google Fonts, so that loading the app really does send nothing anywhere. MediaPipe, once the pose detection lands, ships under Apache-2.0
 with Google's own model terms, independent of this project's license.

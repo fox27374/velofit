@@ -1,315 +1,531 @@
+/*
+ * velofit — the visual language of a manufacturer's geometry chart: pale
+ * paper, hairline rules, red dimension lines, numbers that line up in columns.
+ *
+ * The font is self-hosted on purpose. The app promises that nothing leaves the
+ * device, and a Google Fonts link would hand every visitor's IP to Google.
+ */
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/archivo-latin.woff2') format('woff2');
+}
+
 :root {
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
+  --paper: #fcfcfb;
+  --ink: #23282f;
+  --ink-muted: #5e6670;
+  --rule: #d9d6d0;
+  --rule-strong: #b6b2aa;
+  /* Dimension red: the colour makers draw their measurement lines in. */
+  --dim: #b21e33;
+  --series-racy: #1a4fa0;
+  --series-upright: #b5780f;
+  --ok: #2f6b45;
+
   color-scheme: light dark;
-  --bg: #ffffff;
-  --fg: #1a1a1a;
-  --muted: #5a5a5a;
-  --line: #d4d4d4;
-  --accent: #d98b1e;
+  font-family: 'Archivo', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.55;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #171717;
-    --fg: #f2f2f2;
-    --muted: #a6a6a6;
-    --line: #3a3a3a;
+    --paper: #1c1f24;
+    --ink: #e6e4e0;
+    --ink-muted: #9aa1ab;
+    --rule: #333840;
+    --rule-strong: #4c525c;
+    --dim: #e2566b;
+    --series-racy: #5580cc;
+    --series-upright: #b8862a;
+    --ok: #63a97f;
   }
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
+  background: var(--paper);
+  color: var(--ink);
 }
 
 #app {
-  max-width: 34rem;
+  max-width: 42rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 2rem 1rem 4rem;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 0;
 }
 
 h1 {
-  font-size: 1.6rem;
-  margin: 0.5rem 0 1.25rem;
+  font-size: 1.75rem;
 }
 
-nav {
-  display: grid;
-  gap: 0.75rem;
-}
-
-nav button {
-  display: grid;
-  gap: 0.25rem;
-  text-align: left;
-  padding: 1rem;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: 0.4rem;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-nav button span {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: 0.4rem;
-  background: var(--bg);
-  color: var(--fg);
-  font: inherit;
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: var(--accent);
-}
-
-input,
-select {
-  padding: 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 0.4rem;
-  background: var(--bg);
-  color: var(--fg);
-  font: inherit;
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(217, 139, 30, 0.1);
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-form {
-  display: grid;
-  gap: 1rem;
-}
-
-strong {
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-p {
-  margin: 0.5rem 0;
+h2 {
+  font-size: 1.25rem;
 }
 
 h3 {
-  font-size: 1.1rem;
-  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
 }
 
-/* BuyFit specific styles */
-
-.buyfit-diagram {
-  width: 84px;
-  height: 134px;
-  margin-bottom: 0.5rem;
-}
-
-.buyfit-diagram-wide {
-  width: 134px;
-  height: 84px;
-  margin-bottom: 0.5rem;
-}
-
-.buyfit-headline {
-  border-left: 3px solid var(--accent);
-  padding-left: 0.75rem;
-}
-
-.buyfit-results + h4,
-.buyfit-note + h4,
 h4 {
-  margin: 1.25rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
-.buyfit-spec {
-  font-size: 0.85rem;
-  color: var(--muted);
+p {
+  margin: 0;
+  max-width: 62ch;
 }
 
-.buyfit-back {
-  justify-self: start;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid var(--line);
-  border-radius: 0.4rem;
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--dim);
+  outline-offset: 2px;
+}
+
+/* ---- home ---------------------------------------------------------- */
+
+.home-mark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+.home-mark h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.home-mark span {
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+}
+
+.home-lede {
+  margin: 1.5rem 0 2.5rem;
+  color: var(--ink-muted);
+}
+
+.home-nav {
+  display: grid;
+}
+
+.home-entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  width: 100%;
+  padding: 1.1rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
   background: none;
   color: inherit;
   font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.buyfit-diagram-container {
-  margin-bottom: 0.5rem;
+.home-entry:first-child {
+  border-top: 1px solid var(--rule);
 }
+
+.home-entry:hover strong,
+.home-entry:focus-visible strong {
+  color: var(--dim);
+}
+
+.home-entry strong {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.home-entry p {
+  grid-column: 1 / -1;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.home-entry em {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-style: normal;
+}
+
+/* ---- shared -------------------------------------------------------- */
+
+.buyfit-back {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.buyfit-back:hover,
+.buyfit-back:focus-visible {
+  color: var(--dim);
+}
+
+.buyfit-help,
+.buyfit-note {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+/* ---- form ---------------------------------------------------------- */
 
 .buyfit-form {
   display: grid;
   gap: 1.5rem;
 }
 
+.buyfit-form h1 {
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--ink);
+}
+
 .buyfit-field {
-  display: block;
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0 1.25rem;
+  align-items: start;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
 }
 
-.buyfit-input {
+.buyfit-field--plain {
+  grid-template-columns: 1fr;
+}
+
+.buyfit-diagram-container {
+  display: flex;
+  justify-content: center;
+  color: var(--ink-muted);
+}
+
+.buyfit-diagram {
   width: 100%;
-  margin-top: 0.25rem;
+  max-width: 4.5rem;
 }
 
+.buyfit-diagram-wide {
+  width: 100%;
+  max-width: 5rem;
+}
+
+.buyfit-field label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.buyfit-field strong {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.buyfit-input,
 .buyfit-select {
-  margin-left: 0.5rem;
-}
-
-.buyfit-help {
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin: 0.25rem 0;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: var(--paper);
+  color: inherit;
+  font: inherit;
+  font-size: 1.05rem;
 }
 
 .buyfit-button-primary {
-  padding: 0.75rem;
-  background-color: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 0.4rem;
-  font-weight: bold;
+  justify-self: start;
+  padding: 0.7rem 1.6rem;
+  border: 0;
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.buyfit-button-primary:hover {
-  opacity: 0.9;
-}
-
-.buyfit-button-back {
-  margin-top: 2rem;
-  padding: 0.5rem 1rem;
-}
+/* ---- results ------------------------------------------------------- */
 
 .buyfit-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--line);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--rule);
 }
 
 .buyfit-tab {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-bottom: 3px solid transparent;
+  padding: 0 0 0.6rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   background: none;
+  color: var(--ink-muted);
+  font: inherit;
   cursor: pointer;
-  color: var(--muted);
-  font-weight: normal;
 }
 
 .buyfit-tab.active {
-  border-bottom-color: var(--accent);
-  color: var(--fg);
-  font-weight: bold;
+  border-bottom-color: var(--dim);
+  color: var(--ink);
+  font-weight: 600;
 }
 
-.buyfit-outputs {
+.buyfit-headline {
+  margin-bottom: 1.5rem;
+}
+
+.buyfit-headline h2 {
+  font-size: 1.9rem;
+}
+
+.buyfit-measures {
   display: grid;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  border-top: 1px solid var(--rule);
 }
 
 .buyfit-output {
-  border-top: 1px solid var(--line);
-  padding-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--rule);
 }
 
-.buyfit-output:first-child {
-  border-top: none;
+.buyfit-output strong {
+  font-weight: 600;
 }
 
-.buyfit-no-window {
-  background-color: rgba(166, 77, 77, 0.1);
-  padding: 0.75rem;
-  border-radius: 0.4rem;
+.buyfit-value {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  font-size: 1.05rem;
+  white-space: nowrap;
 }
 
-.buyfit-note {
-  font-size: 0.9rem;
-  color: var(--muted);
-  margin: 0.5rem 0;
+.buyfit-output p {
+  grid-column: 1 / -1;
+}
+
+.badge {
+  grid-column: 1 / -1;
+  justify-self: start;
+  border-bottom: 1px dotted var(--rule-strong);
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+.badge::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.35rem;
+  border: 1px solid currentColor;
+}
+
+.badge-sourced {
+  color: var(--ok);
+}
+
+.badge-sourced::before {
+  background: currentColor;
+}
+
+.badge-weak::before {
+  background: linear-gradient(135deg, currentColor 50%, transparent 50%);
+}
+
+/* ---- the stack/reach plot ------------------------------------------ */
+
+.plot {
+  display: block;
+  width: 100%;
+  max-width: 34rem;
+  height: auto;
+  margin: 0.75rem 0;
+}
+
+.plot-axis {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.plot-label {
+  fill: var(--ink-muted);
+  font-size: 11px;
+}
+
+.plot-dim {
+  stroke: var(--dim);
+  stroke-width: 1;
+}
+
+.plot-dim-fill {
+  fill: var(--dim);
+  opacity: 0.07;
+}
+
+.plot-dim-text {
+  fill: var(--dim);
+  font-size: 11px;
+}
+
+.plot-leader {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.plot-point {
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.plot-point-label {
+  fill: var(--ink);
+  font-size: 11px;
+  /* Halo, so a label crossing the window's dimension line stays readable. */
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.plot-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+.plot-legend b {
+  font-weight: 400;
+}
+
+.plot-legend b::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.is-racy {
+  color: var(--series-racy);
+}
+
+.is-upright {
+  color: var(--series-upright);
+}
+
+/* ---- shortlist ----------------------------------------------------- */
+
+.buyfit-group-title {
+  margin: 2rem 0 0.25rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule-strong);
 }
 
 .buyfit-results {
   display: grid;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
 }
 
 .buyfit-result {
-  padding: 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 0.4rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--rule);
   font-size: 0.9rem;
 }
 
-.buyfit-delta {
-  font-size: 0.85rem;
-  color: var(--muted);
-  display: block;
-  margin-top: 0.25rem;
+.buyfit-result strong {
+  font-size: 0.95rem;
+  font-weight: 600;
 }
+
+.buyfit-result-size {
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.buyfit-delta,
+.buyfit-spec {
+  grid-column: 1 / -1;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+/* ---- manual check -------------------------------------------------- */
 
 .buyfit-verdict {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 0.4rem;
-  color: white;
+  padding-top: 1rem;
+  border-top: 2px solid var(--ink);
 }
 
-.buyfit-verdict-fits {
-  background-color: #2d7a3a;
+.buyfit-verdict strong {
+  font-size: 1.1rem;
 }
 
-.buyfit-verdict-bad {
-  background-color: #a64d4d;
+.buyfit-verdict-fits strong {
+  color: var(--ok);
 }
 
-.badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  color: white;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-decoration: none;
-  margin-left: 0.5rem;
+.buyfit-verdict-bad strong {
+  color: var(--dim);
 }
 
-.badge-sourced {
-  background-color: #2d7a3a;
-}
+/* ---- narrow screens ------------------------------------------------ */
 
-.badge-weak {
-  background-color: #b89c3a;
-}
+@media (max-width: 30rem) {
+  /* A measurement and its value stop competing for one line. */
+  .buyfit-output,
+  .buyfit-result {
+    grid-template-columns: 1fr;
+  }
 
-.badge-no-source {
-  background-color: #a64d4d;
-}
+  .buyfit-value,
+  .buyfit-result-size {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+    text-align: left;
+  }
 
-.badge:hover {
-  opacity: 0.9;
+  .buyfit-field {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 0.75rem;
+  }
+
+  .buyfit-diagram-container {
+    justify-content: flex-start;
+  }
 }
