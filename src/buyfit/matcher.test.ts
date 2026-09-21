@@ -136,7 +136,8 @@ describe('getStackReachWindow', () => {
 describe('getFrameGeometryRange', () => {
   it('ranges seat tube and top tube over the same rows, with the size labels', () => {
     expect(getFrameGeometryRange(1750, db)).toEqual({
-      sizes: ['L', 'M'],
+      // Ordered by stack (550, 565, 590), not alphabetically.
+      sizes: ['M', 'L'],
       seatTubeMin: 480,
       seatTubeMax: 520,
       ettMin: 545,

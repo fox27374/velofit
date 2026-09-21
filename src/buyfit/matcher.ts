@@ -101,7 +101,13 @@ export function getFrameGeometryRange(
   if (rows.length === 0) return null
 
   return {
-    sizes: [...new Set(rows.map((r) => r.size))].sort(),
+    // Ordered by stack, not alphabetically: size labels sort into nonsense
+    // ("L, M, ML, S, XL, XS") and mix letters with numbers across makers.
+    sizes: [
+      ...new Set(
+        [...rows].sort((a, b) => a.stack - b.stack).map((r) => r.size)
+      ),
+    ],
     seatTubeMin: Math.min(...rows.map((r) => r.seatTube)),
     seatTubeMax: Math.max(...rows.map((r) => r.seatTube)),
     ettMin: Math.min(...rows.map((r) => r.ett)),
