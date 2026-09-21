@@ -196,5 +196,113 @@
         "riderHeightMax": 1910
       }
     ]
+  },
+  {
+    "brand": "Giant",
+    "model": "TCR Advanced Pro 0",
+    "year": 2026,
+    "verified": "2026-09-21",
+    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026.",
+    "sizes": [
+      {
+        "size": "S",
+        "stack": 528,
+        "reach": 383,
+        "ett": 535,
+        "seatTube": 445,
+        "riderHeightMin": 1650,
+        "riderHeightMax": 1750
+      },
+      {
+        "size": "M",
+        "stack": 545,
+        "reach": 388,
+        "ett": 550,
+        "seatTube": 470,
+        "riderHeightMin": 1710,
+        "riderHeightMax": 1810
+      },
+      {
+        "size": "ML",
+        "stack": 562,
+        "reach": 393,
+        "ett": 565,
+        "seatTube": 500,
+        "riderHeightMin": 1770,
+        "riderHeightMax": 1870
+      },
+      {
+        "size": "L",
+        "stack": 581,
+        "reach": 402,
+        "ett": 580,
+        "seatTube": 530,
+        "riderHeightMin": 1830,
+        "riderHeightMax": 1930
+      },
+      {
+        "size": "XL",
+        "stack": 596,
+        "reach": 412,
+        "ett": 600,
+        "seatTube": 560,
+        "riderHeightMin": 1890,
+        "riderHeightMax": 1990
+      }
+    ]
+  },
+  {
+    "brand": "Giant",
+    "model": "Defy Advanced Pro 0",
+    "year": 2026,
+    "verified": "2026-09-21",
+    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026.",
+    "sizes": [
+      {
+        "size": "S",
+        "stack": 541,
+        "reach": 375,
+        "ett": 530,
+        "seatTube": 445,
+        "riderHeightMin": 1660,
+        "riderHeightMax": 1740
+      },
+      {
+        "size": "M",
+        "stack": 558,
+        "reach": 380,
+        "ett": 545,
+        "seatTube": 480,
+        "riderHeightMin": 1720,
+        "riderHeightMax": 1800
+      },
+      {
+        "size": "ML",
+        "stack": 577,
+        "reach": 384,
+        "ett": 560,
+        "seatTube": 515,
+        "riderHeightMin": 1780,
+        "riderHeightMax": 1860
+      },
+      {
+        "size": "L",
+        "stack": 596,
+        "reach": 393,
+        "ett": 575,
+        "seatTube": 535,
+        "riderHeightMin": 1840,
+        "riderHeightMax": 1920
+      },
+      {
+        "size": "XL",
+        "stack": 615,
+        "reach": 402,
+        "ett": 595,
+        "seatTube": 565,
+        "riderHeightMin": 1900,
+        "riderHeightMax": 1980
+      }
+    ]
   }
 ]
