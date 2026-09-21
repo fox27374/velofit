@@ -46,7 +46,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>('home')
 
   if (screen === 'home') return <Home go={setScreen} />
-  if (screen === 'buyfit') return <BuyFit />
+  if (screen === 'buyfit') return <BuyFit onHome={() => setScreen('home')} />
 
   const title = entries.find((e) => e.screen === screen)!.title
   return (

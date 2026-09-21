@@ -117,15 +117,26 @@ h3 {
 /* BuyFit specific styles */
 
 .buyfit-diagram {
-  width: 100px;
-  height: 200px;
+  width: 84px;
+  height: 134px;
   margin-bottom: 0.5rem;
 }
 
 .buyfit-diagram-wide {
-  width: 200px;
-  height: 120px;
+  width: 134px;
+  height: 84px;
   margin-bottom: 0.5rem;
+}
+
+.buyfit-back {
+  justify-self: start;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
 .buyfit-diagram-container {

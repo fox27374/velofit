@@ -11,89 +11,83 @@ interface Measurements {
 }
 
 /**
- * Inline SVG diagram for inseam measurement (theme-aware, inherits currentColor)
+ * Measuring diagrams. Line art, no text: the labels clipped at the viewBox
+ * edge, and the field help text says the same thing anyway. Everything
+ * inherits currentColor so both themes work.
  */
+function Figure({ book = false }: { book?: boolean }) {
+  return (
+    <>
+      <line x1="16" y1="8" x2="16" y2="150" stroke="currentColor" strokeWidth="2" />
+      <line x1="16" y1="150" x2="92" y2="150" stroke="currentColor" strokeWidth="2" />
+      <circle cx="56" cy="30" r="9" stroke="currentColor" fill="none" strokeWidth="2" />
+      <line x1="56" y1="39" x2="56" y2="95" stroke="currentColor" strokeWidth="2" />
+      <line x1="56" y1="52" x2="38" y2="78" stroke="currentColor" strokeWidth="2" />
+      <line x1="56" y1="52" x2="74" y2="78" stroke="currentColor" strokeWidth="2" />
+      <line x1="56" y1="95" x2="46" y2="150" stroke="currentColor" strokeWidth="2" />
+      <line x1="56" y1="95" x2="66" y2="150" stroke="currentColor" strokeWidth="2" />
+      {book && <rect x="30" y="92" width="52" height="6" fill="currentColor" />}
+    </>
+  )
+}
+
+/** Vertical dimension arrow with end ticks, drawn at x. */
+function VerticalMeasure({ x, y1, y2 }: { x: number; y1: number; y2: number }) {
+  return (
+    <>
+      <line x1={x} y1={y1} x2={x} y2={y2} stroke="currentColor" strokeWidth="1.5" />
+      <polyline
+        points={`${x - 4},${y1 + 6} ${x},${y1} ${x + 4},${y1 + 6}`}
+        stroke="currentColor"
+        fill="none"
+        strokeWidth="1.5"
+      />
+      <polyline
+        points={`${x - 4},${y2 - 6} ${x},${y2} ${x + 4},${y2 - 6}`}
+        stroke="currentColor"
+        fill="none"
+        strokeWidth="1.5"
+      />
+    </>
+  )
+}
+
 function InseamDiagram() {
   return (
-    <svg
-      viewBox="0 0 120 240"
-      className="buyfit-diagram"
-      aria-label="Inseam measurement diagram"
-    >
-      <circle cx="60" cy="20" r="15" stroke="currentColor" fill="none" strokeWidth="2" />
-      <line x1="60" y1="35" x2="60" y2="180" stroke="currentColor" strokeWidth="2" />
-      <circle cx="60" cy="180" r="8" fill="currentColor" />
-      <line x1="30" y1="180" x2="90" y2="180" stroke="currentColor" strokeWidth="1" />
-      <text
-        x="95"
-        y="185"
-        fontSize="10"
-        fill="currentColor"
-        dy=".3em"
-      >
-        crotch to floor
-      </text>
+    <svg viewBox="0 0 100 160" className="buyfit-diagram" aria-label="Inseam: crotch to floor">
+      <Figure book />
+      <VerticalMeasure x={26} y1={95} y2={150} />
     </svg>
   )
 }
 
-/**
- * Inline SVG diagram for height measurement
- */
 function HeightDiagram() {
   return (
-    <svg
-      viewBox="0 0 120 240"
-      className="buyfit-diagram"
-      aria-label="Height measurement diagram"
-    >
-      <circle cx="60" cy="20" r="12" stroke="currentColor" fill="none" strokeWidth="2" />
-      <line x1="60" y1="32" x2="60" y2="200" stroke="currentColor" strokeWidth="2" />
-      <circle cx="60" cy="200" r="6" fill="currentColor" />
-      <line x1="30" y1="20" x2="20" y2="20" stroke="currentColor" strokeWidth="1" />
-      <line x1="30" y1="200" x2="20" y2="200" stroke="currentColor" strokeWidth="1" />
-      <line x1="25" y1="20" x2="25" y2="200" stroke="currentColor" strokeWidth="1" />
-      <text
-        x="10"
-        y="110"
-        fontSize="10"
-        fill="currentColor"
-        textAnchor="middle"
-        transform="rotate(-90 10 110)"
-        dy=".3em"
-      >
-        total height
-      </text>
+    <svg viewBox="0 0 100 160" className="buyfit-diagram" aria-label="Height: head to floor">
+      <Figure />
+      <VerticalMeasure x={26} y1={21} y2={150} />
     </svg>
   )
 }
 
-/**
- * Inline SVG diagram for shoulder width measurement
- */
 function ShoulderWidthDiagram() {
   return (
     <svg
-      viewBox="0 0 200 120"
+      viewBox="0 0 160 100"
       className="buyfit-diagram-wide"
-      aria-label="Shoulder width measurement diagram"
+      aria-label="Shoulder width: acromion to acromion"
     >
-      <circle cx="50" cy="60" r="8" stroke="currentColor" fill="none" strokeWidth="2" />
-      <circle cx="150" cy="60" r="8" stroke="currentColor" fill="none" strokeWidth="2" />
-      <line x1="50" y1="60" x2="150" y2="60" stroke="currentColor" strokeWidth="2" />
-      <line x1="50" y1="70" x2="50" y2="80" stroke="currentColor" strokeWidth="1" />
-      <line x1="150" y1="70" x2="150" y2="80" stroke="currentColor" strokeWidth="1" />
-      <line x1="50" y1="75" x2="150" y2="75" stroke="currentColor" strokeWidth="1" />
-      <text
-        x="100"
-        y="100"
-        fontSize="10"
-        fill="currentColor"
-        textAnchor="middle"
-        dy=".3em"
-      >
-        centre-to-centre
-      </text>
+      <circle cx="80" cy="26" r="11" stroke="currentColor" fill="none" strokeWidth="2" />
+      <line x1="48" y1="50" x2="112" y2="50" stroke="currentColor" strokeWidth="2" />
+      <line x1="48" y1="50" x2="42" y2="82" stroke="currentColor" strokeWidth="2" />
+      <line x1="112" y1="50" x2="118" y2="82" stroke="currentColor" strokeWidth="2" />
+      <circle cx="48" cy="50" r="4" fill="currentColor" />
+      <circle cx="112" cy="50" r="4" fill="currentColor" />
+      <line x1="48" y1="56" x2="48" y2="72" stroke="currentColor" strokeWidth="1" />
+      <line x1="112" y1="56" x2="112" y2="72" stroke="currentColor" strokeWidth="1" />
+      <line x1="48" y1="68" x2="112" y2="68" stroke="currentColor" strokeWidth="1.5" />
+      <polyline points="54,64 48,68 54,72" stroke="currentColor" fill="none" strokeWidth="1.5" />
+      <polyline points="106,64 112,68 106,72" stroke="currentColor" fill="none" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -124,8 +118,10 @@ function Badge({ type, anchor }: { type: 'Sourced' | 'Weak' | 'No source'; ancho
  */
 function InputForm({
   onSubmit,
+  onHome,
 }: {
   onSubmit: (measurements: Required<Measurements>) => void
+  onHome: () => void
 }) {
   const [inseam, setInseam] = useState<string>('')
   const [height, setHeight] = useState<string>('')
@@ -171,6 +167,15 @@ function InputForm({
 
   return (
     <form onSubmit={handleSubmit} className="buyfit-form">
+      <button type="button" onClick={onHome} className="buyfit-back">
+        &larr; Home
+      </button>
+      <h1>BuyFit</h1>
+      <p className="buyfit-help">
+        Three measurements, and what the evidence actually supports about turning them into a
+        frame. Every line says how well it is sourced.
+      </p>
+
       <div className="buyfit-field">
         <div className="buyfit-diagram-container">
           <InseamDiagram />
@@ -332,7 +337,7 @@ function ResultsScreen({
             {fitWindow ? (
               <div className="buyfit-output">
                 <strong>Stack/Reach Search Window</strong>
-                <Badge type="No source" />
+                <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
                 <p className="buyfit-note">
                   Basis: what bikes in your height band ship with, not your body.
                 </p>
@@ -344,7 +349,7 @@ function ResultsScreen({
             ) : (
               <div className="buyfit-output buyfit-no-window">
                 <strong>Stack/Reach Window</strong>
-                <Badge type="No source" />
+                <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
                 <p className="buyfit-note">
                   No bikes in the database cover your height. Use the manual check to evaluate any bike.
                 </p>
@@ -354,7 +359,7 @@ function ResultsScreen({
             {geometry ? (
               <div className="buyfit-output">
                 <strong>Frame Geometry (Size, Seat Tube, ETT)</strong>
-                <Badge type="No source" />
+                <Badge type="No source" anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable" />
                 <p className="buyfit-note">
                   Basis: what bikes in your height band ship with, not your body. Wide windows.
                   Frame size labels are not comparable across brands.
@@ -521,12 +526,12 @@ function ManualCheckTab({
 /**
  * Main BuyFit component
  */
-export function BuyFit() {
+export function BuyFit({ onHome }: { onHome: () => void }) {
   const [measurements, setMeasurements] = useState<Required<Measurements> | null>(null)
 
   if (measurements) {
     return <ResultsScreen measurements={measurements} onBack={() => setMeasurements(null)} />
   }
 
-  return <InputForm onSubmit={setMeasurements} />
+  return <InputForm onSubmit={setMeasurements} onHome={onHome} />
 }
