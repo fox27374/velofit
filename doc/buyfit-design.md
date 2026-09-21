@@ -132,6 +132,18 @@ Per model and size: **stack, reach, effective top tube, seat tube, and the
 maker's own rider-height band** (the height band is what Q21's window
 derivation consumes), plus a `verified` date per model so staleness is visible.
 
+**Optional per size: `barWidth` and `crankLength`**, the stock build's spec
+where the maker publishes it. Giant does; Trek's charts carry neither, so those
+rows simply omit the fields and the shortlist prints no spec line for them.
+Where the spec exists the shortlist shows it against BuyFit's own band —
+"440 mm bars (wider than your band)" — which is a reality check on two `Weak`
+outputs rather than a score: a stock bar outside the band is a swap, not a
+reason to reject a frame.
+
+Giant does not state **which** handlebar width convention its figure uses, and
+the UCI regulates three. The comparison is therefore approximate, and the
+row's source note records that.
+
 ### Matching
 
 Filter to the window, sort by distance from its centre, list **every** model

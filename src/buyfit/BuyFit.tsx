@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'preact/hooks'
-import { calculateSizing, checkManualFit } from './sizing'
+import {
+  calculateSizing,
+  checkManualFit,
+  compareToBand,
+  type SizingOutput,
+} from './sizing'
 import {
   matchBikes,
   getStackReachWindow,
@@ -299,8 +304,14 @@ function InputForm({
   )
 }
 
-/** One bike in the shortlist. */
-function BikeRow({ bike }: { bike: BikeSize }) {
+const SPEC_WORDING = {
+  inside: 'inside your band',
+  below: 'narrower than your band',
+  above: 'wider than your band',
+} as const
+
+/** One bike in the shortlist, with the stock parts where the maker states them. */
+function BikeRow({ bike, sizing }: { bike: BikeSize; sizing: SizingOutput }) {
   return (
     <div className="buyfit-result">
       <strong>
@@ -316,6 +327,32 @@ function BikeRow({ bike }: { bike: BikeSize }) {
         {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm, ratio{' '}
         {ratioOf(bike).toFixed(2)}
       </span>
+      {(bike.barWidth || bike.crankLength) && (
+        <>
+          <br />
+          <span className="buyfit-spec">
+            Ships with
+            {bike.barWidth && (
+              <>
+                {' '}
+                {bike.barWidth} mm bars (
+                {
+                  SPEC_WORDING[
+                    compareToBand(
+                      bike.barWidth,
+                      sizing.handlebarWidthMin,
+                      sizing.handlebarWidthMax
+                    )
+                  ]
+                }
+                )
+              </>
+            )}
+            {bike.barWidth && bike.crankLength && ','}
+            {bike.crankLength && <> {bike.crankLength} mm cranks</>}
+          </span>
+        </>
+      )}
     </div>
   )
 }
@@ -474,7 +511,11 @@ function ResultsScreen({
               {split.median === null && (
                 <div className="buyfit-results">
                   {matches.map((bike) => (
-                    <BikeRow key={`${bike.brand}-${bike.model}-${bike.size}`} bike={bike} />
+                    <BikeRow
+                      key={`${bike.brand}-${bike.model}-${bike.size}`}
+                      bike={bike}
+                      sizing={sizing}
+                    />
                   ))}
                 </div>
               )}
@@ -488,7 +529,11 @@ function ResultsScreen({
                   </h4>
                   <div className="buyfit-results">
                     {group.rows.map((bike) => (
-                      <BikeRow key={`${bike.brand}-${bike.model}-${bike.size}`} bike={bike} />
+                      <BikeRow
+                      key={`${bike.brand}-${bike.model}-${bike.size}`}
+                      bike={bike}
+                      sizing={sizing}
+                    />
                     ))}
                   </div>
                 </div>

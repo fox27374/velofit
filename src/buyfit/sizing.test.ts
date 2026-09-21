@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateSizing, checkManualFit } from './sizing'
+import { calculateSizing, checkManualFit, compareToBand } from './sizing'
 
 describe('calculateSizing', () => {
   it('calculates saddle height as 0.870–0.895 × inseam', () => {
@@ -77,5 +77,15 @@ describe('checkManualFit', () => {
     const result = checkManualFit(540, 390, 550, 400)
     expect(result.stackDelta).toBe(-10)
     expect(result.reachDelta).toBe(-10)
+  })
+})
+
+describe('compareToBand', () => {
+  it('places a spec value against the suggested band, boundaries inside', () => {
+    expect(compareToBand(410, 390, 430)).toBe('inside')
+    expect(compareToBand(390, 390, 430)).toBe('inside')
+    expect(compareToBand(430, 390, 430)).toBe('inside')
+    expect(compareToBand(380, 390, 430)).toBe('below')
+    expect(compareToBand(440, 390, 430)).toBe('above')
   })
 })

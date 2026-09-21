@@ -88,3 +88,20 @@ export function checkManualFit(
     reachDelta,
   }
 }
+
+/**
+ * Where a bike's stock part sits against the band BuyFit suggests. Used to
+ * show the two side by side rather than to score the bike: a stock bar that
+ * falls outside the band is a swap, not a reason to reject the frame.
+ */
+export type SpecFit = 'inside' | 'below' | 'above'
+
+export function compareToBand(
+  spec: number,
+  min: number,
+  max: number
+): SpecFit {
+  if (spec < min) return 'below'
+  if (spec > max) return 'above'
+  return 'inside'
+}

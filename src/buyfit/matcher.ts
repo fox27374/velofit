@@ -17,6 +17,9 @@ export interface BikeSizeRow {
   seatTube: number
   riderHeightMin: number
   riderHeightMax: number
+  /** What the stock build ships with, where the maker publishes it. */
+  barWidth?: number
+  crankLength?: number
 }
 
 export interface Bike {

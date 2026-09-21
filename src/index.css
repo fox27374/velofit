@@ -139,6 +139,11 @@ h4 {
   margin: 1.25rem 0 0.5rem;
 }
 
+.buyfit-spec {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .buyfit-back {
   justify-self: start;
   padding: 0.4rem 0.8rem;

@@ -202,7 +202,7 @@
     "model": "TCR Advanced Pro 0",
     "year": 2026,
     "verified": "2026-09-21",
-    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026.",
+    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026. Bar width and crank length are the stock build's spec; Giant does not state which handlebar width convention the figure uses.",
     "sizes": [
       {
         "size": "S",
@@ -211,7 +211,9 @@
         "ett": 535,
         "seatTube": 445,
         "riderHeightMin": 1650,
-        "riderHeightMax": 1750
+        "riderHeightMax": 1750,
+        "barWidth": 420,
+        "crankLength": 165
       },
       {
         "size": "M",
@@ -220,7 +222,9 @@
         "ett": 550,
         "seatTube": 470,
         "riderHeightMin": 1710,
-        "riderHeightMax": 1810
+        "riderHeightMax": 1810,
+        "barWidth": 440,
+        "crankLength": 170
       },
       {
         "size": "ML",
@@ -229,7 +233,9 @@
         "ett": 565,
         "seatTube": 500,
         "riderHeightMin": 1770,
-        "riderHeightMax": 1870
+        "riderHeightMax": 1870,
+        "barWidth": 440,
+        "crankLength": 170
       },
       {
         "size": "L",
@@ -238,7 +244,9 @@
         "ett": 580,
         "seatTube": 530,
         "riderHeightMin": 1830,
-        "riderHeightMax": 1930
+        "riderHeightMax": 1930,
+        "barWidth": 440,
+        "crankLength": 172.5
       },
       {
         "size": "XL",
@@ -247,7 +255,9 @@
         "ett": 600,
         "seatTube": 560,
         "riderHeightMin": 1890,
-        "riderHeightMax": 1990
+        "riderHeightMax": 1990,
+        "barWidth": 440,
+        "crankLength": 172.5
       }
     ]
   },
@@ -256,7 +266,7 @@
     "model": "Defy Advanced Pro 0",
     "year": 2026,
     "verified": "2026-09-21",
-    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026.",
+    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026. Bar width and crank length are the stock build's spec; Giant does not state which handlebar width convention the figure uses.",
     "sizes": [
       {
         "size": "S",
@@ -265,7 +275,9 @@
         "ett": 530,
         "seatTube": 445,
         "riderHeightMin": 1660,
-        "riderHeightMax": 1740
+        "riderHeightMax": 1740,
+        "barWidth": 404,
+        "crankLength": 165
       },
       {
         "size": "M",
@@ -274,7 +286,9 @@
         "ett": 545,
         "seatTube": 480,
         "riderHeightMin": 1720,
-        "riderHeightMax": 1800
+        "riderHeightMax": 1800,
+        "barWidth": 424,
+        "crankLength": 170
       },
       {
         "size": "ML",
@@ -283,7 +297,9 @@
         "ett": 560,
         "seatTube": 515,
         "riderHeightMin": 1780,
-        "riderHeightMax": 1860
+        "riderHeightMax": 1860,
+        "barWidth": 424,
+        "crankLength": 170
       },
       {
         "size": "L",
@@ -292,7 +308,9 @@
         "ett": 575,
         "seatTube": 535,
         "riderHeightMin": 1840,
-        "riderHeightMax": 1920
+        "riderHeightMax": 1920,
+        "barWidth": 444,
+        "crankLength": 172.5
       },
       {
         "size": "XL",
@@ -301,7 +319,9 @@
         "ett": 595,
         "seatTube": 565,
         "riderHeightMin": 1900,
-        "riderHeightMax": 1980
+        "riderHeightMax": 1980,
+        "barWidth": 444,
+        "crankLength": 172.5
       }
     ]
   },
@@ -310,7 +330,7 @@
     "model": "Propel Advanced Pro 0",
     "year": 2026,
     "verified": "2026-09-21",
-    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026.",
+    "source": "Giant published geometry and size charts. Giant lists geometry in mm already. Model year assumed 2026. Bar width and crank length are the stock build's spec; Giant does not state which handlebar width convention the figure uses.",
     "sizes": [
       {
         "size": "XS",
@@ -319,7 +339,9 @@
         "ett": 520,
         "seatTube": 484,
         "riderHeightMin": 1570,
-        "riderHeightMax": 1690
+        "riderHeightMax": 1690,
+        "barWidth": 380,
+        "crankLength": 165
       },
       {
         "size": "S",
@@ -328,7 +350,9 @@
         "ett": 535,
         "seatTube": 505,
         "riderHeightMin": 1650,
-        "riderHeightMax": 1750
+        "riderHeightMax": 1750,
+        "barWidth": 380,
+        "crankLength": 165
       },
       {
         "size": "M",
@@ -337,7 +361,9 @@
         "ett": 550,
         "seatTube": 528.5,
         "riderHeightMin": 1710,
-        "riderHeightMax": 1810
+        "riderHeightMax": 1810,
+        "barWidth": 400,
+        "crankLength": 170
       },
       {
         "size": "M/L",
@@ -346,7 +372,9 @@
         "ett": 565,
         "seatTube": 554,
         "riderHeightMin": 1770,
-        "riderHeightMax": 1870
+        "riderHeightMax": 1870,
+        "barWidth": 400,
+        "crankLength": 170
       },
       {
         "size": "L",
@@ -355,7 +383,9 @@
         "ett": 580,
         "seatTube": 576,
         "riderHeightMin": 1830,
-        "riderHeightMax": 1930
+        "riderHeightMax": 1930,
+        "barWidth": 420,
+        "crankLength": 172.5
       },
       {
         "size": "XL",
@@ -364,7 +394,9 @@
         "ett": 600,
         "seatTube": 595,
         "riderHeightMin": 1890,
-        "riderHeightMax": 1990
+        "riderHeightMax": 1990,
+        "barWidth": 420,
+        "crankLength": 172.5
       }
     ]
   }
