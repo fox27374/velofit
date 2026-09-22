@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { calculateSizing, checkManualFit, compareToBand, inseamRatio } from './sizing'
+import {
+  calculateSizing,
+  checkManualFit,
+  compareToBand,
+  crankLengthBand,
+  inseamRatio,
+} from './sizing'
 
 describe('calculateSizing', () => {
   it('calculates saddle height as 0.870–0.895 × inseam', () => {
@@ -15,9 +21,22 @@ describe('calculateSizing', () => {
     expect(result.handlebarWidthMax).toBe(420)
   })
 
-  it('sets crank length to a permissive range', () => {
+  it('drops 175 mm from the default crank band', () => {
     const result = calculateSizing(800, 1800, 400)
-    expect(result.crankLength).toBe('165–175 mm')
+    expect(result.crankLength).toBe('165–170 mm')
+    expect(result.crankNote).toContain('perceived fatigue')
+  })
+
+  it('points a racier rider at the short end', () => {
+    const result = calculateSizing(800, 1800, 400, 'racy')
+    expect(result.crankLength).toBe('165 mm')
+    expect(result.crankNote).toContain('hip')
+  })
+
+  it('treats a relaxed preference like no preference', () => {
+    expect(calculateSizing(800, 1800, 400, 'relaxed').crankLength).toBe(
+      calculateSizing(800, 1800, 400).crankLength
+    )
   })
 
 
@@ -25,6 +44,23 @@ describe('calculateSizing', () => {
     const result = calculateSizing(750, 1750, 410)
     expect(result.saddleHeightMin).toBeGreaterThan(600)
     expect(result.saddleHeightMin).toBeLessThan(700)
+  })
+})
+
+describe('crankLengthBand', () => {
+  it('never prints a formula-derived single number', () => {
+    // 0.216 x 800 = 172.8 mm (Palm), 0.21 x 800 = 168 mm (Zinn). Neither may
+    // appear: no crank output is allowed to depend on inseam at all.
+    for (const p of ['none', 'racy', 'relaxed'] as const) {
+      expect(crankLengthBand(p).range).not.toContain('172')
+      expect(crankLengthBand(p).range).not.toContain('168')
+    }
+  })
+
+  it('always carries a reason with the band', () => {
+    for (const p of ['none', 'racy', 'relaxed'] as const) {
+      expect(crankLengthBand(p).note.length).toBeGreaterThan(40)
+    }
   })
 })
 

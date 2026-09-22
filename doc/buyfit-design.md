@@ -96,10 +96,22 @@ screenshot; a single disclaimer at the top of the screen does not.
 |---|---|---|
 | Saddle height | 0.870–0.895 × inseam, BB centre to saddle top along the seat tube, ±20–25 mm | Sourced |
 | Handlebar width | shoulder width ±20 mm, stating which width convention is meant | Weak |
-| Crank length | 165–175 mm, with "this barely matters" said out loud | Weak |
+| Crank length | 165–170 mm, or 165 mm for a racy preference, each with its reason printed | Weak |
 | Stack/reach window | height → the maker's own size label → min–max of that label's stack and reach across the database | No source |
 | Frame size, seat tube, ETT | wide windows from what bikes in the window ship with | No source, basis stated as *not from your body* |
 | Inseam-to-height ratio | inseam ÷ height, classified against the 45–48% band, reported only | No source |
+
+**Crank length narrowed to 165–170 mm, and tilts with the preference.** The
+research doc's defensible output is 165–175 mm, and §3.2 refuses the Palm and
+Zinn formulas as pseudo-precision — that refusal stands, and no crank output
+depends on inseam. But two findings in that section do survive and now shape
+the band. Li et al. detected significantly worse perceived fatigue at 175 mm
+than at 165 or 170 (p < 0.001) while finding no difference in efficiency,
+sprint power or cadence, so 175 leaves the recommended band without becoming a
+mistake to ride. And §3.2 accepts hip-angle closure at top dead centre as the
+one real reason to go shorter, which is precisely what a racy preference asks
+for — so that preference points at 165 mm. Both outputs print their reason next
+to the number.
 
 **The inseam-to-height ratio is reported, never applied.** §4.5 of the research
 doc argues that maker size charts are wrong to key off height alone, and BuyFit

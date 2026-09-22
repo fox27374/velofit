@@ -411,7 +411,7 @@ function ResultsScreen({
   const inseam = measurements.inseam ?? 0
   const height = measurements.height ?? 0
   const shoulderWidth = measurements.shoulderWidth ?? 0
-  const sizing = calculateSizing(inseam, height, shoulderWidth)
+  const sizing = calculateSizing(inseam, height, shoulderWidth, preference)
 
   // Get window from database, not from body measurements
   const fitWindow = getStackReachWindow(height, bikes)
@@ -508,10 +508,7 @@ function ResultsScreen({
               <strong>Crank length</strong>
               <span className="buyfit-value">{sizing.crankLength}</span>
               <Badge type="Weak" anchor="32-crank-length-from-inseam-or-height" />
-              <p className="buyfit-note">
-                Go shorter if you have limited hip flexion. The evidence says the choice inside
-                this range barely matters.
-              </p>
+              <p className="buyfit-note">{sizing.crankNote}</p>
             </div>
 
             <LegProportionFlag inseam={inseam} height={height} />
