@@ -1,5 +1,7 @@
-# Stage 1: build
-FROM docker.io/library/node:22-alpine AS build
+# Stage 1: build. Pinned to the BUILD platform: the bundle is plain JS, so
+# there is nothing to gain from running node under emulation when this is
+# built on arm64 for an amd64 host.
+FROM --platform=$BUILDPLATFORM docker.io/library/node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
