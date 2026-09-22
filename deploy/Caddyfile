@@ -1,8 +1,13 @@
 :80 {
+	root * /usr/share/caddy
+
+	# Same-origin API: the browser never learns bikedb's address, so no CORS.
 	handle /api/* {
 		reverse_proxy bikedb:8080
 	}
-	root * /usr/share/caddy
-	file_server
-	try_files {path} /index.html
+
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
 }

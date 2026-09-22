@@ -2,13 +2,17 @@
 set -euo pipefail
 
 # Deploy velofit + bikedb to podman host.
-# Assumes: sudo loginctl enable-linger ansible (one-time setup on host)
-# Assumes: ghcr package visibility is public (one-time setup)
+# Assumes, as one-time host setup:
+#   sudo loginctl enable-linger claude   (rootless containers survive logout/reboot)
+#   ghcr package visibility set to public (host pulls anonymously)
+# HOST is an ssh alias: user claude on ataltpr06, via the dk-gate jump host.
+# The host is not reachable from here on any port but 22, so health checks
+# run over ssh rather than curling it directly.
 
 VELOFIT_REPO=/Users/dkofler/code/velofit
 BIKEDB_REPO=/Users/dkofler/code/bikedb
-HOST=ansible@ataltpr06.lnxnet.org
-HOST_DIR=~/velofit
+HOST=${VELOFIT_HOST:-tpr06}
+HOST_DIR=velofit  # relative to the remote $HOME; never expand locally
 
 # Resolve tag from velofit HEAD
 TAG=$(cd "$VELOFIT_REPO" && git rev-parse --short HEAD)
@@ -44,29 +48,34 @@ podman push ghcr.io/fox27374/bikedb:latest
 
 # Copy compose and systemd unit to host
 echo "Copying config to host..."
-ssh $HOST "mkdir -p $HOST_DIR"
-scp "$VELOFIT_REPO/deploy/compose.yaml" $HOST:$HOST_DIR/
-scp "$VELOFIT_REPO/deploy/velofit.service" $HOST:$HOST_DIR/
+ssh "$HOST" "mkdir -p \$HOME/$HOST_DIR"
+scp "$VELOFIT_REPO/deploy/compose.yaml" "$HOST:$HOST_DIR/"
+scp "$VELOFIT_REPO/deploy/velofit.service" "$HOST:$HOST_DIR/"
 
 # Generate or update .env on host
 echo "Setting up .env on host..."
-ssh $HOST "
-  if [ ! -f $HOST_DIR/.env ]; then
-    PASS=\$(openssl rand -base64 32)
-    echo \"POSTGRES_PASSWORD=\$PASS\" > $HOST_DIR/.env
-    echo \"IMAGE_TAG=$TAG\" >> $HOST_DIR/.env
+ssh "$HOST" "
+  cd \$HOME/$HOST_DIR
+  if [ ! -f .env ]; then
+    umask 077
+    PASS=\$(openssl rand -base64 32 | tr -d '/@ \"')
+    echo \"POSTGRES_PASSWORD=\$PASS\" > .env
+    echo \"IMAGE_TAG=$TAG\" >> .env
   else
-    sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' $HOST_DIR/.env
+    sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' .env
   fi
 "
 
 # Install systemd user unit
 echo "Installing systemd user unit..."
-ssh $HOST "
-  mkdir -p ~/.config/systemd/user
-  cp $HOST_DIR/velofit.service ~/.config/systemd/user/
+ssh "$HOST" "
+  set -e
+  mkdir -p \$HOME/.config/systemd/user
+  cp \$HOME/$HOST_DIR/velofit.service \$HOME/.config/systemd/user/
   systemctl --user daemon-reload
-  podman-compose -f $HOST_DIR/compose.yaml pull
+  systemctl --user enable velofit
+  cd \$HOME/$HOST_DIR
+  podman-compose pull
   systemctl --user restart velofit
 "
 
@@ -76,8 +85,7 @@ TIMEOUT=60
 ELAPSED=0
 
 while [ $ELAPSED -lt $TIMEOUT ]; do
-  if curl -sf http://ataltpr06.lnxnet.org:8080/health > /dev/null 2>&1 && \
-     curl -sf http://ataltpr06.lnxnet.org:8081/ > /dev/null 2>&1; then
+  if ssh "$HOST" 'curl -sf http://localhost:8080/health >/dev/null && curl -sf http://localhost:8081/ >/dev/null'; then
     echo "Health check passed!"
     exit 0
   fi

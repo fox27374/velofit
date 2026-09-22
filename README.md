@@ -78,8 +78,21 @@ Three containers run on the host `ataltpr06.lnxnet.org`:
 Images are pushed to `ghcr.io/fox27374/` as public images. The systemd user unit at `~/.config/systemd/user/velofit.service`
 manages the podman-compose stack. Geometry data now comes from bikedb instead of a bundled JSON file.
 
+Everything runs rootless as the host user `claude`, so no step needs root. The
+unit is a *user* unit; `sudo loginctl enable-linger claude` is what keeps the
+containers alive after logout and brings them back after a reboot.
+
 Run [`deploy/deploy.sh`](deploy/deploy.sh) to build and deploy both images, copy config to the host, and run health checks.
+It talks to the host through the ssh alias `tpr06` (override with `VELOFIT_HOST`).
 State lives at `~/velofit/` on the host: `.env` (with `POSTGRES_PASSWORD`), `compose.yaml`, and the `pgdata` volume.
+
+The host is reachable on port 22 only, so to open the app from outside that
+network, tunnel it:
+
+```sh
+ssh -L 8081:localhost:8081 -L 8080:localhost:8080 tpr06
+open http://localhost:8081
+```
 
 ## Accuracy, honestly
 
