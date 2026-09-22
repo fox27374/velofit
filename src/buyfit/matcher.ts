@@ -7,8 +7,6 @@
  * window is only ever "what bikes in your height band ship with".
  */
 
-import bikes from './bikes.json'
-
 export interface BikeSizeRow {
   size: string
   stack: number
@@ -56,8 +54,6 @@ export interface FrameGeometryRange {
   ettMax: number
 }
 
-const database = bikes as Bike[]
-
 /** Every model+size whose published rider-height band contains this height. */
 function rowsForHeight(riderHeight: number, db: Bike[]): (BikeSizeRow & Bike)[] {
   return db.flatMap((bike) =>
@@ -77,7 +73,7 @@ function rowsForHeight(riderHeight: number, db: Bike[]): (BikeSizeRow & Bike)[] 
  */
 export function getStackReachWindow(
   riderHeight: number,
-  db: Bike[] = database
+  db: Bike[]
 ): StackReachWindow | null {
   const rows = rowsForHeight(riderHeight, db)
   if (rows.length === 0) return null
@@ -98,7 +94,7 @@ export function getStackReachWindow(
  */
 export function getFrameGeometryRange(
   riderHeight: number,
-  db: Bike[] = database
+  db: Bike[]
 ): FrameGeometryRange | null {
   const rows = rowsForHeight(riderHeight, db)
   if (rows.length === 0) return null
@@ -128,7 +124,7 @@ export function matchBikes(
   windowStackMax: number,
   windowReachMin: number,
   windowReachMax: number,
-  db: Bike[] = database
+  db: Bike[]
 ): BikeSize[] {
   const stackCentre = (windowStackMin + windowStackMax) / 2
   const reachCentre = (windowReachMin + windowReachMax) / 2
@@ -199,7 +195,7 @@ export function splitByCharacter<T extends { stack: number; reach: number }>(
  */
 export function headlineSizes(
   riderHeight: number,
-  db: Bike[] = database
+  db: Bike[]
 ): string[] {
   const counts = new Map<string, number>()
   for (const row of rowsForHeight(riderHeight, db)) {

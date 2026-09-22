@@ -15,7 +15,9 @@ import {
   headlineSizes,
   type Character,
   type BikeSize,
+  type Bike,
 } from './matcher'
+import { loadGeometryData } from './geometryLoader'
 
 type TabType = 'results' | 'manual'
 
@@ -363,10 +365,12 @@ function BikeRow({ bike, sizing }: { bike: BikeSize; sizing: SizingOutput }) {
 function ResultsScreen({
   measurements,
   preference,
+  bikes,
   onBack,
 }: {
   measurements: Required<Measurements>
   preference: Preference
+  bikes: Bike[]
   onBack: () => void
 }) {
   const [tab, setTab] = useState<TabType>('results')
@@ -376,8 +380,8 @@ function ResultsScreen({
   const sizing = calculateSizing(inseam, height, shoulderWidth)
 
   // Get window from database, not from body measurements
-  const fitWindow = getStackReachWindow(height)
-  const geometry = getFrameGeometryRange(height)
+  const fitWindow = getStackReachWindow(height, bikes)
+  const geometry = getFrameGeometryRange(height, bikes)
 
   const matches = fitWindow
     ? matchBikes(
@@ -385,11 +389,12 @@ function ResultsScreen({
         fitWindow.stackMin,
         fitWindow.stackMax,
         fitWindow.reachMin,
-        fitWindow.reachMax
+        fitWindow.reachMax,
+        bikes
       )
     : []
 
-  const headline = headlineSizes(height)
+  const headline = headlineSizes(height, bikes)
   const split = splitByCharacter(matches)
   const groups: { key: Character; title: string; rows: typeof matches }[] = [
     { key: 'racy', title: 'Racier half of your matches', rows: split.racy },
@@ -686,12 +691,65 @@ function ManualCheckTab({
 export function BuyFit({ onHome }: { onHome: () => void }) {
   const [measurements, setMeasurements] = useState<Required<Measurements> | null>(null)
   const [preference, setPreference] = useState<Preference>('none')
+  const [bikes, setBikes] = useState<Bike[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadGeometryData()
+      .then((result) => {
+        setBikes(result.bikes)
+        setLoading(false)
+      })
+      .catch(() => {
+        const apiUrl = import.meta.env.VITE_BIKEDB_URL || 'http://localhost:8080'
+        setError(`No connection to the bike database at ${apiUrl}. The app needs the API to load geometry data. Start the server and reload.`)
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>Loading bikes...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <button onClick={onHome} className="buyfit-back">
+          ← Home
+        </button>
+        <h1>BuyFit</h1>
+        <div style={{ color: 'var(--ink-muted)', marginBottom: '1rem' }}>
+          {error}
+        </div>
+      </div>
+    )
+  }
+
+  if (!bikes || bikes.length === 0) {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <button onClick={onHome} className="buyfit-back">
+          ← Home
+        </button>
+        <h1>BuyFit</h1>
+        <div style={{ color: 'var(--ink-muted)' }}>
+          No bikes found.
+        </div>
+      </div>
+    )
+  }
 
   if (measurements) {
     return (
       <ResultsScreen
         measurements={measurements}
         preference={preference}
+        bikes={bikes}
         onBack={() => setMeasurements(null)}
       />
     )
