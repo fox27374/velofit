@@ -99,6 +99,16 @@ screenshot; a single disclaimer at the top of the screen does not.
 | Crank length | 165–175 mm, with "this barely matters" said out loud | Weak |
 | Stack/reach window | height → the maker's own size label → min–max of that label's stack and reach across the database | No source |
 | Frame size, seat tube, ETT | wide windows from what bikes in the window ship with | No source, basis stated as *not from your body* |
+| Inseam-to-height ratio | inseam ÷ height, classified against the 45–48% band, reported only | No source |
+
+**The inseam-to-height ratio is reported, never applied.** §4.5 of the research
+doc argues that maker size charts are wrong to key off height alone, and BuyFit
+reads its window straight out of those charts — so two riders of the same height
+get the same window no matter how their legs and torso divide it. The ratio
+names that gap for the rider instead of papering over it: no source gives a
+millimetre-per-point adjustment, and the 45–48% band it is judged against is
+itself forum aggregate rather than study. A flag the rider weighs on a test ride
+is defensible; a silent nudge to the window would not be.
 
 **Setback and stem were dropped from that line during implementation**, and
 this overrules the agreed list. Makers do not publish saddle setback or stem

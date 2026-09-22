@@ -12,6 +12,19 @@ export interface SizingOutput {
   crankLength: string
 }
 
+/**
+ * Where the rider's inseam sits as a share of height. Reported only: it never
+ * moves the stack/reach window, because no source supports a mm-per-point
+ * adjustment (doc/frame-sizing-research.md §4.5).
+ */
+export type LegProportion = 'long' | 'typical' | 'short'
+
+export interface InseamRatio {
+  /** Inseam as a percentage of height, one decimal. */
+  percent: number
+  proportion: LegProportion
+}
+
 export type ManualFitVerdict = 'fits' | 'too_tall' | 'too_low' | 'too_long' | 'too_short'
 
 export interface ManualFitResult {
@@ -50,6 +63,28 @@ export function calculateSizing(
     handlebarWidthMax,
     crankLength: '165–175 mm',
   }
+}
+
+/**
+ * Inseam as a share of height, classified against the 45–48% band the
+ * literature describes as usual.
+ *
+ * The band itself is weak: §4.5 of the research doc records that the
+ * cycling-specific 41–51% range comes from self-reported forum aggregates,
+ * with no study behind it, and that ANSUR II could settle it but has not been
+ * extracted. So this is a flag for the rider to interpret, not an input to any
+ * calculation.
+ *
+ * Returns null when either measurement is missing or non-positive.
+ */
+export function inseamRatio(inseam: number, height: number): InseamRatio | null {
+  if (inseam <= 0 || height <= 0) return null
+
+  const percent = Math.round((inseam / height) * 1000) / 10
+  const proportion: LegProportion =
+    percent > 48 ? 'long' : percent < 45 ? 'short' : 'typical'
+
+  return { percent, proportion }
 }
 
 /**

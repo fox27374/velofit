@@ -3,6 +3,7 @@ import {
   calculateSizing,
   checkManualFit,
   compareToBand,
+  inseamRatio,
   type SizingOutput,
 } from './sizing'
 import { StackReachPlot } from './StackReachPlot'
@@ -130,6 +131,39 @@ function Badge({ type, anchor }: { type: 'Sourced' | 'Weak' | 'No source'; ancho
     >
       {type}
     </a>
+  )
+}
+
+/**
+ * Inseam as a share of height. Reported next to the outputs, deliberately
+ * without acting on them: the window below comes from the maker charts, and
+ * those charts key off height alone, which is the very thing this ratio says
+ * they cannot do.
+ */
+function LegProportionFlag({ inseam, height }: { inseam: number; height: number }) {
+  const ratio = inseamRatio(inseam, height)
+  if (!ratio) return null
+
+  const note = {
+    long: `At the long-legged end of the usual 45–48% band. Expect more seatpost showing than the chart implies, and the size your height picks may feel long in the front end — worth comparing the shorter of two candidate sizes.`,
+    short: `Below the usual 45–48% band, so proportionally more of your height is torso. Expect less seatpost, and the size your height picks may feel short and low — worth comparing the longer of two candidate sizes.`,
+    typical: `Inside the usual 45–48% band, so the maker size charts — which key off height alone — are no further off for you than for anyone else.`,
+  }[ratio.proportion]
+
+  return (
+    <div className="buyfit-output">
+      <strong>Inseam-to-height ratio</strong>
+      <span className="buyfit-value">{ratio.percent.toFixed(1)}%</span>
+      <Badge
+        type="No source"
+        anchor="45-inseam-does-not-determine-leg-segment-proportions"
+      />
+      <p className="buyfit-note">
+        {note} This changes none of the numbers above: no source gives a
+        millimetre adjustment per point of ratio, so it is yours to weigh on a
+        test ride.
+      </p>
+    </div>
   )
 }
 
@@ -479,6 +513,8 @@ function ResultsScreen({
                 this range barely matters.
               </p>
             </div>
+
+            <LegProportionFlag inseam={inseam} height={height} />
 
             {fitWindow ? (
               <div className="buyfit-output">

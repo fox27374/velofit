@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateSizing, checkManualFit, compareToBand } from './sizing'
+import { calculateSizing, checkManualFit, compareToBand, inseamRatio } from './sizing'
 
 describe('calculateSizing', () => {
   it('calculates saddle height as 0.870–0.895 × inseam', () => {
@@ -25,6 +25,29 @@ describe('calculateSizing', () => {
     const result = calculateSizing(750, 1750, 410)
     expect(result.saddleHeightMin).toBeGreaterThan(600)
     expect(result.saddleHeightMin).toBeLessThan(700)
+  })
+})
+
+describe('inseamRatio', () => {
+  it('reports inseam as a percentage of height to one decimal', () => {
+    expect(inseamRatio(800, 1800)?.percent).toBe(44.4)
+    expect(inseamRatio(850, 1800)?.percent).toBe(47.2)
+  })
+
+  it('classifies the 45-48% band as typical, inclusive at both ends', () => {
+    expect(inseamRatio(810, 1800)?.proportion).toBe('typical') // 45.0%
+    expect(inseamRatio(864, 1800)?.proportion).toBe('typical') // 48.0%
+  })
+
+  it('classifies outside that band as long- or short-legged', () => {
+    expect(inseamRatio(880, 1800)?.proportion).toBe('long') // 48.9%
+    expect(inseamRatio(790, 1800)?.proportion).toBe('short') // 43.9%
+  })
+
+  it('returns null rather than a ratio when a measurement is missing', () => {
+    expect(inseamRatio(0, 1800)).toBeNull()
+    expect(inseamRatio(800, 0)).toBeNull()
+    expect(inseamRatio(-800, 1800)).toBeNull()
   })
 })
 
