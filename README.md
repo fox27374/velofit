@@ -75,7 +75,10 @@ Three containers run on the host `ataltpr06.lnxnet.org`:
 - **bikedb** (Go, port 8080): REST API and web GUI for bike geometry. Schema migrates on startup.
 - **postgres** (internal network): Database for bikedb.
 
-Images are pushed to `ghcr.io/fox27374/` as public images. The systemd user unit at `~/.config/systemd/user/velofit.service`
+Images are pushed to `ghcr.io/fox27374/` and must be **public** for the host to
+pull them anonymously. GitHub has no API for that: a new package is created
+private, and visibility is a one-time change per package under
+*Package settings → Change visibility* on github.com. The systemd user unit at `~/.config/systemd/user/velofit.service`
 manages the podman-compose stack. Geometry data now comes from bikedb instead of a bundled JSON file.
 
 Everything runs rootless as the host user `claude`, so no step needs root. The
