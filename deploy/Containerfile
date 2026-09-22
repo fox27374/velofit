@@ -1,0 +1,12 @@
+# Stage 1: build
+FROM docker.io/library/node:22-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Stage 2: serve
+FROM docker.io/library/caddy:2-alpine
+COPY --from=build /app/dist /usr/share/caddy
+COPY deploy/Caddyfile /etc/caddy/Caddyfile

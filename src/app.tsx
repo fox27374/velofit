@@ -39,7 +39,7 @@ function Home({ go }: { go: (s: Screen) => void }) {
         <span>bike fitting, measured</span>
       </div>
       <p class="home-lede">
-        Nothing here leaves your device, and every number says how well it is sourced — including
+        Measurements stay in the browser and are never sent anywhere. The app fetches a public geometry table from an API. Every number says how well it is sourced — including
         the ones the evidence does not support.
       </p>
       <nav class="home-nav">

@@ -4,6 +4,15 @@ Bike-fitting MVP. Analyzes video of a rider on a stationary trainer, computes
 joint angles + KOPS/saddle-height, compares against target ranges. No
 adjustment recommendations, no accounts/history/cloud — see non-goals below.
 
+## API-backed BuyFit and tpr06 deployment, 2026-09-22
+
+BuyFit now fetches bike geometry from the bikedb REST API at runtime instead of
+bundling a static JSON file, so database changes are live without rebuilds.
+Deployed to `ataltpr06.lnxnet.org` in three podman containers: velofit (Caddy
+on port 8081), bikedb (port 8080), and postgres. Images are public at
+`ghcr.io/fox27374/`. GitHub Pages deployment and bundled geometry data are both
+retired. CI is test-only: push runs `npm test` in ubuntu-latest, no build or deploy.
+
 ## Migration done, 2026-09-21
 
 `main` is now the web app: Vite + TypeScript + Preact at the repo root, a home

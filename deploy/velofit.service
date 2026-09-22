@@ -1,0 +1,14 @@
+[Unit]
+Description=Velofit + BikeDB Stack
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/velofit
+ExecStart=/usr/bin/podman-compose -f compose.yaml up -d
+ExecStop=/usr/bin/podman-compose -f compose.yaml down
+
+[Install]
+WantedBy=default.target

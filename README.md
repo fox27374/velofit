@@ -8,12 +8,12 @@ Bike fitting from your phone, in the browser. Two features:
 - **BuyFit** — enter three body measurements and narrow down which frame to
   buy, before you own a bike to film.
 
-Runs entirely on the device. No accounts, no cloud, no data leaves the browser.
+Measurements stay in the browser and are never sent anywhere. The app fetches geometry data from the bikedb REST API at runtime, so changes to the bike database are live without rebuilds.
 
 > **Status: BuyFit works, Bike Fitting does not yet.** `main` holds the web
 > rewrite. BuyFit is live at
-> [fox27374.github.io/velofit](https://fox27374.github.io/velofit/) with six
-> road models in its geometry database. The fitting flow is still a menu entry:
+> [ataltpr06.lnxnet.org:8081](http://ataltpr06.lnxnet.org:8081/) (internal network only) with geometry data from the
+> bikedb API. The fitting flow is still a menu entry:
 > the Flutter app that did complete the capture flow on an Android device is at
 > the tag `flutter-final` (`git checkout flutter-final`).
 >
@@ -65,9 +65,21 @@ npm install
 npm run dev                 # or: npm run build && npm run preview
 ```
 
-Pushing to `main` builds and deploys to GitHub Pages. Testing on a phone over
-USB: `npm run dev`, then `adb reverse tcp:5173 tcp:5173` and open
-`http://localhost:5173`.
+Testing locally: `npm run dev` (Vite dev server with `/api` proxy to bikedb). Testing on a phone over
+USB: `adb reverse tcp:5173 tcp:5173` and open `http://localhost:5173`.
+
+## Deployment
+
+Three containers run on the host `ataltpr06.lnxnet.org`:
+- **velofit** (Caddy, port 8081): Serves the SPA and proxies `/api` → bikedb.
+- **bikedb** (Go, port 8080): REST API and web GUI for bike geometry. Schema migrates on startup.
+- **postgres** (internal network): Database for bikedb.
+
+Images are pushed to `ghcr.io/fox27374/` as public images. The systemd user unit at `~/.config/systemd/user/velofit.service`
+manages the podman-compose stack. Geometry data now comes from bikedb instead of a bundled JSON file.
+
+Run [`deploy/deploy.sh`](deploy/deploy.sh) to build and deploy both images, copy config to the host, and run health checks.
+State lives at `~/velofit/` on the host: `.env` (with `POSTGRES_PASSWORD`), `compose.yaml`, and the `pgdata` volume.
 
 ## Accuracy, honestly
 
