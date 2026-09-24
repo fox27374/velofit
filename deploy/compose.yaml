@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   bikedb:
-    image: ghcr.io/fox27374/bikedb:${IMAGE_TAG:-latest}
+    image: ghcr.io/fox27374/bikedb:${BIKEDB_TAG:-latest}
     environment:
       DATABASE_URL: postgres://bikedb:${POSTGRES_PASSWORD}@db:5432/bikedb?sslmode=disable
       ADDR: :8080
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
 
   velofit:
-    image: ghcr.io/fox27374/velofit:${IMAGE_TAG:-latest}
+    image: ghcr.io/fox27374/velofit:${VELOFIT_TAG:-latest}
     ports:
       - "8081:80"
     depends_on:
