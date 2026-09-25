@@ -78,14 +78,6 @@ export interface InseamRatio {
   proportion: LegProportion
 }
 
-export type ManualFitVerdict = 'fits' | 'too_tall' | 'too_low' | 'too_long' | 'too_short'
-
-export interface ManualFitResult {
-  verdict: ManualFitVerdict
-  stackDelta: number
-  reachDelta: number
-}
-
 /**
  * Calculate sizing outputs from body measurements.
  * All inputs and outputs are in mm.
@@ -145,56 +137,3 @@ export function inseamRatio(inseam: number, height: number): InseamRatio | null 
   return { percent, proportion }
 }
 
-/**
- * Check if a bike's stack and reach fit within a tolerance of a target.
- * Returns a verdict: fits, too_tall/low (stack), or too_long/short (reach).
- *
- * @param bikeStack - bike's stack in mm
- * @param bikeReach - bike's reach in mm
- * @param targetStack - target stack in mm (usually window centre)
- * @param targetReach - target reach in mm (usually window centre)
- * @param tolerance - tolerance in mm (default 30)
- */
-export function checkManualFit(
-  bikeStack: number,
-  bikeReach: number,
-  targetStack: number,
-  targetReach: number,
-  tolerance: number = 30
-): ManualFitResult {
-  const stackDelta = bikeStack - targetStack
-  const reachDelta = bikeReach - targetReach
-
-  if (Math.abs(stackDelta) > tolerance) {
-    const verdict: ManualFitVerdict = stackDelta > 0 ? 'too_tall' : 'too_low'
-    return { verdict, stackDelta, reachDelta }
-  }
-
-  if (Math.abs(reachDelta) > tolerance) {
-    const verdict: ManualFitVerdict = reachDelta > 0 ? 'too_long' : 'too_short'
-    return { verdict, stackDelta, reachDelta }
-  }
-
-  return {
-    verdict: 'fits',
-    stackDelta,
-    reachDelta,
-  }
-}
-
-/**
- * Where a bike's stock part sits against the band BuyFit suggests. Used to
- * show the two side by side rather than to score the bike: a stock bar that
- * falls outside the band is a swap, not a reason to reject the frame.
- */
-export type SpecFit = 'inside' | 'below' | 'above'
-
-export function compareToBand(
-  spec: number,
-  min: number,
-  max: number
-): SpecFit {
-  if (spec < min) return 'below'
-  if (spec > max) return 'above'
-  return 'inside'
-}

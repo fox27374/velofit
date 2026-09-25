@@ -21,7 +21,10 @@ const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 // unlabelled -- its name stays in the hover title and in the list below.
 const LABEL_OFFSETS = [3, -23, 29]
 
-const labelText = (b: BikeSize) => `${b.model.split(' ')[0]} ${b.size}`
+const labelText = (b: BikeSize) => {
+  const text = `${b.brand} ${b.model}`
+  return text.length > 24 ? text.substring(0, 23) + '…' : text
+}
 
 export function placeLabels(points: { x: number; y: number; text: string }[]): (number | null)[] {
   const nearest = points.map((p, i) =>

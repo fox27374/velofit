@@ -409,3 +409,8 @@ numbers. Bike type is *selected by the user*, never detected from the image.
    rejected an LLM for Bianchi on 2026-09-23 have nothing to work on here.
    Grill it before building. Skipping Cannondale entirely also remains fine —
    five vendors already work.
+7. **Manual check** — check a bike that is not in the database against the rider's
+   window; removed in the one-page redesign, recoverable from commit 69d84ed
+   (ManualCheckTab in src/buyfit/BuyFit.tsx, checkManualFit/compareToBand in
+   src/buyfit/sizing.ts); redesign it for the one-page layout before bringing it
+   back.

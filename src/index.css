@@ -192,16 +192,37 @@ a {
   font-size: 0.875rem;
 }
 
-/* ---- form ---------------------------------------------------------- */
+/* ---- page layout ----------------------------------------------------- */
 
-.buyfit-form {
+.buyfit-page {
   display: grid;
   gap: 1.5rem;
 }
 
-.buyfit-form h1 {
+.buyfit-page h1 {
   padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--ink);
+}
+
+/* ---- inputs section -------------------------------------------------- */
+
+.buyfit-inputs {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+}
+
+.buyfit-input-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.buyfit-input-controls {
+  grid-template-columns: auto auto 1fr;
+  gap: 1rem;
+  align-items: start;
 }
 
 .buyfit-field {
@@ -209,8 +230,6 @@ a {
   grid-template-columns: 5.5rem 1fr;
   gap: 0 1.25rem;
   align-items: start;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--rule);
 }
 
 .buyfit-field--plain {
@@ -255,42 +274,47 @@ a {
   font-size: 1.05rem;
 }
 
-.buyfit-button-primary {
-  justify-self: start;
-  padding: 0.7rem 1.6rem;
-  border: 0;
+.buyfit-details {
+  border: 1px solid var(--rule-strong);
   border-radius: 2px;
-  background: var(--ink);
-  color: var(--paper);
-  font: inherit;
-  font-weight: 600;
+  padding: 0.75rem;
+}
+
+.buyfit-details summary {
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  user-select: none;
 }
 
-/* ---- results ------------------------------------------------------- */
-
-.buyfit-tabs {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--rule);
+.buyfit-details summary:hover {
+  color: var(--dim);
 }
 
-.buyfit-tab {
-  padding: 0 0 0.6rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  background: none;
+.buyfit-guide-content {
+  margin-top: 1rem;
+}
+
+.buyfit-prompt {
+  text-align: center;
+  padding: 2rem 1rem;
   color: var(--ink-muted);
-  font: inherit;
-  cursor: pointer;
+  font-size: 0.95rem;
 }
 
-.buyfit-tab.active {
-  border-bottom-color: var(--dim);
-  color: var(--ink);
-  font-weight: 600;
+/* ---- analysis cards ------------------------------------------------- */
+
+.buyfit-analysis {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---- bikes section -------------------------------------------------- */
+
+.buyfit-bikes-section {
+  display: grid;
+  gap: 1.5rem;
 }
 
 .buyfit-headline {
@@ -301,8 +325,38 @@ a {
   font-size: 1.9rem;
 }
 
-.buyfit-measures {
+.buyfit-brand-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.buyfit-brand-chip {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.buyfit-brand-chip:hover {
+  border-color: var(--dim);
+  color: var(--dim);
+}
+
+.buyfit-brand-chip[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.buyfit-window-cards {
   display: grid;
+  gap: 0;
   border-top: 1px solid var(--rule);
 }
 
@@ -483,28 +537,30 @@ a {
   font-size: 0.8rem;
 }
 
-/* ---- manual check -------------------------------------------------- */
-
-.buyfit-verdict {
-  padding-top: 1rem;
-  border-top: 2px solid var(--ink);
-}
-
-.buyfit-verdict strong {
-  font-size: 1.1rem;
-}
-
-.buyfit-verdict-fits strong {
-  color: var(--ok);
-}
-
-.buyfit-verdict-bad strong {
-  color: var(--dim);
-}
-
 /* ---- narrow screens ------------------------------------------------ */
 
-@media (max-width: 30rem) {
+@media (max-width: 640px) {
+  /* Inputs stack vertically, one column */
+  .buyfit-input-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .buyfit-input-controls {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .buyfit-field {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 0.75rem;
+  }
+
+  .buyfit-diagram-container {
+    justify-content: flex-start;
+  }
+
   /* A measurement and its value stop competing for one line. */
   .buyfit-output,
   .buyfit-result {
@@ -517,15 +573,5 @@ a {
     grid-row: auto;
     justify-self: start;
     text-align: left;
-  }
-
-  .buyfit-field {
-    grid-template-columns: 1fr;
-    justify-items: start;
-    gap: 0.75rem;
-  }
-
-  .buyfit-diagram-container {
-    justify-content: flex-start;
   }
 }

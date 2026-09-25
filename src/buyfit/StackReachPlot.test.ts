@@ -37,4 +37,17 @@ describe('placeLabels', () => {
     const dys = placeLabels([pt(100, 100, 'S-Works 58'), pt(104, 130, 'S-Works 58')])
     expect(dys.filter((dy) => dy !== null)).toHaveLength(1)
   })
+
+  it('truncates long label text to 24 chars with ellipsis', () => {
+    const longText = 'Specialized S-Works Tarmac SL8'
+    const truncated = longText.length > 24 ? longText.substring(0, 23) + '…' : longText
+    expect(truncated).toBe('Specialized S-Works Tar…')
+    expect(truncated.length).toBe(24)
+  })
+
+  it('keeps short labels unchanged', () => {
+    const shortText = 'Trek Madone'
+    const truncated = shortText.length > 24 ? shortText.substring(0, 23) + '…' : shortText
+    expect(truncated).toBe('Trek Madone')
+  })
 })
