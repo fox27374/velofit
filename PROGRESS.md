@@ -393,3 +393,19 @@ numbers. Bike type is *selected by the user*, never detected from the image.
 5. The Flutter next steps (validating the live-stream gate on a ride, iOS via
    Xcode, the transitive INTERNET permission) are superseded by the web
    redesign and should not be worked on.
+6. **Read geometry out of JPEGs** (work lives in the `bikedb` repo, optional).
+   Cannondale publishes its whole geometry table as an image, and Bianchi's
+   column legend letters are defined only inside one, so both are blocked on
+   reading pixels. The seam is already there: `internal/web/review.go` sends a
+   PDF through `pdfimport.ExtractGrid` to a `[][]string` grid, then
+   `NormalizeToVertical` and the human-confirmed review page. An image reader
+   replaces that first step only, and the review page is what makes an
+   imperfect reader safe — a misread digit is caught before it reaches
+   Postgres. Two candidates: tesseract (`--psm 6 tsv`, cluster the word boxes,
+   +~80 MB on a 34 MB image, no key, mangles merged headers) or a vision API
+   call (no image growth, returns the grid shaped, needs a key and egress from
+   tpr06, cents per family). Vision is the recommendation: Cannondale ships no
+   geometry in text at all, so the deterministic column heuristics that
+   rejected an LLM for Bianchi on 2026-09-23 have nothing to work on here.
+   Grill it before building. Skipping Cannondale entirely also remains fine —
+   five vendors already work.
