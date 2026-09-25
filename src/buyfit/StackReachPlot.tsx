@@ -14,6 +14,18 @@ const W = 520
 const H = 340
 const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 
+// Labels sit right of their point, nudged up or down when two points are
+// close enough to collide. The nudges widen and then run out: with more
+// neighbours than slots, the label overlaps rather than searching forever.
+const LABEL_OFFSETS = [3, -23, 29, -49, 55]
+
+export function labelOffset(placed: { x: number; y: number }[], cx: number, cy: number) {
+  const free = LABEL_OFFSETS.find(
+    (dy) => !placed.some((p) => Math.abs(p.x - cx) < 90 && Math.abs(p.y - (cy + dy)) < 13)
+  )
+  return free ?? LABEL_OFFSETS[0]
+}
+
 export function StackReachPlot({
   bikes,
   fitWindow,
@@ -41,18 +53,7 @@ export function StackReachPlot({
 
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
 
-  // Labels sit right of their point, nudged up or down when two points are
-  // close enough to collide. Eight points at most, so a single pass is plenty.
   const placed: { x: number; y: number }[] = []
-  const labelOffset = (cx: number, cy: number) => {
-    let dy = 3
-    while (placed.some((p) => Math.abs(p.x - cx) < 90 && Math.abs(p.y - (cy + dy)) < 13)) {
-      dy = dy > 0 ? dy - 26 : -dy + 13
-      if (dy < -52) break
-    }
-    placed.push({ x: cx, y: cy + dy })
-    return dy
-  }
 
   return (
     <svg
@@ -115,7 +116,8 @@ export function StackReachPlot({
       {bikes.map((bike) => {
         const cx = px(bike.reach)
         const cy = py(bike.stack)
-        const dy = labelOffset(cx, cy)
+        const dy = labelOffset(placed, cx, cy)
+        placed.push({ x: cx, y: cy + dy })
         return (
           <g key={`${bike.brand}-${bike.model}-${bike.size}`}>
             <title>
