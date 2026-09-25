@@ -462,6 +462,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         <>
           {/* Analysis cards section */}
           <div className="buyfit-analysis">
+            <LegProportionFlag inseam={inseamMm} height={heightMm} />
             <div className="buyfit-output">
               <strong>Saddle height</strong>
               <span className="buyfit-value">
@@ -489,7 +490,6 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               <p className="buyfit-note">{sizing.crankNote}</p>
             </div>
 
-            <LegProportionFlag inseam={inseamMm} height={heightMm} />
           </div>
 
           {/* Bikes section */}

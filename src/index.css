@@ -199,6 +199,13 @@ a {
   gap: 1.5rem;
 }
 
+/* Grid items default to min-width: auto, so one wide child (the chart, a
+   long unbroken name) would widen the column past a phone's screen. */
+.buyfit-page > *,
+.buyfit-bikes-section > * {
+  min-width: 0;
+}
+
 .buyfit-page h1 {
   padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--ink);
@@ -392,8 +399,10 @@ a {
   padding: 0;
 }
 
+/* Cards in one row share its height; keep each card's lines packed at the
+   top instead of spread over the tallest card's height. */
 .buyfit-analysis .buyfit-output {
-  /* Card layout in analysis grid */
+  align-content: start;
 }
 
 .buyfit-window-cards .buyfit-output {
@@ -583,8 +592,16 @@ a {
 @media (max-width: 640px) {
   /* Inputs stack vertically, one column */
   .buyfit-input-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 1.5rem;
+  }
+
+  /* A frame-size list is wider than a phone; put it under its heading. */
+  .buyfit-window-cards .buyfit-value {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    justify-self: start;
+    white-space: normal;
   }
 
   .buyfit-input-controls {
