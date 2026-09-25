@@ -58,6 +58,15 @@ describe('placeLabels', () => {
         if (a !== b) expect(a.x0 < b.x1 && b.x0 < a.x1 && Math.abs(a.y - b.y) < 13).toBe(false)
   })
 
+  // A label drawn across another bike's circle hid that bike, or its name.
+  it('keeps a label off the other points', () => {
+    // The circle at (125, 110) is labelled after the Giant, so only the
+    // point check -- not a label collision -- can move the Giant's label.
+    const points = [pt(100, 100, 'Giant Defy Advanced Pro'), pt(100, 60, 'Other'), pt(125, 110, 'x')]
+    const [a] = placeLabels(points)
+    if (a) expect(a.side === 'right' && Math.abs(100 + a.dy - 4 - 110) < 12).toBe(false)
+  })
+
   // The point off on its own is what the plot is for, so it must keep its
   // label even when it comes last and a crowd sits within reach of its slots.
   it('labels the isolated point before the crowd', () => {

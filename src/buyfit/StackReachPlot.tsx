@@ -19,7 +19,8 @@ const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 // what the plot is for, so it gets first pick of the space. A label that
 // would run past the right edge flips to the left of its point. A point with
 // no free slot, or whose name is already shown close by, goes unlabelled --
-// its name stays in the hover title and in the list below.
+// its name stays in the hover title and in the list below. Labels also keep
+// clear of other points, so no circle hides a name.
 const LABEL_OFFSETS = [3, -23, 29]
 const LABEL_GAP = 11
 // ponytail: width estimated from the 11px label font, not measured; measure
@@ -53,8 +54,14 @@ export function placeLabels(
     const side = x + LABEL_GAP + w > rightEdge ? 'left' : 'right'
     const x0 = side === 'right' ? x + LABEL_GAP : x - LABEL_GAP - w
     const x1 = x0 + w
+    // A label's text runs from about 9 px above its baseline to 2 below, and
+    // must clear every other label and every other point's 6 px circle.
     const dy = LABEL_OFFSETS.find(
-      (dy) => !boxes.some((b) => b.x0 < x1 + 4 && x0 < b.x1 + 4 && Math.abs(b.y - (y + dy)) < 13)
+      (dy) =>
+        !boxes.some((b) => b.x0 < x1 + 4 && x0 < b.x1 + 4 && Math.abs(b.y - (y + dy)) < 13) &&
+        !points.some(
+          (q, j) => j !== i && q.x + 6 > x0 && q.x - 6 < x1 && Math.abs(q.y - (y + dy - 4)) < 12
+        )
     )
     if (dy === undefined) continue
     boxes.push({ x0, x1, y: y + dy, text, px: x, py: y })
@@ -153,25 +160,32 @@ export function StackReachPlot({
         your window
       </text>
 
+      {bikes.map((bike) => (
+        <g key={`${bike.brand}-${bike.model}-${bike.size}`}>
+          <title>
+            {bike.brand} {bike.model}, size {bike.size}: stack {bike.stack} mm, reach{' '}
+            {bike.reach} mm
+          </title>
+          <circle
+            class="plot-point"
+            cx={px(bike.reach)}
+            cy={py(bike.stack)}
+            r="6"
+            fill={`var(--series-${isRacy(bike) ? 'racy' : 'upright'})`}
+          />
+        </g>
+      ))}
+
+      {/* Labels after every point, so no circle is painted over a name. */}
       {bikes.map((bike, i) => {
+        const label = labels[i]
+        if (!label) return null
         const cx = px(bike.reach)
         const cy = py(bike.stack)
-        const label = labels[i]
-        const dir = label?.side === 'left' ? -1 : 1
+        const dir = label.side === 'left' ? -1 : 1
         return (
-          <g key={`${bike.brand}-${bike.model}-${bike.size}`}>
-            <title>
-              {bike.brand} {bike.model}, size {bike.size}: stack {bike.stack} mm, reach{' '}
-              {bike.reach} mm
-            </title>
-            <circle
-              class="plot-point"
-              cx={cx}
-              cy={cy}
-              r="6"
-              fill={`var(--series-${isRacy(bike) ? 'racy' : 'upright'})`}
-            />
-            {label && label.dy !== 3 && (
+          <g key={`label-${bike.brand}-${bike.model}-${bike.size}`}>
+            {label.dy !== 3 && (
               <line
                 class="plot-leader"
                 x1={cx + 6 * dir}
@@ -180,16 +194,14 @@ export function StackReachPlot({
                 y2={cy + label.dy - 3}
               />
             )}
-            {label && (
-              <text
-                class="plot-point-label"
-                x={cx + 11 * dir}
-                y={cy + label.dy}
-                text-anchor={dir < 0 ? 'end' : 'start'}
-              >
-                {labelText(bike)}
-              </text>
-            )}
+            <text
+              class="plot-point-label"
+              x={cx + 11 * dir}
+              y={cy + label.dy}
+              text-anchor={dir < 0 ? 'end' : 'start'}
+            >
+              {labelText(bike)}
+            </text>
           </g>
         )
       })}
