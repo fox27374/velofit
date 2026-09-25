@@ -345,109 +345,109 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       {/* Inputs section */}
       <div className="buyfit-inputs">
         <div className="buyfit-input-row">
-          <div className="buyfit-field">
-            <div className="buyfit-diagram-container">
-              <InseamDiagram />
-            </div>
-            <label>
-              <strong>Inseam</strong>
-              <p className="buyfit-help">
-                Barefoot, crotch-to-floor against a wall. A 10 mm error moves saddle height about 9 mm.
-              </p>
-              <input
-                type="number"
-                step="1"
-                value={inseam}
-                onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
-                placeholder="e.g., 750"
-                className="buyfit-input"
-              />
-            </label>
-          </div>
+          <label className="buyfit-field">
+            <strong>Inseam</strong>
+            <input
+              type="number"
+              step="1"
+              value={inseam}
+              onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
+              placeholder="e.g., 750"
+              className="buyfit-input"
+            />
+            <p className="buyfit-help">
+              Barefoot, crotch-to-floor against a wall. A 10 mm error moves saddle height about 9 mm.
+            </p>
+          </label>
 
-          <div className="buyfit-field">
-            <div className="buyfit-diagram-container">
-              <HeightDiagram />
-            </div>
-            <label>
-              <strong>Height</strong>
-              <p className="buyfit-help">
-                Total height barefoot. Used to find bikes in your height band.
-              </p>
-              <input
-                type="number"
-                step="1"
-                value={height}
-                onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
-                placeholder="e.g., 1750"
-                className="buyfit-input"
-              />
-            </label>
-          </div>
+          <label className="buyfit-field">
+            <strong>Height</strong>
+            <input
+              type="number"
+              step="1"
+              value={height}
+              onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
+              placeholder="e.g., 1750"
+              className="buyfit-input"
+            />
+            <p className="buyfit-help">
+              Total height barefoot. Used to find bikes in your height band.
+            </p>
+          </label>
 
-          <div className="buyfit-field">
-            <div className="buyfit-diagram-container">
-              <ShoulderWidthDiagram />
-            </div>
-            <label>
-              <strong>Shoulder Width</strong>
-              <p className="buyfit-help">
-                Biacromial width, centre-to-centre (acromion to acromion). The UCI regulates three
-                different handlebar width definitions; this one is used here.
-              </p>
-              <input
-                type="number"
-                step="1"
-                value={shoulderWidth}
-                onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
-                placeholder="e.g., 410"
-                className="buyfit-input"
-              />
-            </label>
-          </div>
+          <label className="buyfit-field">
+            <strong>Shoulder Width</strong>
+            <input
+              type="number"
+              step="1"
+              value={shoulderWidth}
+              onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
+              placeholder="e.g., 410"
+              className="buyfit-input"
+            />
+            <p className="buyfit-help">
+              Biacromial width, centre-to-centre (acromion to acromion). The UCI regulates three
+              different handlebar width definitions; this one is used here.
+            </p>
+          </label>
         </div>
 
-        <div className="buyfit-input-row buyfit-input-controls">
-          <div className="buyfit-field buyfit-field--plain">
-            <label>
-              <strong>Unit</strong>
-              <select
-                value={unit}
-                onChange={(e) => setUnit((e.target as HTMLSelectElement).value as 'mm' | 'cm')}
-                className="buyfit-select"
-              >
-                <option value="mm">mm</option>
-                <option value="cm">cm</option>
-              </select>
-            </label>
-          </div>
+        <div className="buyfit-input-controls">
+          <label className="buyfit-field buyfit-field--plain">
+            <strong>Unit</strong>
+            <select
+              value={unit}
+              onChange={(e) => setUnit((e.target as HTMLSelectElement).value as 'mm' | 'cm')}
+              className="buyfit-select"
+            >
+              <option value="mm">mm</option>
+              <option value="cm">cm</option>
+            </select>
+          </label>
 
-          <div className="buyfit-field buyfit-field--plain">
-            <label>
-              <strong>Riding position you want</strong>
-              <select
-                value={preference}
-                onChange={(e) => setPreference((e.target as HTMLSelectElement).value as Preference)}
-                className="buyfit-select"
-              >
-                <option value="none">No preference</option>
-                <option value="racy">Racier, lower front end</option>
-                <option value="relaxed">More upright</option>
-              </select>
-            </label>
-          </div>
-
-          <details
-            className="buyfit-details"
-            open={showMeasuringGuide}
-            onToggle={(e) => setShowMeasuringGuide((e.target as HTMLDetailsElement).open)}
-          >
-            <summary>How to measure</summary>
-            <div className="buyfit-guide-content">
-              <p className="buyfit-help">Follow the diagrams above to take your three measurements.</p>
-            </div>
-          </details>
+          <label className="buyfit-field buyfit-field--plain">
+            <strong>Riding position you want</strong>
+            <select
+              value={preference}
+              onChange={(e) => setPreference((e.target as HTMLSelectElement).value as Preference)}
+              className="buyfit-select"
+            >
+              <option value="none">No preference</option>
+              <option value="racy">Racier, lower front end</option>
+              <option value="relaxed">More upright</option>
+            </select>
+          </label>
         </div>
+
+        <details
+          className="buyfit-details"
+          open={showMeasuringGuide}
+          onToggle={(e) => setShowMeasuringGuide((e.target as HTMLDetailsElement).open)}
+        >
+          <summary>How to measure</summary>
+          <div className="buyfit-guide-content">
+            <div className="buyfit-diagram-row">
+              <div className="buyfit-diagram-item">
+                <div className="buyfit-diagram-container">
+                  <InseamDiagram />
+                </div>
+                <p className="buyfit-diagram-caption">Inseam</p>
+              </div>
+              <div className="buyfit-diagram-item">
+                <div className="buyfit-diagram-container">
+                  <HeightDiagram />
+                </div>
+                <p className="buyfit-diagram-caption">Height</p>
+              </div>
+              <div className="buyfit-diagram-item">
+                <div className="buyfit-diagram-container">
+                  <ShoulderWidthDiagram />
+                </div>
+                <p className="buyfit-diagram-caption">Shoulder Width</p>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       {/* Show only "Enter measurements" message if not all valid */}

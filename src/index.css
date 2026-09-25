@@ -208,32 +208,35 @@ a {
 
 .buyfit-inputs {
   display: grid;
-  gap: 1rem;
+  gap: 1.5rem;
   border-top: 1px solid var(--rule);
   padding-top: 1.5rem;
 }
 
 .buyfit-input-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.buyfit-input-row > * {
+  flex: 1;
+  min-width: 0;
 }
 
 .buyfit-input-controls {
-  grid-template-columns: auto auto 1fr;
-  gap: 1rem;
-  align-items: start;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
 }
 
 .buyfit-field {
   display: grid;
-  grid-template-columns: 5.5rem 1fr;
-  gap: 0 1.25rem;
-  align-items: start;
+  gap: 0.4rem;
 }
 
 .buyfit-field--plain {
-  grid-template-columns: 1fr;
+  /* plain fields use default single-column layout */
 }
 
 .buyfit-diagram-container {
@@ -272,12 +275,33 @@ a {
   color: inherit;
   font: inherit;
   font-size: 1.05rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.buyfit-diagram-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.buyfit-diagram-item {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+}
+
+.buyfit-diagram-caption {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-muted);
 }
 
 .buyfit-details {
   border: 1px solid var(--rule-strong);
   border-radius: 2px;
   padding: 0.75rem;
+  grid-column: 1 / -1;
 }
 
 .buyfit-details summary {
@@ -306,8 +330,10 @@ a {
 
 .buyfit-analysis {
   display: grid;
-  gap: 0;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
   border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
 }
 
 /* ---- bikes section -------------------------------------------------- */
@@ -362,6 +388,15 @@ a {
 
 .buyfit-output {
   display: grid;
+  gap: 0.4rem;
+  padding: 0;
+}
+
+.buyfit-analysis .buyfit-output {
+  /* Card layout in analysis grid */
+}
+
+.buyfit-window-cards .buyfit-output {
   grid-template-columns: 1fr auto;
   gap: 0.2rem 1rem;
   padding: 0.9rem 0;
@@ -372,7 +407,7 @@ a {
   font-weight: 600;
 }
 
-.buyfit-value {
+.buyfit-window-cards .buyfit-value {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
@@ -380,12 +415,11 @@ a {
   white-space: nowrap;
 }
 
-.buyfit-output p {
+.buyfit-window-cards .buyfit-output p {
   grid-column: 1 / -1;
 }
 
 .badge {
-  grid-column: 1 / -1;
   justify-self: start;
   border-bottom: 1px dotted var(--rule-strong);
   color: var(--ink-muted);
@@ -539,6 +573,13 @@ a {
 
 /* ---- narrow screens ------------------------------------------------ */
 
+@media (max-width: 1024px) {
+  /* Analysis cards: 4 columns -> 2 columns */
+  .buyfit-analysis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
   /* Inputs stack vertically, one column */
   .buyfit-input-row {
@@ -551,23 +592,24 @@ a {
     gap: 1.5rem;
   }
 
-  .buyfit-field {
+  .buyfit-diagram-row {
     grid-template-columns: 1fr;
-    justify-items: start;
-    gap: 0.75rem;
   }
 
-  .buyfit-diagram-container {
-    justify-content: flex-start;
+  .buyfit-diagram-item {
+    justify-items: start;
+  }
+
+  /* Analysis cards: 2 columns -> 1 column */
+  .buyfit-analysis {
+    grid-template-columns: 1fr;
   }
 
   /* A measurement and its value stop competing for one line. */
-  .buyfit-output,
   .buyfit-result {
     grid-template-columns: 1fr;
   }
 
-  .buyfit-value,
   .buyfit-result-size {
     grid-column: 1;
     grid-row: auto;
