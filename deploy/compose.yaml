@@ -49,6 +49,10 @@ services:
     environment:
       BIKEDB_API_URL: http://bikedb:8090
       BIKEDB_INTERNAL_TOKEN: ${BIKEDB_INTERNAL_TOKEN:?set in .env}
+      # Hash from: htpasswd -nbBC 10 "" 'password' | tr -d ':\n'
+      # In .env the value is taken verbatim; do not escape the $ signs.
+      ADMIN_USER: ${ADMIN_USER:?set in .env}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?set in .env}
     ports:
       - "8082:8082"
     depends_on:
