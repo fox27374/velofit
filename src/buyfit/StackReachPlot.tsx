@@ -15,15 +15,32 @@ const H = 340
 const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 
 // Labels sit right of their point, nudged up or down when two points are
-// close enough to collide. The nudges widen and then run out: with more
-// neighbours than slots, the label overlaps rather than searching forever.
-const LABEL_OFFSETS = [3, -23, 29, -49, 55]
+// close enough to collide, and are placed loneliest point first: the bike off
+// on its own is what the plot is for, so it gets first pick of the space. A
+// point with no free slot, or whose name is already shown close by, goes
+// unlabelled -- its name stays in the hover title and in the list below.
+const LABEL_OFFSETS = [3, -23, 29]
 
-export function labelOffset(placed: { x: number; y: number }[], cx: number, cy: number) {
-  const free = LABEL_OFFSETS.find(
-    (dy) => !placed.some((p) => Math.abs(p.x - cx) < 90 && Math.abs(p.y - (cy + dy)) < 13)
+const labelText = (b: BikeSize) => `${b.model.split(' ')[0]} ${b.size}`
+
+export function placeLabels(points: { x: number; y: number; text: string }[]): (number | null)[] {
+  const nearest = points.map((p, i) =>
+    Math.min(Infinity, ...points.filter((_, j) => j !== i).map((q) => Math.hypot(p.x - q.x, p.y - q.y)))
   )
-  return free ?? LABEL_OFFSETS[0]
+  const order = points.map((_, i) => i).sort((i, j) => nearest[j] - nearest[i])
+  const placed: { x: number; y: number; text: string }[] = []
+  const dys: (number | null)[] = points.map(() => null)
+  for (const i of order) {
+    const { x, y, text } = points[i]
+    if (placed.some((p) => p.text === text && Math.abs(p.x - x) < 90 && Math.abs(p.y - y) < 40)) continue
+    const dy = LABEL_OFFSETS.find(
+      (dy) => !placed.some((p) => Math.abs(p.x - x) < 90 && Math.abs(p.y - (y + dy)) < 13)
+    )
+    if (dy === undefined) continue
+    placed.push({ x, y: y + dy, text })
+    dys[i] = dy
+  }
+  return dys
 }
 
 export function StackReachPlot({
@@ -52,8 +69,10 @@ export function StackReachPlot({
     H - PAD.bottom - ((stack - y0) / (y1 - y0)) * (H - PAD.top - PAD.bottom)
 
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
+  const labelDys = placeLabels(
+    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(b) }))
+  )
 
-  const placed: { x: number; y: number }[] = []
 
   return (
     <svg
@@ -113,11 +132,10 @@ export function StackReachPlot({
         your window
       </text>
 
-      {bikes.map((bike) => {
+      {bikes.map((bike, i) => {
         const cx = px(bike.reach)
         const cy = py(bike.stack)
-        const dy = labelOffset(placed, cx, cy)
-        placed.push({ x: cx, y: cy + dy })
+        const dy = labelDys[i]
         return (
           <g key={`${bike.brand}-${bike.model}-${bike.size}`}>
             <title>
@@ -131,7 +149,7 @@ export function StackReachPlot({
               r="6"
               fill={`var(--series-${isRacy(bike) ? 'racy' : 'upright'})`}
             />
-            {dy !== 3 && (
+            {dy !== null && dy !== 3 && (
               <line
                 class="plot-leader"
                 x1={cx + 6}
@@ -140,9 +158,11 @@ export function StackReachPlot({
                 y2={cy + dy - 3}
               />
             )}
-            <text class="plot-point-label" x={cx + 11} y={cy + dy}>
-              {bike.model.split(' ')[0]} {bike.size}
-            </text>
+            {dy !== null && (
+              <text class="plot-point-label" x={cx + 11} y={cy + dy}>
+                {labelText(bike)}
+              </text>
+            )}
           </g>
         )
       })}
