@@ -39,6 +39,11 @@ services:
     environment:
       BIKEDB_API_URL: http://bikedb:8090
       BIKEDB_INTERNAL_TOKEN: ${BIKEDB_INTERNAL_TOKEN:?set in .env}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8091/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
       bikedb:
         condition: service_healthy
