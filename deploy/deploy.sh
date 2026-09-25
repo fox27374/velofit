@@ -35,7 +35,9 @@ cd "$VELOFIT_REPO"
 podman build --platform linux/amd64 -f deploy/Containerfile -t ghcr.io/fox27374/velofit:$TAG -t ghcr.io/fox27374/velofit:latest .
 
 cd "$BIKEDB_REPO"
-podman build --platform linux/amd64 -f Dockerfile -t ghcr.io/fox27374/bikedb:$TAG -t ghcr.io/fox27374/bikedb:latest .
+for svc in api scraper web; do
+  podman build --platform linux/amd64 -f Dockerfile.$svc -t ghcr.io/fox27374/bikedb-$svc:$TAG -t ghcr.io/fox27374/bikedb-$svc:latest .
+done
 
 # Login and push images
 echo "Pushing images to ghcr.io..."
@@ -43,8 +45,10 @@ gh auth token | podman login ghcr.io -u fox27374 --password-stdin
 
 podman push ghcr.io/fox27374/velofit:$TAG
 podman push ghcr.io/fox27374/velofit:latest
-podman push ghcr.io/fox27374/bikedb:$TAG
-podman push ghcr.io/fox27374/bikedb:latest
+for svc in api scraper web; do
+  podman push ghcr.io/fox27374/bikedb-$svc:$TAG
+  podman push ghcr.io/fox27374/bikedb-$svc:latest
+done
 
 # Copy compose and systemd unit to host
 echo "Copying config to host..."
@@ -64,6 +68,7 @@ ssh "$HOST" "
   else
     sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' .env
   fi
+  grep -q '^BIKEDB_INTERNAL_TOKEN=' .env || echo \"BIKEDB_INTERNAL_TOKEN=\$(openssl rand -hex 32)\" >> .env
 "
 
 # Install systemd user unit
