@@ -14,36 +14,53 @@ const W = 520
 const H = 340
 const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 
-// Labels sit right of their point, nudged up or down when two points are
-// close enough to collide, and are placed loneliest point first: the bike off
-// on its own is what the plot is for, so it gets first pick of the space. A
-// point with no free slot, or whose name is already shown close by, goes
-// unlabelled -- its name stays in the hover title and in the list below.
+// Labels sit beside their point, nudged up or down when two labels would
+// collide, and are placed loneliest point first: the bike off on its own is
+// what the plot is for, so it gets first pick of the space. A label that
+// would run past the right edge flips to the left of its point. A point with
+// no free slot, or whose name is already shown close by, goes unlabelled --
+// its name stays in the hover title and in the list below.
 const LABEL_OFFSETS = [3, -23, 29]
+const LABEL_GAP = 11
+// ponytail: width estimated from the 11px label font, not measured; measure
+// with getComputedTextLength if a font change makes labels collide.
+const CHAR_W = 6
 
-const labelText = (b: BikeSize) => {
+export const labelText = (b: { brand: string; model: string }) => {
   const text = `${b.brand} ${b.model}`
   return text.length > 24 ? text.substring(0, 23) + '…' : text
 }
 
-export function placeLabels(points: { x: number; y: number; text: string }[]): (number | null)[] {
+export interface LabelPlacement {
+  dy: number
+  side: 'right' | 'left'
+}
+
+export function placeLabels(
+  points: { x: number; y: number; text: string }[],
+  rightEdge = Infinity
+): (LabelPlacement | null)[] {
   const nearest = points.map((p, i) =>
     Math.min(Infinity, ...points.filter((_, j) => j !== i).map((q) => Math.hypot(p.x - q.x, p.y - q.y)))
   )
   const order = points.map((_, i) => i).sort((i, j) => nearest[j] - nearest[i])
-  const placed: { x: number; y: number; text: string }[] = []
-  const dys: (number | null)[] = points.map(() => null)
+  const boxes: { x0: number; x1: number; y: number; text: string; px: number; py: number }[] = []
+  const out: (LabelPlacement | null)[] = points.map(() => null)
   for (const i of order) {
     const { x, y, text } = points[i]
-    if (placed.some((p) => p.text === text && Math.abs(p.x - x) < 90 && Math.abs(p.y - y) < 40)) continue
+    if (boxes.some((b) => b.text === text && Math.abs(b.px - x) < 90 && Math.abs(b.py - y) < 40)) continue
+    const w = text.length * CHAR_W
+    const side = x + LABEL_GAP + w > rightEdge ? 'left' : 'right'
+    const x0 = side === 'right' ? x + LABEL_GAP : x - LABEL_GAP - w
+    const x1 = x0 + w
     const dy = LABEL_OFFSETS.find(
-      (dy) => !placed.some((p) => Math.abs(p.x - x) < 90 && Math.abs(p.y - (y + dy)) < 13)
+      (dy) => !boxes.some((b) => b.x0 < x1 + 4 && x0 < b.x1 + 4 && Math.abs(b.y - (y + dy)) < 13)
     )
     if (dy === undefined) continue
-    placed.push({ x, y: y + dy, text })
-    dys[i] = dy
+    boxes.push({ x0, x1, y: y + dy, text, px: x, py: y })
+    out[i] = { dy, side }
   }
-  return dys
+  return out
 }
 
 export function StackReachPlot({
@@ -72,8 +89,9 @@ export function StackReachPlot({
     H - PAD.bottom - ((stack - y0) / (y1 - y0)) * (H - PAD.top - PAD.bottom)
 
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
-  const labelDys = placeLabels(
-    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(b) }))
+  const labels = placeLabels(
+    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(b) })),
+    W - 4
   )
 
 
@@ -138,7 +156,8 @@ export function StackReachPlot({
       {bikes.map((bike, i) => {
         const cx = px(bike.reach)
         const cy = py(bike.stack)
-        const dy = labelDys[i]
+        const label = labels[i]
+        const dir = label?.side === 'left' ? -1 : 1
         return (
           <g key={`${bike.brand}-${bike.model}-${bike.size}`}>
             <title>
@@ -152,17 +171,22 @@ export function StackReachPlot({
               r="6"
               fill={`var(--series-${isRacy(bike) ? 'racy' : 'upright'})`}
             />
-            {dy !== null && dy !== 3 && (
+            {label && label.dy !== 3 && (
               <line
                 class="plot-leader"
-                x1={cx + 6}
+                x1={cx + 6 * dir}
                 y1={cy}
-                x2={cx + 9}
-                y2={cy + dy - 3}
+                x2={cx + 9 * dir}
+                y2={cy + label.dy - 3}
               />
             )}
-            {dy !== null && (
-              <text class="plot-point-label" x={cx + 11} y={cy + dy}>
+            {label && (
+              <text
+                class="plot-point-label"
+                x={cx + 11 * dir}
+                y={cy + label.dy}
+                text-anchor={dir < 0 ? 'end' : 'start'}
+              >
                 {labelText(bike)}
               </text>
             )}
