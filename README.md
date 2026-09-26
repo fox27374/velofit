@@ -70,32 +70,51 @@ USB: `adb reverse tcp:5173 tcp:5173` and open `http://localhost:5173`.
 
 ## Deployment
 
-Three containers run on the host `ataltpr06.lnxnet.org`:
-- **velofit** (Caddy, port 8081): Serves the SPA and proxies `/api` → bikedb.
-- **bikedb** (Go, port 8080): REST API and web GUI for bike geometry. Schema migrates on startup.
-- **postgres** (internal network): Database for bikedb.
+Five containers run rootless as the user `claude` on `ataltpr06.lnxnet.org`
+(10.140.60.248, reachable on the LAN), from `~/velofit/compose.yaml`:
 
-Images are pushed to `ghcr.io/fox27374/` and must be **public** for the host to
-pull them anonymously. GitHub has no API for that: a new package is created
-private, and visibility is a one-time change per package under
-*Package settings → Change visibility* on github.com. The systemd user unit at `~/.config/systemd/user/velofit.service`
-manages the podman-compose stack. Geometry data now comes from bikedb instead of a bundled JSON file.
+| Container | Image | Port | |
+|---|---|---|---|
+| velofit | `velofit` (Caddy) | 8081 | The app; proxies `/api/*` to `bikedb:8080` |
+| bikedb | `bikedb-api` | 8080 | Read-only geometry API. Only service with `DATABASE_URL`. Its write listener `:8090` is never published |
+| bikedb-scraper | `bikedb-scraper` | — | Scrape worker; health on `:8091`, unpublished |
+| bikedb-web | `bikedb-web` | 8082 | bikedb admin GUI, basic auth |
+| db | `postgres:16` | — | Volume `velofit_pgdata` |
 
-Everything runs rootless as the host user `claude`, so no step needs root. The
-unit is a *user* unit; `sudo loginctl enable-linger claude` is what keeps the
-containers alive after logout and brings them back after a reboot.
+The API keeps the service name `bikedb` because the Caddyfile baked into the
+velofit image proxies to `bikedb:8080`. `~/velofit/.env` holds
+`POSTGRES_PASSWORD`, `BIKEDB_INTERNAL_TOKEN`, `ADMIN_USER`,
+`ADMIN_PASSWORD_HASH` (bcrypt, pasted verbatim) and the two image tags
+`BIKEDB_TAG` and `VELOFIT_TAG`; compose refuses to start without them. The
+user unit `velofit.service` runs `podman-compose up -d` at boot, and
+`loginctl enable-linger claude` keeps it alive without a login.
 
-Run [`deploy/deploy.sh`](deploy/deploy.sh) to build and deploy both images, copy config to the host, and run health checks.
-It talks to the host through the ssh alias `tpr06` (override with `VELOFIT_HOST`).
-State lives at `~/velofit/` on the host: `.env` (with `POSTGRES_PASSWORD`), `compose.yaml`, and the `pgdata` volume.
-
-The host is reachable on port 22 only, so to open the app from outside that
-network, tunnel it:
+**Updating.** The `ghcr.io/fox27374/*` packages are private and the host has
+no registry login, so images travel over ssh, and podman-compose 1.0.6 is not
+used for updates: it ignores `--no-deps` and restarts db with whatever it
+recreates. Instead:
 
 ```sh
-ssh -L 8081:localhost:8081 -L 8080:localhost:8080 tpr06
-open http://localhost:8081
+# on this Mac, per image (bikedb: Dockerfile.api / .scraper / .web from the bikedb repo root)
+podman build --platform linux/amd64 -f deploy/Containerfile -t ghcr.io/fox27374/velofit:$TAG .
+podman save ghcr.io/fox27374/velofit:$TAG | gzip -1 | ssh tpr06 'gunzip | podman load'
+
+# on the host: dump first, set the tags in .env, then swap the app containers
+podman exec velofit_db_1 pg_dump -U bikedb -d bikedb > ~/velofit/backups/bikedb-$(date +%Y%m%d-%H%M%S).sql
+bash ~/velofit/recreate.sh <bikedb-tag> <velofit-tag>
 ```
+
+[`deploy/recreate.sh`](deploy/recreate.sh) (copy it to `~/velofit/`) removes
+velofit, web, scraper and the API in dependency order and starts them again
+on the new images from their own `podman inspect` config, restating the
+healthchecks; db keeps running. To update velofit alone, `podman run
+--replace` its container with the same labels, network alias, port and
+`--requires`; nothing depends on it. If db ever sticks in "Stopping" with no
+process behind it, `podman rm -f --depend velofit_db_1` (the volume survives)
+and then, as a separate step, `systemctl --user restart velofit`.
+
+[`deploy/deploy.sh`](deploy/deploy.sh) predates all of this and assumes
+public images; see `PROGRESS.md` next step 9.
 
 ## Accuracy, honestly
 

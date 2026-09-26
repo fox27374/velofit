@@ -4,6 +4,66 @@ Bike-fitting MVP. Analyzes video of a rider on a stationary trainer, computes
 joint angles + KOPS/saddle-height, compares against target ranges. No
 adjustment recommendations, no accounts/history/cloud — see non-goals below.
 
+## bikedb split, BuyFit one-page redesign, data cleanup, 2026-09-25/26
+
+Everything below is deployed on tpr06 and pushed. Live tags: bikedb
+`433c1c1` (three images), velofit `4e20afc`.
+
+**bikedb became three services.** One binary became five Go modules
+(`shared`, `apiclient`, `api`, `scraper`, `web`) and three containers. Only
+`api` holds `DATABASE_URL`; the scraper and the GUI write through its internal
+listener (`:8090`, bearer token, never published), so the write checks cannot
+be bypassed. The GUI moved from `:8080/search` to its own port `:8082` behind
+basic auth (`ADMIN_USER` + bcrypt `ADMIN_PASSWORD_HASH`). `make smoke` runs the
+whole stack and asserts the seam. Design, steps and the deploy record are in
+the bikedb repo at `docs/service-split.md`. bikedb `main` now carries the full
+history; the side branches are deleted.
+
+**BuyFit is one live page.** No Calculate button: the three measurements sit
+side by side at the top and everything below updates as they are typed. Then
+an analysis row (leg proportion, saddle height, bar width, crank length),
+then the headline size, a brand filter, the stack/reach chart, the window and
+frame-geometry cards, and the racier/more-upright list. The brand filter
+narrows only the chart and the list; the window, headline and split always
+use every match. The page is 64rem wide. The Manual Check tab is removed
+(next step 7). Chart labels are brand + model without the size, placed by
+their real width, never over another point, one per bike.
+
+**Calculate froze the page (fixed).** The chart's label placer cycled through
+the same offsets forever once more than a handful of points crowded together,
+which the database had grown past. Regression test in
+`src/buyfit/StackReachPlot.test.ts`.
+
+**Bike data now means frames, not builds.** Enforced in bikedb's API write
+gate, so every way in obeys it:
+
+- framesets are refused ("Frameset", "Rahmenset", "Frame kit", or a name
+  ending in "Frame"/"Rahmen");
+- a brand repeated in the model is stripped, and a trailing "(2026)" moves
+  into the year;
+- builds of one frame merge: same brand, same first model word (a leading
+  "S-Works" tier is ignored), identical stack and reach in at least three
+  shared sizes. The bike is renamed to the common name start ("TCR Advanced"),
+  and a bar/crank/stem value survives only when every build agrees. Giant's
+  Propel and TCR share geometry but not a name, so they stay two bikes. By
+  choice, Specialized's S-Works Tarmac SL9 LTD merges with the Tarmac SL8
+  (same geometry in all seven sizes) as "Tarmac".
+
+The live database was dumped, wiped and re-scraped through these rules, then
+given complete-bike seed pages where a brand had too few road bikes (BMC
+Roadmachine, Canyon Endurace/Aeroad/Ultimate, Specialized Tarmac SL8, Trek
+Domane). Canyon's Endurace seed carries a category override to `road`,
+because Canyon's URL path files it as `endurance`, which BuyFit never asks
+for. Result: 18 road frames across five brands (was 27 rows full of
+framesets and duplicate builds). BuyFit hides missing values instead of
+printing "seat tube 0 mm" or a year of 0.
+
+**Deploys no longer use podman-compose for updates.** podman-compose 1.0.6 on
+the host ignores `--no-deps` and restarts db with whatever it recreates, and
+once left db in a stale "Stopping" state that took the site down for ~7
+minutes on 2026-09-25. `deploy/recreate.sh` swaps the four app containers
+from their own `podman inspect` config while db keeps running; see the README.
+
 ## API-backed BuyFit and tpr06 deployment, 2026-09-22
 
 BuyFit now fetches bike geometry from the bikedb REST API at runtime instead of
@@ -374,16 +434,12 @@ numbers. Bike type is *selected by the user*, never detected from the image.
 
 ## Next steps
 
-1. **Build BuyFit** to `doc/buyfit-design.md`, via the `coder` agent: the
-   three-field form with SVG measuring instructions, the sizing math and the
-   matcher in plain TypeScript under Vitest, the results screen with per-line
-   Sourced / Weak / No source badges, and the manual stack/reach check.
+1. ~~**Build BuyFit**~~ — done, and redesigned as one live page on 2026-09-26.
 2. **Hand-check Holliday & Swart's regression tables** against the PDF before
    shipping anything that quotes them. They were machine-read, and they carry
    both the one positive result and both null results.
-3. **Type the geometry database**: ~15 road models, per size stack, reach,
-   effective top tube, seat tube and the maker's own rider-height band, from
-   each maker's published chart. No scraping.
+3. ~~**Type the geometry database**~~ — superseded: bikedb scrapes it, 18 road
+   frames across five brands as of 2026-09-26.
 4. **Run the spike on the Redmi** with a 20-30 s real pedaling video (empty
    bike ~2 s, then steady pedaling, left side to camera, good light, 60 fps if
    offered). Pass criteria in `doc/web-redesign.md`: >= 99% of frames
@@ -396,7 +452,7 @@ numbers. Bike type is *selected by the user*, never detected from the image.
 6. **Read geometry out of JPEGs** (work lives in the `bikedb` repo, optional).
    Cannondale publishes its whole geometry table as an image, and Bianchi's
    column legend letters are defined only inside one, so both are blocked on
-   reading pixels. The seam is already there: `internal/web/review.go` sends a
+   reading pixels. The seam is already there: `web/internal/web/review.go` sends a
    PDF through `pdfimport.ExtractGrid` to a `[][]string` grid, then
    `NormalizeToVertical` and the human-confirmed review page. An image reader
    replaces that first step only, and the review page is what makes an
@@ -414,3 +470,18 @@ numbers. Bike type is *selected by the user*, never detected from the image.
    (ManualCheckTab in src/buyfit/BuyFit.tsx, checkManualFit/compareToBand in
    src/buyfit/sizing.ts); redesign it for the one-page layout before bringing it
    back.
+8. **Data gaps left after the 2026-09-26 cleanup** (bikedb):
+   - BMC "Speedmachine 01" is a triathlon bike filed as road, so it shows in
+     BuyFit. Category detection needs to know tri/TT, or the seed that finds
+     it needs a category override.
+   - Canyon frame kits named "… Frame and Bars" pass the frameset rule and
+     merge into their family; harmless for fit, wrong as a source.
+   - Stray 172.56 mm crank lengths on random sizes look like an extraction
+     error (probably a unit conversion).
+9. **deploy/deploy.sh is stale**: it pushes to ghcr and pulls on the host,
+   but the packages are private and the host has no ghcr login, and it still
+   writes `IMAGE_TAG`. Real deploys ship images over ssh and run
+   `deploy/recreate.sh` (README). Either make deploy.sh do that or delete it.
+10. **The stack/reach chart is capped at 34rem** while the page is 64rem.
+    Stretching the SVG only scales its text; real extra room needs the plot's
+    internal width to follow the container.
