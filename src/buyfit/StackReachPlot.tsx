@@ -18,7 +18,7 @@ const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 // collide, and are placed loneliest point first: the bike off on its own is
 // what the plot is for, so it gets first pick of the space. A label that
 // would run past the right edge flips to the left of its point. A point with
-// no free slot, or whose name is already shown close by, goes unlabelled --
+// no free slot, or whose name is already shown, goes unlabelled --
 // its name stays in the hover title and in the list below. Labels also keep
 // clear of other points, so no circle hides a name.
 const LABEL_OFFSETS = [3, -23, 29]
@@ -45,11 +45,13 @@ export function placeLabels(
     Math.min(Infinity, ...points.filter((_, j) => j !== i).map((q) => Math.hypot(p.x - q.x, p.y - q.y)))
   )
   const order = points.map((_, i) => i).sort((i, j) => nearest[j] - nearest[i])
-  const boxes: { x0: number; x1: number; y: number; text: string; px: number; py: number }[] = []
+  const boxes: { x0: number; x1: number; y: number; text: string }[] = []
   const out: (LabelPlacement | null)[] = points.map(() => null)
   for (const i of order) {
     const { x, y, text } = points[i]
-    if (boxes.some((b) => b.text === text && Math.abs(b.px - x) < 90 && Math.abs(b.py - y) < 40)) continue
+    // Labels carry no size, so a second size of the same bike would repeat
+    // the name word for word; one label per bike is enough.
+    if (boxes.some((b) => b.text === text)) continue
     const w = text.length * CHAR_W
     const side = x + LABEL_GAP + w > rightEdge ? 'left' : 'right'
     const x0 = side === 'right' ? x + LABEL_GAP : x - LABEL_GAP - w
@@ -64,7 +66,7 @@ export function placeLabels(
         )
     )
     if (dy === undefined) continue
-    boxes.push({ x0, x1, y: y + dy, text, px: x, py: y })
+    boxes.push({ x0, x1, y: y + dy, text })
     out[i] = { dy, side }
   }
   return out

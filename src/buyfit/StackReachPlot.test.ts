@@ -75,8 +75,8 @@ describe('placeLabels', () => {
     expect(out[out.length - 1]).not.toBeNull()
   })
 
-  it('shows a repeated name once per neighbourhood', () => {
-    const out = placeLabels([pt(100, 100, 'Trek Madone'), pt(104, 130, 'Trek Madone')])
+  it('shows a repeated name once, even for sizes far apart', () => {
+    const out = placeLabels([pt(100, 100, 'Trek Madone'), pt(300, 20, 'Trek Madone')])
     expect(out.filter((l) => l !== null)).toHaveLength(1)
   })
 })
