@@ -199,6 +199,16 @@ a {
   gap: 1.5rem;
 }
 
+/* BuyFit needs room for four analysis cards in a row; the other screens keep
+   the narrower column. Running text stays at a readable measure. */
+#app:has(.buyfit-page) {
+  max-width: 64rem;
+}
+
+.buyfit-page p {
+  max-width: 42rem;
+}
+
 /* Grid items default to min-width: auto, so one wide child (the chart, a
    long unbroken name) would widen the column past a phone's screen. */
 .buyfit-page > *,

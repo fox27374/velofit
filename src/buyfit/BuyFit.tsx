@@ -158,17 +158,30 @@ function LegProportionFlag({ inseam, height }: { inseam: number; height: number 
 
 
 /** One bike in the shortlist, with the stock parts where the maker states them. */
+// The loader reads a missing measurement as 0, and no frame has a 0 mm tube,
+// so 0 means "the maker did not say" and is left out rather than shown.
+function measurementLine(bike: BikeSize) {
+  const parts = [
+    ['Stack', bike.stack],
+    ['reach', bike.reach],
+    ['top tube', bike.ett],
+    ['seat tube', bike.seatTube],
+  ] as const
+  return parts
+    .filter(([, mm]) => mm > 0)
+    .map(([name, mm]) => `${name} ${mm} mm`)
+    .join(', ')
+}
+
 function BikeRow({ bike }: { bike: BikeSize }) {
   return (
     <div className="buyfit-result">
       <strong>
-        {bike.brand} {bike.model} <span className="buyfit-result-size">{bike.year}</span>
+        {bike.brand} {bike.model}
+        {bike.year > 0 && <span className="buyfit-result-size"> {bike.year}</span>}
       </strong>
       <span className="buyfit-result-size">size {bike.size}</span>
-      <span className="buyfit-delta">
-        Stack {bike.stack} mm, reach {bike.reach} mm, top tube {bike.ett} mm, seat tube{' '}
-        {bike.seatTube} mm
-      </span>
+      <span className="buyfit-delta">{measurementLine(bike)}</span>
       <span className="buyfit-delta">
         {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm stack,{' '}
         {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm reach from the middle of
