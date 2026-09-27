@@ -122,17 +122,6 @@ millimetre-per-point adjustment, and the 45–48% band it is judged against is
 itself forum aggregate rather than study. A flag the rider weighs on a test ride
 is defensible; a silent nudge to the window would not be.
 
-**On the stack/reach plot the ratio shows as a direction, never an amount.**
-Agreed on 2026-09-26. Outside the 45–48% band, a fixed-length arrow runs from
-the window's centre towards the corner that proportion favours: long legs to
-most stack and least reach, short legs to least stack and most reach. Its
-words ("long legs: lean this way") sit in the plot legend, since the window's
-centre is where the bikes crowd. The window, the matches and their order are
-untouched, and the arrow does not grow with the ratio — a longer arrow for 52%
-than for 48.5% would read as a millimetre shift that no source gives. Moving
-the window and re-ranking the shortlist by leg proportion were both put and
-rejected for that reason.
-
 **Setback and stem were dropped from that line during implementation**, and
 this overrules the agreed list. Makers do not publish saddle setback or stem
 length per size in their geometry charts — Trek's Madone chart, the first real

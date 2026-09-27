@@ -150,8 +150,7 @@ function LegProportionFlag({ inseam, height }: { inseam: number; height: number 
       <p className="buyfit-note">
         {note} This changes none of the numbers above: no source gives a
         millimetre adjustment per point of ratio, so it is yours to weigh on a
-        test ride.{ratio.proportion !== 'typical' &&
-          ' The arrow on the stack/reach plot shows which way to lean inside your window — a direction, not an amount.'}
+        test ride.
       </p>
     </div>
   )
@@ -282,7 +281,6 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
   // Calculate outputs only if all inputs are valid
   const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference) : null
-  const legProportion = inseamRatio(inseamMm, heightMm)?.proportion ?? null
   const fitWindow = allValid && bikes ? getStackReachWindow(heightMm, bikes) : null
   const geometry = allValid && bikes ? getFrameGeometryRange(heightMm, bikes) : null
   const matches = allValid && fitWindow && bikes
@@ -551,21 +549,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             {/* Chart and window info */}
             {fitWindow && matches.length > 0 && selectedBrands && selectedBrands.size > 0 && (
               <>
-                <StackReachPlot
-                  bikes={filteredMatches}
-                  fitWindow={fitWindow}
-                  median={filteredSplit.median}
-                  proportion={legProportion}
-                />
+                <StackReachPlot bikes={filteredMatches} fitWindow={fitWindow} median={filteredSplit.median} />
                 <div className="plot-legend">
                   <b className="is-racy">racier half</b>
                   <b className="is-upright">more upright half</b>
-                  {(legProportion === 'long' || legProportion === 'short') && (
-                    <span className="plot-legend-lean">
-                      {legProportion === 'long' ? '↖' : '↘'} {legProportion} legs: lean
-                      this way (direction only, No source)
-                    </span>
-                  )}
                   <span>window: stack {fitWindow.stackMin}–{fitWindow.stackMax},
                     reach {fitWindow.reachMin}–{fitWindow.reachMax} mm</span>
                 </div>

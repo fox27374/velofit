@@ -522,26 +522,6 @@ a {
   stroke-linejoin: round;
 }
 
-/* The leg-proportion lean: ink, not dimension red, because it is advice
-   about the window rather than part of its measurement. */
-.plot-lean line {
-  stroke: var(--ink);
-  stroke-width: 1.5;
-}
-
-.plot-lean polygon {
-  fill: var(--ink);
-}
-
-/* Halo, so the arrow reads where it crosses a point. */
-.plot-lean {
-  filter: drop-shadow(0 0 1.5px var(--paper));
-}
-
-.plot-legend .plot-legend-lean {
-  color: var(--ink);
-}
-
 .plot-legend {
   display: flex;
   flex-wrap: wrap;
