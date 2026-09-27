@@ -21,118 +21,151 @@ function BodySketch({ inseamCm, heightCm, shoulderWidthCm }: Omit<ResultsHeaderP
 
   return (
     <div className="results-header-sketch">
-      <svg viewBox="0 0 140 280" className="body-sketch" aria-label="Body measurements">
-        {/* Head */}
-        <circle cx="70" cy="20" r="12" stroke="var(--ink-muted)" fill="none" strokeWidth="1.5" />
+      <div className="body-sketch-container">
+        <svg viewBox="0 0 200 320" className="body-sketch" aria-label="Body measurements">
+          {/* Body outline (silhouette) - front view */}
+          {/* Head */}
+          <path
+            d="M 100 10 C 115 10, 125 20, 125 35 C 125 50, 115 60, 100 60 C 85 60, 75 50, 75 35 C 75 20, 85 10, 100 10 Z"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
 
-        {/* Neck */}
-        <line x1="70" y1="32" x2="70" y2="45" stroke="var(--ink-muted)" strokeWidth="1.5" />
+          {/* Neck and shoulders to arms */}
+          <path
+            d="M 85 60 L 80 70 Q 75 80, 65 90 L 55 120 Q 50 130, 48 145"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M 115 60 L 120 70 Q 125 80, 135 90 L 145 120 Q 150 130, 152 145"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
 
-        {/* Shoulders and arms (hanging at sides) */}
-        <line x1="40" y1="50" x2="100" y2="50" stroke="var(--ink-muted)" strokeWidth="1.5" />
-        <line x1="40" y1="50" x2="30" y2="95" stroke="var(--ink-muted)" strokeWidth="1.5" />
-        <line x1="100" y1="50" x2="110" y2="95" stroke="var(--ink-muted)" strokeWidth="1.5" />
+          {/* Torso left */}
+          <path
+            d="M 80 70 Q 70 85, 68 110 L 68 145"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
 
-        {/* Torso */}
-        <line x1="70" y1="45" x2="70" y2="130" stroke="var(--ink-muted)" strokeWidth="1.5" />
-        <line x1="40" y1="50" x2="50" y2="130" stroke="var(--ink-muted)" strokeWidth="1.5" />
-        <line x1="100" y1="50" x2="90" y2="130" stroke="var(--ink-muted)" strokeWidth="1.5" />
+          {/* Torso right */}
+          <path
+            d="M 120 70 Q 130 85, 132 110 L 132 145"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
 
-        {/* Legs (slightly apart) */}
-        <line x1="60" y1="130" x2="55" y2="270" stroke="var(--ink-muted)" strokeWidth="1.5" />
-        <line x1="80" y1="130" x2="85" y2="270" stroke="var(--ink-muted)" strokeWidth="1.5" />
+          {/* Hips and legs */}
+          {/* Left leg */}
+          <path
+            d="M 68 145 Q 65 160, 62 190 L 60 310"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M 68 145 Q 72 160, 75 190 L 78 310"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
 
-        {/* Height line (full figure height) on the right */}
-        <line
-          x1="125"
-          y1="8"
-          x2="125"
-          y2="270"
-          stroke="var(--dim)"
-          strokeWidth="2.5"
-        />
-        <polyline
-          points="121,12 125,8 129,12"
-          stroke="var(--dim)"
-          fill="none"
-          strokeWidth="2.5"
-        />
-        <polyline
-          points="121,266 125,270 129,266"
-          stroke="var(--dim)"
-          fill="none"
-          strokeWidth="2.5"
-        />
+          {/* Right leg */}
+          <path
+            d="M 132 145 Q 135 160, 138 190 L 140 310"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M 132 145 Q 128 160, 125 190 L 122 310"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
 
-        {/* Shoulder width line */}
-        <line
-          x1="40"
-          y1="50"
-          x2="100"
-          y2="50"
-          stroke="var(--dim)"
-          strokeWidth="2.5"
-        />
+          {/* Feet */}
+          <path d="M 60 310 L 65 320" stroke="currentColor" fill="none" strokeWidth="1.5" />
+          <path d="M 78 310 L 75 320" stroke="currentColor" fill="none" strokeWidth="1.5" />
+          <path d="M 140 310 L 135 320" stroke="currentColor" fill="none" strokeWidth="1.5" />
+          <path d="M 122 310 L 125 320" stroke="currentColor" fill="none" strokeWidth="1.5" />
 
-        {/* Inseam line (crotch to floor, centered between legs) */}
-        <line
-          x1="15"
-          y1="130"
-          x2="15"
-          y2="270"
-          stroke="var(--dim)"
-          strokeWidth="2.5"
-        />
-        <polyline
-          points="11,134 15,130 19,134"
-          stroke="var(--dim)"
-          fill="none"
-          strokeWidth="2.5"
-        />
-        <polyline
-          points="11,266 15,270 19,266"
-          stroke="var(--dim)"
-          fill="none"
-          strokeWidth="2.5"
-        />
+          {/* Height line (full figure height) on the right */}
+          <line
+            x1="175"
+            y1="8"
+            x2="175"
+            y2="315"
+            stroke="var(--dim)"
+            strokeWidth="2.5"
+          />
+          <polyline
+            points="171,12 175,8 179,12"
+            stroke="var(--dim)"
+            fill="none"
+            strokeWidth="2.5"
+          />
+          <polyline
+            points="171,311 175,315 179,311"
+            stroke="var(--dim)"
+            fill="none"
+            strokeWidth="2.5"
+          />
 
-        {/* Height label */}
-        <text
-          x="135"
-          y="142"
-          fontSize="11"
-          fontWeight="600"
-          fill="var(--ink)"
-          textAnchor="start"
-        >
-          {formatValue(heightCm)} cm
-        </text>
+          {/* Shoulder width line */}
+          <line
+            x1="75"
+            y1="68"
+            x2="125"
+            y2="68"
+            stroke="var(--dim)"
+            strokeWidth="2.5"
+          />
 
-        {/* Shoulder width label */}
-        <text
-          x="70"
-          y="42"
-          fontSize="11"
-          fontWeight="600"
-          fill="var(--ink)"
-          textAnchor="middle"
-          dominantBaseline="hanging"
-        >
-          {formatValue(shoulderWidthCm)} cm
-        </text>
+          {/* Inseam line */}
+          <line
+            x1="30"
+            y1="145"
+            x2="30"
+            y2="315"
+            stroke="var(--dim)"
+            strokeWidth="2.5"
+          />
+          <polyline
+            points="26,149 30,145 34,149"
+            stroke="var(--dim)"
+            fill="none"
+            strokeWidth="2.5"
+          />
+          <polyline
+            points="26,311 30,315 34,311"
+            stroke="var(--dim)"
+            fill="none"
+            strokeWidth="2.5"
+          />
+        </svg>
 
-        {/* Inseam label */}
-        <text
-          x="5"
-          y="200"
-          fontSize="11"
-          fontWeight="600"
-          fill="var(--ink)"
-          textAnchor="end"
-        >
-          {formatValue(inseamCm)} cm
-        </text>
-      </svg>
+        {/* HTML labels positioned over the SVG */}
+        <div className="body-sketch-label-height">
+          <strong>{formatValue(heightCm)}</strong>
+          <span>cm</span>
+        </div>
+        <div className="body-sketch-label-shoulder">
+          <strong>{formatValue(shoulderWidthCm)}</strong>
+          <span>cm</span>
+        </div>
+        <div className="body-sketch-label-inseam">
+          <strong>{formatValue(inseamCm)}</strong>
+          <span>cm</span>
+        </div>
+      </div>
     </div>
   );
 }

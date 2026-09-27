@@ -415,40 +415,46 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           {/* Analysis cards section */}
           <div className="buyfit-analysis">
             <div className="buyfit-output">
-              <strong>Saddle height</strong>
+              <div className="buyfit-output-header">
+                <strong>Saddle height</strong>
+                <InfoPanel
+                  ariaLabel="About saddle height"
+                  note="BB centre to saddle top. A starting point; expect to adjust by up to 20 mm."
+                  evidence="Sourced"
+                  anchor="21-saddle-height--the-one-that-works-and-how-well"
+                />
+              </div>
               <span className="buyfit-value">
                 {sizing.saddleHeightMin}–{sizing.saddleHeightMax} mm
               </span>
-              <InfoPanel
-                ariaLabel="About saddle height"
-                note="BB centre to saddle top. A starting point; expect to adjust by up to 20 mm."
-                evidence="Sourced"
-                anchor="21-saddle-height--the-one-that-works-and-how-well"
-              />
             </div>
 
             <div className="buyfit-output">
-              <strong>Handlebar width</strong>
+              <div className="buyfit-output-header">
+                <strong>Handlebar width</strong>
+                <InfoPanel
+                  ariaLabel="About handlebar width"
+                  note="Measured centre to centre."
+                  evidence="Weak"
+                  anchor="31-handlebar-width-from-shoulder-width"
+                />
+              </div>
               <span className="buyfit-value">
                 {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm
               </span>
-              <InfoPanel
-                ariaLabel="About handlebar width"
-                note="Measured centre to centre."
-                evidence="Weak"
-                anchor="31-handlebar-width-from-shoulder-width"
-              />
             </div>
 
             <div className="buyfit-output">
-              <strong>Crank length</strong>
+              <div className="buyfit-output-header">
+                <strong>Crank length</strong>
+                <InfoPanel
+                  ariaLabel="About crank length"
+                  note={sizing.crankNote}
+                  evidence="Weak"
+                  anchor="32-crank-length-from-inseam-or-height"
+                />
+              </div>
               <span className="buyfit-value">{sizing.crankLength}</span>
-              <InfoPanel
-                ariaLabel="About crank length"
-                note={sizing.crankNote}
-                evidence="Weak"
-                anchor="32-crank-length-from-inseam-or-height"
-              />
             </div>
           </div>
 

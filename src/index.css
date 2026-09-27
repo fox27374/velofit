@@ -553,18 +553,78 @@ a {
 .results-header-left {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .results-header-sketch {
   display: grid;
   gap: 1rem;
   align-items: center;
+  justify-items: center;
+}
+
+.body-sketch-container {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
 }
 
 .body-sketch {
   width: 100%;
-  max-width: 320px;
   height: auto;
+  display: block;
+}
+
+.body-sketch-label-height,
+.body-sketch-label-shoulder,
+.body-sketch-label-inseam {
+  position: absolute;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  white-space: nowrap;
+}
+
+.body-sketch-label-height {
+  right: -45px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink);
+}
+
+.body-sketch-label-height span {
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.body-sketch-label-shoulder {
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink);
+}
+
+.body-sketch-label-shoulder span {
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.body-sketch-label-inseam {
+  left: -45px;
+  top: 55%;
+  transform: translateY(-50%);
+  color: var(--ink);
+}
+
+.body-sketch-label-inseam span {
+  font-size: 0.65rem;
+  color: var(--ink-muted);
+  font-weight: 400;
 }
 
 .body-sketch-labels {
@@ -602,21 +662,19 @@ a {
 }
 
 .results-header-size-title {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   gap: 0.5rem;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .results-header-size-title h2 {
   margin: 0;
   font-size: 1.3rem;
-  grid-column: 1 / -1;
+  flex: 1;
 }
 
 .results-header-size-title .info-panel-container {
-  grid-column: 2;
-  grid-row: 1;
+  flex-shrink: 0;
 }
 
 .results-header-size h2 {
@@ -652,7 +710,6 @@ a {
   height: 2rem;
   background: var(--rule);
   border-radius: 2px;
-  overflow: hidden;
 }
 
 .gauge-band {
@@ -678,11 +735,13 @@ a {
 
 .gauge-marker-value {
   color: var(--ink);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   position: absolute;
-  top: -1.2rem;
+  top: -1.5rem;
   white-space: nowrap;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .gauge-labels {
