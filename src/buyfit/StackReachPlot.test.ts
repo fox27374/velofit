@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { labelText, placeLabels } from './StackReachPlot'
+import { labelText, leanArrow, leanBox, placeLabels } from './StackReachPlot'
 
 const pt = (x: number, y: number, text = `${x},${y}`) => ({ x, y, text })
 
@@ -78,5 +78,62 @@ describe('placeLabels', () => {
   it('shows a repeated name once, even for sizes far apart', () => {
     const out = placeLabels([pt(100, 100, 'Trek Madone'), pt(300, 20, 'Trek Madone')])
     expect(out.filter((l) => l !== null)).toHaveLength(1)
+  })
+})
+
+describe('leanArrow', () => {
+  const rect = { x: 100, y: 50, width: 120, height: 80 }
+  const length = (a: { x1: number; y1: number; x2: number; y2: number }) =>
+    Math.hypot(a.x2 - a.x1, a.y2 - a.y1)
+
+  it('draws nothing for typical or unknown proportion', () => {
+    expect(leanArrow(rect, 'typical')).toBeNull()
+    expect(leanArrow(rect, null)).toBeNull()
+  })
+
+  it('starts at the window centre', () => {
+    const a = leanArrow(rect, 'long')!
+    expect(a.x1).toBe(160)
+    expect(a.y1).toBe(90)
+  })
+
+  // Pixel y grows downwards, so up-left is towards more stack, less reach.
+  it('points long legs up-left, to more stack and less reach', () => {
+    const a = leanArrow(rect, 'long')!
+    expect(a.x2).toBeLessThan(a.x1)
+    expect(a.y2).toBeLessThan(a.y1)
+  })
+
+  it('points short legs down-right, to less stack and more reach', () => {
+    const a = leanArrow(rect, 'short')!
+    expect(a.x2).toBeGreaterThan(a.x1)
+    expect(a.y2).toBeGreaterThan(a.y1)
+  })
+
+  it('aims at the corner, not a fixed angle', () => {
+    const a = leanArrow(rect, 'long')!
+    expect((a.y2 - a.y1) / (a.x2 - a.x1)).toBeCloseTo(80 / 120)
+  })
+
+  it('has one length whatever the window size', () => {
+    const small = leanArrow({ x: 0, y: 0, width: 10, height: 10 }, 'long')!
+    const big = leanArrow({ x: 0, y: 0, width: 400, height: 300 }, 'short')!
+    expect(length(small)).toBeCloseTo(length(big))
+  })
+
+  it('still has a direction when the window is flat', () => {
+    const a = leanArrow({ x: 0, y: 0, width: 0, height: 0 }, 'long')!
+    expect(a.x2).toBeLessThan(a.x1)
+    expect(a.y2).toBeLessThan(a.y1)
+  })
+})
+
+describe('placeLabels around the lean arrow', () => {
+  it('moves a label off the arrow', () => {
+    const arrow = leanArrow({ x: 90, y: 60, width: 60, height: 40 }, 'short')!
+    const [free] = placeLabels([pt(100, 100, 'Trek Madone')])
+    const [nudged] = placeLabels([pt(100, 100, 'Trek Madone')], Infinity, [leanBox(arrow)])
+    expect(free).toEqual({ dy: 3, side: 'right' })
+    expect(nudged).not.toEqual(free)
   })
 })

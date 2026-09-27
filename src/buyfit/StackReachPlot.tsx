@@ -1,4 +1,5 @@
 import { ratioOf, type BikeSize, type StackReachWindow } from './matcher'
+import type { LegProportion } from './sizing'
 
 /**
  * Candidate bikes on the stack/reach plane, with the search window drawn as a
@@ -37,9 +38,17 @@ export interface LabelPlacement {
   side: 'right' | 'left'
 }
 
+export interface Box {
+  x0: number
+  x1: number
+  y0: number
+  y1: number
+}
+
 export function placeLabels(
   points: { x: number; y: number; text: string }[],
-  rightEdge = Infinity
+  rightEdge = Infinity,
+  avoid: Box[] = []
 ): (LabelPlacement | null)[] {
   const nearest = points.map((p, i) =>
     Math.min(Infinity, ...points.filter((_, j) => j !== i).map((q) => Math.hypot(p.x - q.x, p.y - q.y)))
@@ -57,9 +66,13 @@ export function placeLabels(
     const x0 = side === 'right' ? x + LABEL_GAP : x - LABEL_GAP - w
     const x1 = x0 + w
     // A label's text runs from about 9 px above its baseline to 2 below, and
-    // must clear every other label and every other point's 6 px circle.
+    // must clear every other label, every other point's 6 px circle and
+    // anything else drawn on the plot, such as the lean arrow.
     const dy = LABEL_OFFSETS.find(
       (dy) =>
+        !avoid.some(
+          (a) => a.x0 < x1 + 2 && x0 < a.x1 + 2 && a.y0 < y + dy + 4 && y + dy - 11 < a.y1
+        ) &&
         !boxes.some((b) => b.x0 < x1 + 4 && x0 < b.x1 + 4 && Math.abs(b.y - (y + dy)) < 13) &&
         !points.some(
           (q, j) => j !== i && q.x + 6 > x0 && q.x - 6 < x1 && Math.abs(q.y - (y + dy - 4)) < 12
@@ -72,14 +85,80 @@ export function placeLabels(
   return out
 }
 
+// Fixed on purpose: the arrow says which way, never how far. A length that
+// grew with the ratio would read as a millimetre shift no source gives
+// (doc/frame-sizing-research.md §4.5).
+const LEAN_LENGTH = 40
+const LEAN_HEAD = 7
+
+export interface LeanArrow {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+  /** Arrowhead triangle, as an SVG points string. */
+  head: string
+}
+
+/**
+ * The leg-proportion lean, in plot pixels: from the window's centre towards
+ * the corner that proportion favours. Long legs lean to most stack and least
+ * reach (up-left), short legs to least stack and most reach (down-right).
+ * Typical or unknown proportion draws nothing. The window, the matches and
+ * their order are untouched: this is a direction to weigh on a test ride.
+ *
+ * `rect` is the window in pixels, top-left origin, as the plot draws it.
+ */
+export function leanArrow(
+  rect: { x: number; y: number; width: number; height: number },
+  proportion: LegProportion | null
+): LeanArrow | null {
+  if (proportion !== 'long' && proportion !== 'short') return null
+
+  const cx = rect.x + rect.width / 2
+  const cy = rect.y + rect.height / 2
+  const s = proportion === 'long' ? -1 : 1
+  // Towards the corner; a window flat in either axis falls back to the
+  // diagonal so the direction never collapses.
+  const dx = s * (rect.width || 1)
+  const dy = s * (rect.height || 1)
+  const len = Math.hypot(dx, dy)
+  const ux = dx / len
+  const uy = dy / len
+
+  const x2 = cx + ux * LEAN_LENGTH
+  const y2 = cy + uy * LEAN_LENGTH
+  const bx = x2 - ux * LEAN_HEAD
+  const by = y2 - uy * LEAN_HEAD
+  const hw = LEAN_HEAD / 2
+  const head = [
+    [x2, y2],
+    [bx - uy * hw, by + ux * hw],
+    [bx + uy * hw, by - ux * hw],
+  ]
+    .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+    .join(' ')
+
+  return { x1: cx, y1: cy, x2: bx, y2: by, head }
+}
+
+/** The space the arrow covers, head included, for the labels to keep clear of. */
+export function leanBox(a: LeanArrow): Box {
+  const xs = a.head.split(' ').map((p) => Number(p.split(',')[0])).concat(a.x1)
+  const ys = a.head.split(' ').map((p) => Number(p.split(',')[1])).concat(a.y1)
+  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }
+}
+
 export function StackReachPlot({
   bikes,
   fitWindow,
   median,
+  proportion = null,
 }: {
   bikes: BikeSize[]
   fitWindow: StackReachWindow
   median: number | null
+  proportion?: LegProportion | null
 }) {
   if (bikes.length === 0) return null
 
@@ -98,11 +177,18 @@ export function StackReachPlot({
     H - PAD.bottom - ((stack - y0) / (y1 - y0)) * (H - PAD.top - PAD.bottom)
 
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
+  const win = {
+    x: px(fitWindow.reachMin),
+    y: py(fitWindow.stackMax),
+    width: Math.max(px(fitWindow.reachMax) - px(fitWindow.reachMin), 1),
+    height: Math.max(py(fitWindow.stackMin) - py(fitWindow.stackMax), 1),
+  }
+  const lean = leanArrow(win, proportion)
   const labels = placeLabels(
     bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(b) })),
-    W - 4
+    W - 4,
+    lean ? [leanBox(lean)] : []
   )
-
 
   return (
     <svg
@@ -139,21 +225,8 @@ export function StackReachPlot({
         reach mm
       </text>
 
-      <rect
-        class="plot-dim-fill"
-        x={px(fitWindow.reachMin)}
-        y={py(fitWindow.stackMax)}
-        width={Math.max(px(fitWindow.reachMax) - px(fitWindow.reachMin), 1)}
-        height={Math.max(py(fitWindow.stackMin) - py(fitWindow.stackMax), 1)}
-      />
-      <rect
-        class="plot-dim"
-        fill="none"
-        x={px(fitWindow.reachMin)}
-        y={py(fitWindow.stackMax)}
-        width={Math.max(px(fitWindow.reachMax) - px(fitWindow.reachMin), 1)}
-        height={Math.max(py(fitWindow.stackMin) - py(fitWindow.stackMax), 1)}
-      />
+      <rect class="plot-dim-fill" {...win} />
+      <rect class="plot-dim" fill="none" {...win} />
       <text
         class="plot-dim-text"
         x={px(fitWindow.reachMin)}
@@ -177,6 +250,20 @@ export function StackReachPlot({
           />
         </g>
       ))}
+
+      {/* Over the points, and the names keep clear of it. Its words sit in
+          the legend below, because the window's centre is where the bikes
+          crowd and a label there collided with theirs. */}
+      {lean && (
+        <g class="plot-lean">
+          <title>
+            Your {proportion} legs lean this way inside the window. A direction only:
+            no source gives how far, so it moves no bike in or out.
+          </title>
+          <line x1={lean.x1} y1={lean.y1} x2={lean.x2} y2={lean.y2} />
+          <polygon points={lean.head} />
+        </g>
+      )}
 
       {/* Labels after every point, so no circle is painted over a name. */}
       {bikes.map((bike, i) => {
