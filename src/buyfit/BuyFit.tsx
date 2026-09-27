@@ -294,51 +294,57 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         <div className="buyfit-input-row">
           <label className="buyfit-field">
             <strong>Inseam</strong>
-            <input
-              type="number"
-              step="0.1"
-              value={inseam}
-              onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 84"
-              className="buyfit-input"
-            />
+            <div className="buyfit-input-with-unit">
+              <input
+                type="number"
+                step="0.1"
+                value={inseam}
+                onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
+                placeholder="e.g., 84"
+                className="buyfit-input"
+              />
+              <span className="buyfit-input-unit-suffix">cm</span>
+            </div>
             <p className="buyfit-help">
               Barefoot, crotch-to-floor against a wall. A 1 cm error moves saddle height about 9 mm.
             </p>
-            <span style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>cm</span>
           </label>
 
           <label className="buyfit-field">
             <strong>Height</strong>
-            <input
-              type="number"
-              step="0.1"
-              value={height}
-              onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 178"
-              className="buyfit-input"
-            />
+            <div className="buyfit-input-with-unit">
+              <input
+                type="number"
+                step="0.1"
+                value={height}
+                onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
+                placeholder="e.g., 178"
+                className="buyfit-input"
+              />
+              <span className="buyfit-input-unit-suffix">cm</span>
+            </div>
             <p className="buyfit-help">
               Total height barefoot. Used to find bikes in your height band.
             </p>
-            <span style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>cm</span>
           </label>
 
           <label className="buyfit-field">
             <strong>Shoulder Width</strong>
-            <input
-              type="number"
-              step="0.1"
-              value={shoulderWidth}
-              onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 41"
-              className="buyfit-input"
-            />
+            <div className="buyfit-input-with-unit">
+              <input
+                type="number"
+                step="0.1"
+                value={shoulderWidth}
+                onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
+                placeholder="e.g., 41"
+                className="buyfit-input"
+              />
+              <span className="buyfit-input-unit-suffix">cm</span>
+            </div>
             <p className="buyfit-help">
               Biacromial width, centre-to-centre (acromion to acromion). The UCI regulates three
               different handlebar width definitions; this one is used here.
             </p>
-            <span style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>cm</span>
           </label>
         </div>
 

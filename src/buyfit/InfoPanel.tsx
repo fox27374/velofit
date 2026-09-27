@@ -14,20 +14,33 @@ interface InfoPanelProps {
 /**
  * Reusable info panel component: ⓘ button that opens a panel with sourcing info.
  *
- * - Opens on hover and click/tap
- * - Closes on click/tap outside, Esc, pointer leave (hover-capable devices)
+ * - Opens on hover (only on devices with hover: hover)
+ * - Opens on click and stays open
+ * - Closes on click/tap outside, Esc, pointer leave (if hover opened it)
  * - Real <button> with aria-expanded and aria-label
  * - Tab-reachable, toggled with Enter/Space
  * - Panel stays inside viewport at 360px width
  */
 export function InfoPanel({ ariaLabel, note, evidence, anchor }: InfoPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openedByHover, setOpenedByHover] = useState(false);
+  const [hasHover, setHasHover] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const researchUrl = anchor
     ? `https://github.com/fox27374/velofit/blob/main/doc/frame-sizing-research.md#${anchor}`
     : '#';
+
+  // Check if device supports hover
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(hover: hover)');
+    setHasHover(mediaQuery.matches);
+
+    const listener = (e: MediaQueryListEvent) => setHasHover(e.matches);
+    mediaQuery.addEventListener('change', listener);
+    return () => mediaQuery.removeEventListener('change', listener);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -36,6 +49,7 @@ export function InfoPanel({ ariaLabel, note, evidence, anchor }: InfoPanelProps)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
+        setOpenedByHover(false);
       }
     };
 
@@ -48,6 +62,7 @@ export function InfoPanel({ ariaLabel, note, evidence, anchor }: InfoPanelProps)
         !buttonRef.current.contains(e.target as Node)
       ) {
         setIsOpen(false);
+        setOpenedByHover(false);
       }
     };
 
@@ -60,6 +75,27 @@ export function InfoPanel({ ariaLabel, note, evidence, anchor }: InfoPanelProps)
     };
   }, [isOpen]);
 
+  const handleClick = () => {
+    // Click always opens and keeps open
+    setIsOpen(true);
+    setOpenedByHover(false);
+  };
+
+  const handleMouseEnter = () => {
+    if (hasHover) {
+      setIsOpen(true);
+      setOpenedByHover(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // Only close on mouse leave if hover opened it
+    if (openedByHover && hasHover) {
+      setIsOpen(false);
+      setOpenedByHover(false);
+    }
+  };
+
   return (
     <div className="info-panel-container">
       <button
@@ -67,9 +103,9 @@ export function InfoPanel({ ariaLabel, note, evidence, anchor }: InfoPanelProps)
         className="info-panel-button"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
-        onClick={() => setIsOpen(!isOpen)}
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         type="button"
       >
         ⓘ
@@ -80,8 +116,12 @@ export function InfoPanel({ ariaLabel, note, evidence, anchor }: InfoPanelProps)
           ref={panelRef}
           className="info-panel"
           role="tooltip"
-          onMouseEnter={() => setIsOpen(true)}
-          onMouseLeave={() => setIsOpen(false)}
+          onMouseEnter={() => {
+            if (hasHover) {
+              setIsOpen(true);
+            }
+          }}
+          onMouseLeave={handleMouseLeave}
         >
           <p className="info-panel-note">{note}</p>
           <div className="info-panel-evidence">
