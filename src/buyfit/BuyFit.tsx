@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'preact/hooks'
 import {
   calculateSizing,
-  inseamRatio,
 } from './sizing'
 import { StackReachPlot } from './StackReachPlot'
 import {
@@ -16,6 +15,9 @@ import {
   type Bike,
 } from './matcher'
 import { loadGeometryData } from './geometryLoader'
+import { migrateMeasurements } from './storageMigration'
+import { ResultsHeader } from './ResultsHeader'
+import { InfoPanel } from './InfoPanel'
 
 /** What the rider wants, as opposed to what their body implies. */
 type Preference = Character | 'none'
@@ -102,64 +104,7 @@ function ShoulderWidthDiagram() {
   )
 }
 
-/**
- * Badge component with link to research doc on GitHub
- */
-function Badge({ type, anchor }: { type: 'Sourced' | 'Weak' | 'No source'; anchor?: string }) {
-  const href = anchor
-    ? `https://github.com/fox27374/velofit/blob/main/doc/frame-sizing-research.md#${anchor}`
-    : '#'
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`badge badge-${type.toLowerCase().replace(' ', '-')}`}
-      title={`${type}${anchor ? ' — see research doc' : ''}`}
-    >
-      {type}
-    </a>
-  )
-}
-
-/**
- * Inseam as a share of height. Reported next to the outputs, deliberately
- * without acting on them: the window below comes from the maker charts, and
- * those charts key off height alone, which is the very thing this ratio says
- * they cannot do.
- */
-function LegProportionFlag({ inseam, height }: { inseam: number; height: number }) {
-  const ratio = inseamRatio(inseam, height)
-  if (!ratio) return null
-
-  const note = {
-    long: `At the long-legged end of the usual 45–48% band. Expect more seatpost showing than the chart implies, and the size your height picks may feel long in the front end — worth comparing the shorter of two candidate sizes.`,
-    short: `Below the usual 45–48% band, so proportionally more of your height is torso. Expect less seatpost, and the size your height picks may feel short and low — worth comparing the longer of two candidate sizes.`,
-    typical: `Inside the usual 45–48% band, so the maker size charts — which key off height alone — are no further off for you than for anyone else.`,
-  }[ratio.proportion]
-
-  return (
-    <div className="buyfit-output">
-      <strong>Inseam-to-height ratio</strong>
-      <span className="buyfit-value">{ratio.percent.toFixed(1)}%</span>
-      <Badge
-        type="No source"
-        anchor="45-inseam-does-not-determine-leg-segment-proportions"
-      />
-      <p className="buyfit-note">
-        {note} This changes none of the numbers above: no source gives a
-        millimetre adjustment per point of ratio, so it is yours to weigh on a
-        test ride.
-      </p>
-    </div>
-  )
-}
-
-
 /** One bike in the shortlist, with the stock parts where the maker states them. */
-// The loader reads a missing measurement as 0, and no frame has a 0 mm tube,
-// so 0 means "the maker did not say" and is left out rather than shown.
 function measurementLine(bike: BikeSize) {
   const parts = [
     ['Stack', bike.stack],
@@ -214,7 +159,6 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [inseam, setInseam] = useState<string>('')
   const [height, setHeight] = useState<string>('')
   const [shoulderWidth, setShoulderWidth] = useState<string>('')
-  const [unit, setUnit] = useState<'mm' | 'cm'>('mm')
   const [preference, setPreference] = useState<Preference>('none')
   const [bikes, setBikes] = useState<Bike[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -236,48 +180,38 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       })
   }, [])
 
-  // Load saved measurements on mount
+  // Load saved measurements on mount with migration
   useEffect(() => {
-    const stored = localStorage.getItem('buyfit_measurements')
-    if (stored) {
-      try {
-        const { inseam, height, shoulderWidth, unit, preference } = JSON.parse(stored)
-        setInseam(inseam)
-        setHeight(height)
-        setShoulderWidth(shoulderWidth)
-        setUnit(unit)
-        if (preference) setPreference(preference)
-        // Don't show measuring guide if we have saved data
-        setShowMeasuringGuide(false)
-      } catch {
-        // Ignore parse errors and show guide
-        setShowMeasuringGuide(true)
-      }
+    const migrated = migrateMeasurements()
+    if (migrated) {
+      setInseam(migrated.inseam)
+      setHeight(migrated.height)
+      setShoulderWidth(migrated.shoulderWidth)
+      if (migrated.preference) setPreference(migrated.preference as Preference)
+      setShowMeasuringGuide(false)
     } else {
-      // First visit: show guide by default
       setShowMeasuringGuide(true)
     }
   }, [])
 
-  // Parse inputs to mm
-  const multiplier = unit === 'cm' ? 10 : 1
+  // Parse inputs as cm and convert to mm for calculations
   const inseamNum = parseFloat(inseam)
   const heightNum = parseFloat(height)
   const shoulderWidthNum = parseFloat(shoulderWidth)
-  const inseamMm = inseamNum ? Math.round(inseamNum * multiplier) : 0
-  const heightMm = heightNum ? Math.round(heightNum * multiplier) : 0
-  const shoulderWidthMm = shoulderWidthNum ? Math.round(shoulderWidthNum * multiplier) : 0
+  const inseamMm = inseamNum ? Math.round(inseamNum * 10) : 0
+  const heightMm = heightNum ? Math.round(heightNum * 10) : 0
+  const shoulderWidthMm = shoulderWidthNum ? Math.round(shoulderWidthNum * 10) : 0
   const allValid = inseamMm > 0 && heightMm > 0 && shoulderWidthMm > 0
 
-  // Save to localStorage whenever valid measurements change
+  // Save to localStorage without unit (cm is the only unit now)
   useEffect(() => {
     if (allValid) {
       localStorage.setItem(
         'buyfit_measurements',
-        JSON.stringify({ inseam, height, shoulderWidth, unit, preference })
+        JSON.stringify({ inseam, height, shoulderWidth, preference })
       )
     }
-  }, [inseam, height, shoulderWidth, unit, preference, allValid])
+  }, [inseam, height, shoulderWidth, preference, allValid])
 
   // Calculate outputs only if all inputs are valid
   const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference) : null
@@ -352,7 +286,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       <h1>BuyFit</h1>
       <p className="buyfit-help">
         Three measurements, and what the evidence actually supports about turning them into a
-        frame. Every line says how well it is sourced.
+        frame. Tap ⓘ on any number to see how well it is sourced.
       </p>
 
       {/* Inputs section */}
@@ -362,62 +296,53 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <strong>Inseam</strong>
             <input
               type="number"
-              step="1"
+              step="0.1"
               value={inseam}
               onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 750"
+              placeholder="e.g., 84"
               className="buyfit-input"
             />
             <p className="buyfit-help">
-              Barefoot, crotch-to-floor against a wall. A 10 mm error moves saddle height about 9 mm.
+              Barefoot, crotch-to-floor against a wall. A 1 cm error moves saddle height about 9 mm.
             </p>
+            <span style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>cm</span>
           </label>
 
           <label className="buyfit-field">
             <strong>Height</strong>
             <input
               type="number"
-              step="1"
+              step="0.1"
               value={height}
               onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 1750"
+              placeholder="e.g., 178"
               className="buyfit-input"
             />
             <p className="buyfit-help">
               Total height barefoot. Used to find bikes in your height band.
             </p>
+            <span style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>cm</span>
           </label>
 
           <label className="buyfit-field">
             <strong>Shoulder Width</strong>
             <input
               type="number"
-              step="1"
+              step="0.1"
               value={shoulderWidth}
               onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 410"
+              placeholder="e.g., 41"
               className="buyfit-input"
             />
             <p className="buyfit-help">
               Biacromial width, centre-to-centre (acromion to acromion). The UCI regulates three
               different handlebar width definitions; this one is used here.
             </p>
+            <span style={{ color: 'var(--ink-muted)', fontSize: '0.875rem' }}>cm</span>
           </label>
         </div>
 
         <div className="buyfit-input-controls">
-          <label className="buyfit-field buyfit-field--plain">
-            <strong>Unit</strong>
-            <select
-              value={unit}
-              onChange={(e) => setUnit((e.target as HTMLSelectElement).value as 'mm' | 'cm')}
-              className="buyfit-select"
-            >
-              <option value="mm">mm</option>
-              <option value="cm">cm</option>
-            </select>
-          </label>
-
           <label className="buyfit-field buyfit-field--plain">
             <strong>Riding position you want</strong>
             <select
@@ -473,18 +398,27 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       {/* Show all analysis and bikes only if all inputs are valid */}
       {allValid && sizing && (
         <>
+          {/* Results header with body sketch and gauge */}
+          <ResultsHeader
+            inseamCm={inseamNum}
+            heightCm={heightNum}
+            shoulderWidthCm={shoulderWidthNum}
+            headline={headline}
+          />
+
           {/* Analysis cards section */}
           <div className="buyfit-analysis">
-            <LegProportionFlag inseam={inseamMm} height={heightMm} />
             <div className="buyfit-output">
               <strong>Saddle height</strong>
               <span className="buyfit-value">
                 {sizing.saddleHeightMin}–{sizing.saddleHeightMax} mm
               </span>
-              <Badge type="Sourced" anchor="21-saddle-height--the-one-that-works-and-how-well" />
-              <p className="buyfit-note">
-                BB centre to saddle top. A starting point; expect to adjust by up to 20 mm.
-              </p>
+              <InfoPanel
+                ariaLabel="About saddle height"
+                note="BB centre to saddle top. A starting point; expect to adjust by up to 20 mm."
+                evidence="Sourced"
+                anchor="21-saddle-height--the-one-that-works-and-how-well"
+              />
             </div>
 
             <div className="buyfit-output">
@@ -492,36 +426,28 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               <span className="buyfit-value">
                 {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm
               </span>
-              <Badge type="Weak" anchor="31-handlebar-width-from-shoulder-width" />
-              <p className="buyfit-note">Measured centre to centre.</p>
+              <InfoPanel
+                ariaLabel="About handlebar width"
+                note="Measured centre to centre."
+                evidence="Weak"
+                anchor="31-handlebar-width-from-shoulder-width"
+              />
             </div>
 
             <div className="buyfit-output">
               <strong>Crank length</strong>
               <span className="buyfit-value">{sizing.crankLength}</span>
-              <Badge type="Weak" anchor="32-crank-length-from-inseam-or-height" />
-              <p className="buyfit-note">{sizing.crankNote}</p>
+              <InfoPanel
+                ariaLabel="About crank length"
+                note={sizing.crankNote}
+                evidence="Weak"
+                anchor="32-crank-length-from-inseam-or-height"
+              />
             </div>
-
           </div>
 
           {/* Bikes section */}
           <div className="buyfit-bikes-section">
-            {headline.length > 0 && (
-              <div className="buyfit-headline">
-                <h2>Your size is roughly {headline.join(' or ')}</h2>
-                <Badge
-                  type="No source"
-                  anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
-                />
-                <p className="buyfit-note">
-                  The most common size label among bikes whose maker lists your height. A label is
-                  not a measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat
-                  this as a starting point for the shortlist below, not an answer.
-                </p>
-              </div>
-            )}
-
             {/* Brand filter */}
             {selectedBrands && matches.length > 0 && (
               <div className="buyfit-brand-filter">
@@ -568,32 +494,35 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                     {fitWindow.stackMin}–{fitWindow.stackMax} / {fitWindow.reachMin}–
                     {fitWindow.reachMax} mm
                   </span>
-                  <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
-                  <p className="buyfit-note">
-                    A search window taken from what bikes in your height band ship with — not from
-                    your body. Frame reach cannot be predicted from body measurements.
-                  </p>
+                  <InfoPanel
+                    ariaLabel="About stack and reach"
+                    note="A search window taken from what bikes in your height band ship with — not from your body. Frame reach cannot be predicted from body measurements."
+                    evidence="No source"
+                    anchor="22-stack--usable-only-as-a-search-window"
+                  />
                 </div>
               ) : (
                 <div className="buyfit-output buyfit-no-window">
                   <strong>Stack/Reach Window</strong>
-                  <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
-                  <p className="buyfit-note">
-                    No bikes in the database cover your height.
-                  </p>
+                  <InfoPanel
+                    ariaLabel="About stack and reach"
+                    note="No bikes in the database cover your height."
+                    evidence="No source"
+                    anchor="22-stack--usable-only-as-a-search-window"
+                  />
                 </div>
               )}
 
               {geometry ? (
                 <div className="buyfit-output">
                   <strong>Frame geometry</strong>
-                  <Badge type="No source" anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable" />
                   <span className="buyfit-value">{geometry.sizes.join(' · ')}</span>
-                  <p className="buyfit-note">
-                    Seat tube {geometry.seatTubeMin}–{geometry.seatTubeMax} mm, effective top tube{' '}
-                    {geometry.ettMin}–{geometry.ettMax} mm. Taken from the bikes in your height band,
-                    not from your body, and size labels do not carry between brands.
-                  </p>
+                  <InfoPanel
+                    ariaLabel="About frame geometry"
+                    note={`Seat tube ${geometry.seatTubeMin}–${geometry.seatTubeMax} mm, effective top tube ${geometry.ettMin}–${geometry.ettMax} mm. Taken from the bikes in your height band, not from your body, and size labels do not carry between brands.`}
+                    evidence="No source"
+                    anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
+                  />
                 </div>
               ) : null}
             </div>

@@ -86,11 +86,19 @@ device. Each field gets inline-SVG line art plus text stating the error
 consequence — input error is comparable to the entire output tolerance, so the
 instructions are load-bearing, not decoration.
 
+Body inputs are in **centimetres only**: the app accepts cm with 0.1 precision
+and converts to mm internally (× 10, rounded) for calculations. Bike outputs
+remain in mm.
+
 ### Outputs
 
-Every line carries a **Sourced / Weak / No source** badge that links into
-`doc/frame-sizing-research.md`. The badge travels with the number in a
-screenshot; a single disclaimer at the top of the screen does not.
+Every line carries a **Sourced / Weak / No source** info panel (ⓘ button) that
+links into `doc/frame-sizing-research.md`. The sourcing info is one tap away;
+a single disclaimer at the top of the screen does not.
+
+**Design decision (2026-09-27):** badges were replaced by info panels at the
+owner's request. The sourcing evidence level is shown one tap away with the same
+research link, overruling the "badge travels in screenshot" rule.
 
 | Line | Basis | Badge |
 |---|---|---|
