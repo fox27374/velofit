@@ -3,6 +3,7 @@ import {
   calculateSizing,
   inseamRatio,
 } from './sizing'
+import { readSavedMeasurements } from './storage'
 import { StackReachPlot } from './StackReachPlot'
 import {
   matchBikes,
@@ -214,7 +215,6 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [inseam, setInseam] = useState<string>('')
   const [height, setHeight] = useState<string>('')
   const [shoulderWidth, setShoulderWidth] = useState<string>('')
-  const [unit, setUnit] = useState<'mm' | 'cm'>('mm')
   const [preference, setPreference] = useState<Preference>('none')
   const [bikes, setBikes] = useState<Bike[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -238,21 +238,14 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
   // Load saved measurements on mount
   useEffect(() => {
-    const stored = localStorage.getItem('buyfit_measurements')
-    if (stored) {
-      try {
-        const { inseam, height, shoulderWidth, unit, preference } = JSON.parse(stored)
-        setInseam(inseam)
-        setHeight(height)
-        setShoulderWidth(shoulderWidth)
-        setUnit(unit)
-        if (preference) setPreference(preference)
-        // Don't show measuring guide if we have saved data
-        setShowMeasuringGuide(false)
-      } catch {
-        // Ignore parse errors and show guide
-        setShowMeasuringGuide(true)
-      }
+    const saved = readSavedMeasurements(localStorage.getItem('buyfit_measurements'))
+    if (saved) {
+      setInseam(saved.inseam)
+      setHeight(saved.height)
+      setShoulderWidth(saved.shoulderWidth)
+      if (saved.preference) setPreference(saved.preference as Preference)
+      // Don't show measuring guide if we have saved data
+      setShowMeasuringGuide(false)
     } else {
       // First visit: show guide by default
       setShowMeasuringGuide(true)
@@ -260,7 +253,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   }, [])
 
   // Parse inputs to mm
-  const multiplier = unit === 'cm' ? 10 : 1
+  const multiplier = 10 // inputs are cm, every calculation is mm
   const inseamNum = parseFloat(inseam)
   const heightNum = parseFloat(height)
   const shoulderWidthNum = parseFloat(shoulderWidth)
@@ -274,10 +267,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
     if (allValid) {
       localStorage.setItem(
         'buyfit_measurements',
-        JSON.stringify({ inseam, height, shoulderWidth, unit, preference })
+        JSON.stringify({ inseam, height, shoulderWidth, preference })
       )
     }
-  }, [inseam, height, shoulderWidth, unit, preference, allValid])
+  }, [inseam, height, shoulderWidth, preference, allValid])
 
   // Calculate outputs only if all inputs are valid
   const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference) : null
@@ -360,29 +353,35 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         <div className="buyfit-input-row">
           <label className="buyfit-field">
             <strong>Inseam</strong>
-            <input
-              type="number"
-              step="1"
-              value={inseam}
-              onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 750"
-              className="buyfit-input"
-            />
+            <span className="buyfit-input-unit">
+              <input
+                type="number"
+                step="0.1"
+                value={inseam}
+                onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
+                placeholder="e.g., 84"
+                className="buyfit-input"
+              />
+              <span aria-hidden="true">cm</span>
+            </span>
             <p className="buyfit-help">
-              Barefoot, crotch-to-floor against a wall. A 10 mm error moves saddle height about 9 mm.
+              Barefoot, crotch-to-floor against a wall. A 1 cm error moves saddle height about 9 mm.
             </p>
           </label>
 
           <label className="buyfit-field">
             <strong>Height</strong>
-            <input
-              type="number"
-              step="1"
-              value={height}
-              onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 1750"
-              className="buyfit-input"
-            />
+            <span className="buyfit-input-unit">
+              <input
+                type="number"
+                step="0.1"
+                value={height}
+                onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
+                placeholder="e.g., 178"
+                className="buyfit-input"
+              />
+              <span aria-hidden="true">cm</span>
+            </span>
             <p className="buyfit-help">
               Total height barefoot. Used to find bikes in your height band.
             </p>
@@ -390,14 +389,17 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
           <label className="buyfit-field">
             <strong>Shoulder Width</strong>
-            <input
-              type="number"
-              step="1"
-              value={shoulderWidth}
-              onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
-              placeholder="e.g., 410"
-              className="buyfit-input"
-            />
+            <span className="buyfit-input-unit">
+              <input
+                type="number"
+                step="0.1"
+                value={shoulderWidth}
+                onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
+                placeholder="e.g., 41"
+                className="buyfit-input"
+              />
+              <span aria-hidden="true">cm</span>
+            </span>
             <p className="buyfit-help">
               Biacromial width, centre-to-centre (acromion to acromion). The UCI regulates three
               different handlebar width definitions; this one is used here.
@@ -406,18 +408,6 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         </div>
 
         <div className="buyfit-input-controls">
-          <label className="buyfit-field buyfit-field--plain">
-            <strong>Unit</strong>
-            <select
-              value={unit}
-              onChange={(e) => setUnit((e.target as HTMLSelectElement).value as 'mm' | 'cm')}
-              className="buyfit-select"
-            >
-              <option value="mm">mm</option>
-              <option value="cm">cm</option>
-            </select>
-          </label>
-
           <label className="buyfit-field buyfit-field--plain">
             <strong>Riding position you want</strong>
             <select
