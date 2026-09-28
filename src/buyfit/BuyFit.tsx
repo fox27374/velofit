@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'preact/hooks'
 import {
   calculateSizing,
-  inseamRatio,
 } from './sizing'
 import { readSavedMeasurements } from './storage'
 import { StackReachPlot } from './StackReachPlot'
 import { InfoPanel } from './InfoPanel'
+import { ResultsHeader } from './ResultsHeader'
 import {
   matchBikes,
   getStackReachWindow,
@@ -103,41 +103,6 @@ function ShoulderWidthDiagram() {
     </svg>
   )
 }
-
-/**
- * Inseam as a share of height. Reported next to the outputs, deliberately
- * without acting on them: the window below comes from the maker charts, and
- * those charts key off height alone, which is the very thing this ratio says
- * they cannot do.
- */
-function LegProportionFlag({ inseam, height }: { inseam: number; height: number }) {
-  const ratio = inseamRatio(inseam, height)
-  if (!ratio) return null
-
-  const note = {
-    long: `At the long-legged end of the usual 45–48% band. Expect more seatpost showing than the chart implies, and the size your height picks may feel long in the front end — worth comparing the shorter of two candidate sizes.`,
-    short: `Below the usual 45–48% band, so proportionally more of your height is torso. Expect less seatpost, and the size your height picks may feel short and low — worth comparing the longer of two candidate sizes.`,
-    typical: `Inside the usual 45–48% band, so the maker size charts — which key off height alone — are no further off for you than for anyone else.`,
-  }[ratio.proportion]
-
-  return (
-    <div className="buyfit-output">
-      <div className="buyfit-card-title">
-        <strong>Inseam-to-height ratio</strong>
-        <InfoPanel
-          label="the inseam-to-height ratio"
-          evidence="No source"
-          anchor="45-inseam-does-not-determine-leg-segment-proportions"
-        >
-          {note} This changes none of the numbers above: no source gives a millimetre adjustment
-          per point of ratio, so it is yours to weigh on a test ride.
-        </InfoPanel>
-      </div>
-      <span className="buyfit-value">{ratio.percent.toFixed(1)}%</span>
-    </div>
-  )
-}
-
 
 /** One bike in the shortlist, with the stock parts where the maker states them. */
 // The loader reads a missing measurement as 0, and no frame has a 0 mm tube,
@@ -444,9 +409,14 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       {/* Show all analysis and bikes only if all inputs are valid */}
       {allValid && sizing && (
         <>
+          <ResultsHeader
+            heightMm={heightMm}
+            inseamMm={inseamMm}
+            shoulderMm={shoulderWidthMm}
+            sizes={headline}
+          />
           {/* Analysis cards section */}
           <div className="buyfit-analysis">
-            <LegProportionFlag inseam={inseamMm} height={heightMm} />
             <div className="buyfit-output">
               <div className="buyfit-card-title">
                 <strong>Saddle height</strong>
@@ -485,23 +455,6 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
           {/* Bikes section */}
           <div className="buyfit-bikes-section">
-            {headline.length > 0 && (
-              <div className="buyfit-headline">
-                <div className="buyfit-card-title">
-                  <h2>Your size is roughly {headline.join(' or ')}</h2>
-                  <InfoPanel
-                    label="your size"
-                    evidence="No source"
-                    anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
-                  >
-                    The most common size label among bikes whose maker lists your height. A label is not a
-                    measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat this as a
-                    starting point for the shortlist below, not an answer.
-                  </InfoPanel>
-                </div>
-              </div>
-            )}
-
             {/* Brand filter */}
             {selectedBrands && matches.length > 0 && (
               <div className="buyfit-brand-filter">
