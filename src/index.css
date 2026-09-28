@@ -714,3 +714,44 @@ a {
     text-align: left;
   }
 }
+
+/* ---- body sketch -------------------------------------------------- */
+
+/* Fixed width, so one viewBox unit is one pixel and labels stay 13 px. */
+.body-sketch {
+  display: block;
+  width: 300px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.body-sketch-figure {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Dimension red, as on the stack/reach window and a maker's geometry chart. */
+.body-sketch-dims {
+  fill: none;
+  stroke: var(--dim);
+  stroke-width: 1.5;
+}
+
+.body-sketch-dims .body-sketch-ext {
+  stroke-width: 1;
+}
+
+.body-sketch-dims .body-sketch-guide {
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.body-sketch-label {
+  fill: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
