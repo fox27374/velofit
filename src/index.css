@@ -755,3 +755,50 @@ a {
   font-size: 13px;
   font-weight: 600;
 }
+
+/* ---- inseam gauge ------------------------------------------------- */
+
+/* Room above the bar for the printed value. */
+.gauge {
+  padding-top: 1.5rem;
+}
+
+.gauge-track {
+  position: relative;
+  height: 0.75rem;
+  border-radius: 2px;
+  background: var(--rule);
+}
+
+.gauge-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--rule-strong);
+}
+
+.gauge-marker {
+  position: absolute;
+  top: -0.35rem;
+  bottom: -0.35rem;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.gauge-value {
+  position: absolute;
+  bottom: calc(100% + 0.45rem);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.55rem;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
