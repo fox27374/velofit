@@ -367,7 +367,7 @@ a {
 
 .buyfit-analysis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   border-top: 1px solid var(--rule);
   padding-top: 1.5rem;
@@ -378,14 +378,6 @@ a {
 .buyfit-bikes-section {
   display: grid;
   gap: 1.5rem;
-}
-
-.buyfit-headline {
-  margin-bottom: 1.5rem;
-}
-
-.buyfit-headline h2 {
-  font-size: 1.9rem;
 }
 
 .buyfit-brand-filter {
@@ -801,4 +793,40 @@ a {
   margin-top: 0.55rem;
   color: var(--ink-muted);
   font-size: 0.8rem;
+}
+
+/* ---- results header ----------------------------------------------- */
+
+/* Sketch on the left at its fixed 300 px, summary on the right. Both columns
+   align to the top, so the summary never stretches to the sketch's height. */
+.results-header {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.results-header-summary {
+  display: grid;
+  gap: 2rem;
+  align-content: start;
+  padding-top: 0.5rem;
+}
+
+.results-header-summary h2 {
+  font-size: 1.9rem;
+}
+
+.results-header-ratio {
+  display: grid;
+  gap: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .results-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
 }
