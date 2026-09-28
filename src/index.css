@@ -296,6 +296,26 @@ a {
   min-width: 0;
 }
 
+/* The unit sits inside the field, so a number is never read without it. */
+.buyfit-input-unit {
+  position: relative;
+  display: block;
+}
+
+.buyfit-input-unit .buyfit-input {
+  padding-right: 2.6rem;
+}
+
+.buyfit-input-unit > span {
+  position: absolute;
+  top: 50%;
+  right: 0.8rem;
+  transform: translateY(-50%);
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
 .buyfit-diagram-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
