@@ -458,33 +458,83 @@ a {
   grid-column: 1 / -1;
 }
 
-.badge {
-  justify-self: start;
-  border-bottom: 1px dotted var(--rule-strong);
+/* A card's title with its ⓘ: at the far right in the stacked cards, right
+   after the title in the table-like window cards, whose right edge holds the
+   value. */
+.buyfit-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.buyfit-card-title h2 {
+  margin: 0;
+}
+
+.buyfit-window-cards .buyfit-card-title {
+  justify-content: flex-start;
+}
+
+.info {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.info-button {
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: 50%;
+  background: none;
   color: var(--ink-muted);
-  font-size: 0.72rem;
-  text-decoration: none;
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.badge::before {
-  content: '';
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-right: 0.35rem;
-  border: 1px solid currentColor;
+.info-button:hover,
+.info-button:focus-visible,
+.info-button[aria-expanded='true'] {
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
-.badge-sourced {
-  color: var(--ok);
+.info-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 0.5rem;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
 }
 
-.badge-sourced::before {
-  background: currentColor;
+/* The window cards' ⓘ sits near the left edge; open the panel rightwards. */
+.buyfit-window-cards .info-panel {
+  right: auto;
+  left: 0;
 }
 
-.badge-weak::before {
-  background: linear-gradient(135deg, currentColor 50%, transparent 50%);
+.info-panel-evidence {
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+.info-panel-evidence a {
+  color: inherit;
 }
 
 /* ---- the stack/reach plot ------------------------------------------ */

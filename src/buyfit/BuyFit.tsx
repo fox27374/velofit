@@ -5,6 +5,7 @@ import {
 } from './sizing'
 import { readSavedMeasurements } from './storage'
 import { StackReachPlot } from './StackReachPlot'
+import { InfoPanel } from './InfoPanel'
 import {
   matchBikes,
   getStackReachWindow,
@@ -104,27 +105,6 @@ function ShoulderWidthDiagram() {
 }
 
 /**
- * Badge component with link to research doc on GitHub
- */
-function Badge({ type, anchor }: { type: 'Sourced' | 'Weak' | 'No source'; anchor?: string }) {
-  const href = anchor
-    ? `https://github.com/fox27374/velofit/blob/main/doc/frame-sizing-research.md#${anchor}`
-    : '#'
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`badge badge-${type.toLowerCase().replace(' ', '-')}`}
-      title={`${type}${anchor ? ' — see research doc' : ''}`}
-    >
-      {type}
-    </a>
-  )
-}
-
-/**
  * Inseam as a share of height. Reported next to the outputs, deliberately
  * without acting on them: the window below comes from the maker charts, and
  * those charts key off height alone, which is the very thing this ratio says
@@ -142,17 +122,18 @@ function LegProportionFlag({ inseam, height }: { inseam: number; height: number 
 
   return (
     <div className="buyfit-output">
-      <strong>Inseam-to-height ratio</strong>
+      <div className="buyfit-card-title">
+        <strong>Inseam-to-height ratio</strong>
+        <InfoPanel
+          label="the inseam-to-height ratio"
+          evidence="No source"
+          anchor="45-inseam-does-not-determine-leg-segment-proportions"
+        >
+          {note} This changes none of the numbers above: no source gives a millimetre adjustment
+          per point of ratio, so it is yours to weigh on a test ride.
+        </InfoPanel>
+      </div>
       <span className="buyfit-value">{ratio.percent.toFixed(1)}%</span>
-      <Badge
-        type="No source"
-        anchor="45-inseam-does-not-determine-leg-segment-proportions"
-      />
-      <p className="buyfit-note">
-        {note} This changes none of the numbers above: no source gives a
-        millimetre adjustment per point of ratio, so it is yours to weigh on a
-        test ride.
-      </p>
     </div>
   )
 }
@@ -345,7 +326,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       <h1>BuyFit</h1>
       <p className="buyfit-help">
         Three measurements, and what the evidence actually supports about turning them into a
-        frame. Every line says how well it is sourced.
+        frame. Tap ⓘ on any number to see how well it is sourced.
       </p>
 
       {/* Inputs section */}
@@ -467,30 +448,37 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           <div className="buyfit-analysis">
             <LegProportionFlag inseam={inseamMm} height={heightMm} />
             <div className="buyfit-output">
-              <strong>Saddle height</strong>
+              <div className="buyfit-card-title">
+                <strong>Saddle height</strong>
+                <InfoPanel label="saddle height" evidence="Sourced" anchor="21-saddle-height--the-one-that-works-and-how-well">
+                  BB centre to saddle top. A starting point; expect to adjust by up to 20 mm.
+                </InfoPanel>
+              </div>
               <span className="buyfit-value">
                 {sizing.saddleHeightMin}–{sizing.saddleHeightMax} mm
               </span>
-              <Badge type="Sourced" anchor="21-saddle-height--the-one-that-works-and-how-well" />
-              <p className="buyfit-note">
-                BB centre to saddle top. A starting point; expect to adjust by up to 20 mm.
-              </p>
             </div>
 
             <div className="buyfit-output">
-              <strong>Handlebar width</strong>
+              <div className="buyfit-card-title">
+                <strong>Handlebar width</strong>
+                <InfoPanel label="handlebar width" evidence="Weak" anchor="31-handlebar-width-from-shoulder-width">
+                  Measured centre to centre.
+                </InfoPanel>
+              </div>
               <span className="buyfit-value">
                 {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm
               </span>
-              <Badge type="Weak" anchor="31-handlebar-width-from-shoulder-width" />
-              <p className="buyfit-note">Measured centre to centre.</p>
             </div>
 
             <div className="buyfit-output">
-              <strong>Crank length</strong>
+              <div className="buyfit-card-title">
+                <strong>Crank length</strong>
+                <InfoPanel label="crank length" evidence="Weak" anchor="32-crank-length-from-inseam-or-height">
+                  {sizing.crankNote}
+                </InfoPanel>
+              </div>
               <span className="buyfit-value">{sizing.crankLength}</span>
-              <Badge type="Weak" anchor="32-crank-length-from-inseam-or-height" />
-              <p className="buyfit-note">{sizing.crankNote}</p>
             </div>
 
           </div>
@@ -499,16 +487,18 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           <div className="buyfit-bikes-section">
             {headline.length > 0 && (
               <div className="buyfit-headline">
-                <h2>Your size is roughly {headline.join(' or ')}</h2>
-                <Badge
-                  type="No source"
-                  anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
-                />
-                <p className="buyfit-note">
-                  The most common size label among bikes whose maker lists your height. A label is
-                  not a measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat
-                  this as a starting point for the shortlist below, not an answer.
-                </p>
+                <div className="buyfit-card-title">
+                  <h2>Your size is roughly {headline.join(' or ')}</h2>
+                  <InfoPanel
+                    label="your size"
+                    evidence="No source"
+                    anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
+                  >
+                    The most common size label among bikes whose maker lists your height. A label is not a
+                    measurement: two bikes both marked 54 can differ by 50 mm of stack, so treat this as a
+                    starting point for the shortlist below, not an answer.
+                  </InfoPanel>
+                </div>
               </div>
             )}
 
@@ -553,36 +543,46 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <div className="buyfit-window-cards">
               {fitWindow ? (
                 <div className="buyfit-output">
-                  <strong>Stack and reach</strong>
+                  <div className="buyfit-card-title">
+                    <strong>Stack and reach</strong>
+                    <InfoPanel label="stack and reach" evidence="No source" anchor="22-stack--usable-only-as-a-search-window">
+                      A search window taken from what bikes in your height band ship with — not from your
+                      body. Frame reach cannot be predicted from body measurements.
+                    </InfoPanel>
+                  </div>
                   <span className="buyfit-value">
-                    {fitWindow.stackMin}–{fitWindow.stackMax} / {fitWindow.reachMin}–
-                    {fitWindow.reachMax} mm
+                    {fitWindow.stackMin}–{fitWindow.stackMax} / {fitWindow.reachMin}–{fitWindow.reachMax} mm
                   </span>
-                  <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
-                  <p className="buyfit-note">
-                    A search window taken from what bikes in your height band ship with — not from
-                    your body. Frame reach cannot be predicted from body measurements.
-                  </p>
                 </div>
               ) : (
                 <div className="buyfit-output buyfit-no-window">
-                  <strong>Stack/Reach Window</strong>
-                  <Badge type="No source" anchor="22-stack--usable-only-as-a-search-window" />
-                  <p className="buyfit-note">
-                    No bikes in the database cover your height.
-                  </p>
+                  <div className="buyfit-card-title">
+                    <strong>Stack/Reach Window</strong>
+                    <InfoPanel label="the stack and reach window" evidence="No source" anchor="22-stack--usable-only-as-a-search-window">
+                      A search window taken from what bikes in your height band ship with — not from your body.
+                    </InfoPanel>
+                  </div>
+                  <p className="buyfit-note">No bikes in the database cover your height.</p>
                 </div>
               )}
 
               {geometry ? (
                 <div className="buyfit-output">
-                  <strong>Frame geometry</strong>
-                  <Badge type="No source" anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable" />
+                  <div className="buyfit-card-title">
+                    <strong>Frame geometry</strong>
+                    <InfoPanel
+                      label="frame geometry"
+                      evidence="No source"
+                      anchor="42-brand-to-brand-size-labels-are-not-comparable-and-this-is-measurable"
+                    >
+                      Taken from the bikes in your height band, not from your body, and size labels do not
+                      carry between brands.
+                    </InfoPanel>
+                  </div>
                   <span className="buyfit-value">{geometry.sizes.join(' · ')}</span>
                   <p className="buyfit-note">
                     Seat tube {geometry.seatTubeMin}–{geometry.seatTubeMax} mm, effective top tube{' '}
-                    {geometry.ettMin}–{geometry.ettMax} mm. Taken from the bikes in your height band,
-                    not from your body, and size labels do not carry between brands.
+                    {geometry.ettMin}–{geometry.ettMax} mm.
                   </p>
                 </div>
               ) : null}
