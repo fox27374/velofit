@@ -81,7 +81,9 @@ self-rating is an unvalidated proxy for those, and nothing published says how
 much it would widen the band, so it would change the output without evidence
 that it should.
 
-Metric only. Values kept in `localStorage`; no accounts, nothing leaves the
+Metric only: body measurements are entered in centimetres, because nobody
+measures their height in millimetres, and every bike output stays in
+millimetres, the unit makers and shops publish. Values kept in `localStorage`; no accounts, nothing leaves the
 device. Each field gets inline-SVG line art plus text stating the error
 consequence — input error is comparable to the entire output tolerance, so the
 instructions are load-bearing, not decoration.
@@ -91,6 +93,15 @@ instructions are load-bearing, not decoration.
 Every line carries a **Sourced / Weak / No source** badge that links into
 `doc/frame-sizing-research.md`. The badge travels with the number in a
 screenshot; a single disclaimer at the top of the screen does not.
+
+**The badges became ⓘ panels on 2026-09-27**, at the owner's request, and this
+overrules the paragraph above. Each card and the size heading carry an ⓘ
+button on their title line; hover or tap opens a panel with the explanation
+and one line, "Evidence: Sourced / Weak / No source · read the research →",
+linking to the same section of the research doc the badge linked to. The
+evidence level is one tap away instead of always on screen, so it no longer
+travels with the number in a screenshot. Data that belongs to the number, such
+as the frame geometry card's seat-tube and top-tube ranges, stays visible.
 
 | Line | Basis | Badge |
 |---|---|---|
@@ -207,8 +218,13 @@ frame.
 
 The results screen opens with "your size is roughly X" — the most common size
 label among bikes whose maker lists the rider's height, with every tied label
-shown rather than one picked. It carries a `No source` badge and states that
+shown rather than one picked. Its ⓘ panel carries the `No source` level and states that
 two bikes both marked 54 can differ by 50 mm of stack.
+
+Since 2026-09-27 it heads the results, next to a body outline labelled with
+the rider's three measurements and above the inseam-to-height gauge (41–52%,
+the usual 45–48% band shaded, neutral colours). The gauge reports the ratio
+and still applies it to nothing.
 
 It exists because "what frame size am I?" is the question people arrive with,
 and a page that refuses to answer it sends them to a calculator-clone site that
