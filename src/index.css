@@ -537,12 +537,15 @@ a {
 
 /* ---- the stack/reach plot ------------------------------------------ */
 
+.plot-box {
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
 .plot {
   display: block;
   width: 100%;
-  max-width: 34rem;
   height: auto;
-  margin: 0.75rem 0;
 }
 
 .plot-axis {
@@ -555,14 +558,8 @@ a {
   font-size: 11px;
 }
 
-.plot-dim {
-  stroke: var(--dim);
-  stroke-width: 1;
-}
-
-.plot-dim-fill {
-  fill: var(--dim);
-  opacity: 0.07;
+.plot-fade-stop {
+  stop-color: var(--dim);
 }
 
 .plot-dim-text {
