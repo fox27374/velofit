@@ -19,6 +19,7 @@ import {
 } from './matcher'
 import { loadGeometryData } from './geometryLoader'
 import { normalizeDecimalInput } from './decimalInput'
+import { displayLabels } from './displayName'
 
 /** What the rider wants, as opposed to what their body implies. */
 type Preference = Character | 'none'
@@ -121,12 +122,11 @@ function measurementLine(bike: BikeSize) {
     .join(', ')
 }
 
-function BikeRow({ bike }: { bike: BikeSize }) {
+function BikeRow({ bike, name }: { bike: BikeSize; name: string }) {
   return (
     <div className="buyfit-result">
       <strong>
-        {bike.brand} {bike.model}
-        {bike.year > 0 && <span className="buyfit-result-size"> {bike.year}</span>}
+        {name}
       </strong>
       <span className="buyfit-result-size">size {bike.size}</span>
       <span className="buyfit-delta">{measurementLine(bike)}</span>
@@ -240,6 +240,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const filteredMatches = selectedBrands
     ? matches.filter((b) => selectedBrands.has(b.brand))
     : matches
+  const names = displayLabels(filteredMatches)
   const filteredSplit = allValid ? splitByCharacter(filteredMatches) : { racy: [], relaxed: [], median: null }
 
   const groups: { key: Character; title: string; rows: typeof filteredMatches }[] = [
@@ -483,7 +484,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             {/* Chart and window info */}
             {fitWindow && matches.length > 0 && selectedBrands && selectedBrands.size > 0 && (
               <>
-                <StackReachPlot bikes={filteredMatches} fitWindow={fitWindow} median={filteredSplit.median} />
+                <StackReachPlot bikes={filteredMatches} fitWindow={fitWindow} median={filteredSplit.median} names={names} />
                 <div className="plot-legend">
                   <b className="is-racy">racier half</b>
                   <b className="is-upright">more upright half</b>
@@ -558,8 +559,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                   <div className="buyfit-results">
                     {filteredMatches.map((bike) => (
                       <BikeRow
-                        key={`${bike.brand}-${bike.model}-${bike.size}`}
+                        key={`${bike.bikeId}-${bike.size}`}
                         bike={bike}
+                        name={names.get(bike.bikeId) ?? `${bike.brand} ${bike.family}`}
                       />
                     ))}
                   </div>
@@ -575,8 +577,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                     <div className="buyfit-results">
                       {group.rows.map((bike) => (
                         <BikeRow
-                        key={`${bike.brand}-${bike.model}-${bike.size}`}
+                        key={`${bike.bikeId}-${bike.size}`}
                         bike={bike}
+                        name={names.get(bike.bikeId) ?? `${bike.brand} ${bike.family}`}
                       />
                         ))}
                     </div>

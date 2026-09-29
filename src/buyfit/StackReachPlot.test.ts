@@ -4,12 +4,12 @@ import { labelText, placeLabels } from './StackReachPlot'
 const pt = (x: number, y: number, text = `${x},${y}`) => ({ x, y, text })
 
 describe('labelText', () => {
-  it('is brand and model, without the size', () => {
-    expect(labelText({ brand: 'Trek', model: 'Madone' })).toBe('Trek Madone')
+  it('returns a short label unchanged', () => {
+    expect(labelText('Trek Madone')).toBe('Trek Madone')
   })
 
   it('truncates past 24 characters with an ellipsis', () => {
-    const text = labelText({ brand: 'Specialized', model: 'S-Works Tarmac SL8' })
+    const text = labelText('Specialized S-Works Tarmac SL8')
     expect(text).toBe('Specialized S-Works Tar…')
     expect(text).toHaveLength(24)
   })
