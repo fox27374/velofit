@@ -50,8 +50,8 @@ export function placeLabels(
   const out: (LabelPlacement | null)[] = points.map(() => null)
   for (const i of order) {
     const { x, y, text } = points[i]
-    // Labels carry no size, so a second size of the same bike would repeat
-    // the name word for word; one label per bike is enough.
+    // Identical text would say the same thing twice; the plot adds the size
+    // to a bike shown in several sizes, so only true repeats are skipped.
     if (boxes.some((b) => b.text === text)) continue
     const w = text.length * CHAR_W
     const side = x + LABEL_GAP + w > rightEdge ? 'left' : 'right'
@@ -115,9 +115,16 @@ export function StackReachPlot({
   const py = (stack: number) =>
     H - PAD.bottom - ((stack - y0) / (y1 - y0)) * (H - PAD.top - PAD.bottom)
 
+  // A bike shown in more than one size gets its size in every label, so each
+  // point is named and the sizes can be told apart.
+  const sizesShown = new Map<string, number>()
+  for (const b of bikes) sizesShown.set(b.bikeId, (sizesShown.get(b.bikeId) ?? 0) + 1)
+  const pointLabel = (b: BikeSize) =>
+    labelText(nameOf(b)) + ((sizesShown.get(b.bikeId) ?? 0) > 1 ? ` ${b.size}` : '')
+
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
   const labels = placeLabels(
-    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(nameOf(b)) })),
+    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: pointLabel(b) })),
     W - 4
   )
 
@@ -222,7 +229,7 @@ export function StackReachPlot({
               y={cy + label.dy}
               text-anchor={dir < 0 ? 'end' : 'start'}
             >
-              {labelText(nameOf(bike))}
+              {pointLabel(bike)}
             </text>
           </g>
         )
