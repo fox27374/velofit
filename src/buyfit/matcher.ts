@@ -13,8 +13,10 @@ export interface BikeSizeRow {
   reach: number
   ett: number
   seatTube: number
-  riderHeightMin: number
-  riderHeightMax: number
+  /** Published rider-height band in mm. Null means the maker gives no bound on that side. */
+  riderHeightMin: number | null
+  /** Published rider-height band in mm. Null means the maker gives no bound on that side. */
+  riderHeightMax: number | null
   /** What the stock build ships with, where the maker publishes it. */
   barWidth?: number
   crankLength?: number
@@ -70,14 +72,16 @@ export interface FrameGeometryRange {
   ettMax: number
 }
 
-/** Every model+size whose published rider-height band contains this height. */
+/** Every model+size whose published rider-height band contains this height.
+ * A missing bound is open on that side; a size with both bounds null is skipped. */
 function rowsForHeight(riderHeight: number, db: Bike[]): (BikeSizeRow & Bike)[] {
   return db.flatMap((bike) =>
     bike.sizes
-      .filter(
-        (size) =>
-          riderHeight >= size.riderHeightMin && riderHeight <= size.riderHeightMax
-      )
+      .filter((size) => {
+        const { riderHeightMin: min, riderHeightMax: max } = size
+        if (min === null && max === null) return false
+        return (min === null || riderHeight >= min) && (max === null || riderHeight <= max)
+      })
       .map((size) => ({ ...bike, ...size }))
   )
 }

@@ -16,8 +16,8 @@ interface ApiRow {
   reach_mm?: number
   top_tube_length_mm?: number
   seat_tube_length_mm?: number
-  rider_height_min_mm?: number
-  rider_height_max_mm?: number
+  rider_height_min_mm?: number | null
+  rider_height_max_mm?: number | null
   handlebar_width_mm?: number
   crank_length_mm?: number
   source_url?: string
@@ -34,8 +34,8 @@ function apiRowToBikeSize(row: ApiRow): BikeSizeRow {
     reach: row.reach_mm ?? 0,
     ett: row.top_tube_length_mm ?? 0,
     seatTube: row.seat_tube_length_mm ?? 0,
-    riderHeightMin: row.rider_height_min_mm ?? 0,
-    riderHeightMax: row.rider_height_max_mm ?? 0,
+    riderHeightMin: row.rider_height_min_mm ?? null,
+    riderHeightMax: row.rider_height_max_mm ?? null,
     barWidth: row.handlebar_width_mm,
     crankLength: row.crank_length_mm,
   }
