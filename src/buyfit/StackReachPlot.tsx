@@ -27,10 +27,8 @@ const LABEL_GAP = 11
 // with getComputedTextLength if a font change makes labels collide.
 const CHAR_W = 6
 
-export const labelText = (b: { brand: string; model: string }) => {
-  const text = `${b.brand} ${b.model}`
-  return text.length > 24 ? text.substring(0, 23) + '…' : text
-}
+export const labelText = (text: string) =>
+  text.length > 24 ? text.substring(0, 23) + '…' : text
 
 export interface LabelPlacement {
   dy: number
@@ -76,12 +74,16 @@ export function StackReachPlot({
   bikes,
   fitWindow,
   median,
+  names,
 }: {
   bikes: BikeSize[]
   fitWindow: StackReachWindow
   median: number | null
+  names: Map<string, string>
 }) {
   if (bikes.length === 0) return null
+
+  const nameOf = (b: BikeSize) => names.get(b.bikeId) ?? `${b.brand} ${b.family}`
 
   // Pad the extents so points never sit on the frame.
   const reaches = bikes.map((b) => b.reach).concat(fitWindow.reachMin, fitWindow.reachMax)
@@ -99,7 +101,7 @@ export function StackReachPlot({
 
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
   const labels = placeLabels(
-    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(b) })),
+    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: labelText(nameOf(b)) })),
     W - 4
   )
 
@@ -163,9 +165,9 @@ export function StackReachPlot({
       </text>
 
       {bikes.map((bike) => (
-        <g key={`${bike.brand}-${bike.model}-${bike.size}`}>
+        <g key={`${bike.bikeId}-${bike.size}`}>
           <title>
-            {bike.brand} {bike.model}, size {bike.size}: stack {bike.stack} mm, reach{' '}
+            {nameOf(bike)}, size {bike.size}: stack {bike.stack} mm, reach{' '}
             {bike.reach} mm
           </title>
           <circle
@@ -186,7 +188,7 @@ export function StackReachPlot({
         const cy = py(bike.stack)
         const dir = label.side === 'left' ? -1 : 1
         return (
-          <g key={`label-${bike.brand}-${bike.model}-${bike.size}`}>
+          <g key={`label-${bike.bikeId}-${bike.size}`}>
             {label.dy !== 3 && (
               <line
                 class="plot-leader"
@@ -202,7 +204,7 @@ export function StackReachPlot({
               y={cy + label.dy}
               text-anchor={dir < 0 ? 'end' : 'start'}
             >
-              {labelText(bike)}
+              {labelText(nameOf(bike))}
             </text>
           </g>
         )
