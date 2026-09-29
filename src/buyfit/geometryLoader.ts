@@ -21,6 +21,10 @@ interface ApiRow {
   handlebar_width_mm?: number
   crank_length_mm?: number
   source_url?: string
+  bike_id?: string
+  family?: string
+  frame_name?: string
+  generation?: string
 }
 
 function apiRowToBikeSize(row: ApiRow): BikeSizeRow {
@@ -71,7 +75,7 @@ export async function loadGeometryData(): Promise<LoadResult> {
     }
   }
 
-  // Group rows by brand+model+year
+  // Group rows by bike id, with brand+model+year as fallback for APIs that don't send it
   const bikeMap = new Map<string, (ApiRow & { year: number })[]>()
   let noHeightDataCount = 0
 
@@ -81,7 +85,7 @@ export async function loadGeometryData(): Promise<LoadResult> {
       noHeightDataCount++
     }
 
-    const key = `${row.brand}|${row.model}|${row.model_year || 0}`
+    const key = row.bike_id || `${row.brand}|${row.model}|${row.model_year || 0}`
     if (!bikeMap.has(key)) {
       bikeMap.set(key, [])
     }
@@ -96,6 +100,10 @@ export async function loadGeometryData(): Promise<LoadResult> {
     bikes.push({
       brand: first.brand,
       model: first.model,
+      bikeId: first.bike_id || `${first.brand}|${first.model}|${first.year}`,
+      family: first.family || first.model,
+      frameName: first.frame_name || first.model,
+      generation: first.generation || '',
       year: first.year,
       verified: new Date().toISOString().split('T')[0],
       sizes: rows.map(apiRowToBikeSize),

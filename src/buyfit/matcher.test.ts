@@ -13,6 +13,10 @@ const db: Bike[] = [
   {
     brand: 'Alfa',
     model: 'One',
+    bikeId: 'alfa-one',
+    family: 'One',
+    frameName: 'One',
+    generation: '',
     year: 2026,
     verified: '2026-09-21',
     sizes: [
@@ -39,6 +43,10 @@ const db: Bike[] = [
   {
     brand: 'Bravo',
     model: 'Two',
+    bikeId: 'bravo-two',
+    family: 'Two',
+    frameName: 'Two',
+    generation: '',
     year: 2026,
     verified: '2026-09-21',
     sizes: [

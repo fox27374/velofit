@@ -23,6 +23,14 @@ export interface BikeSizeRow {
 export interface Bike {
   brand: string
   model: string
+  /** bikedb bike id; one per frame, shared by all its sizes. */
+  bikeId: string
+  /** Model family, e.g. "Domane". */
+  family: string
+  /** Frame name without generation, e.g. "Domane SL 5". */
+  frameName: string
+  /** Generation, e.g. "4", or "" when unknown. */
+  generation: string
   year: number
   verified: string
   sizes: BikeSizeRow[]
@@ -31,6 +39,14 @@ export interface Bike {
 export interface BikeSize extends BikeSizeRow {
   brand: string
   model: string
+  /** bikedb bike id; one per frame, shared by all its sizes. */
+  bikeId: string
+  /** Model family, e.g. "Domane". */
+  family: string
+  /** Frame name without generation, e.g. "Domane SL 5". */
+  frameName: string
+  /** Generation, e.g. "4", or "" when unknown. */
+  generation: string
   year: number
   verified: string
   stackDelta: number
