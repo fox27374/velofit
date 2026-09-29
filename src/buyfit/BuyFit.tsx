@@ -18,6 +18,7 @@ import {
   type Bike,
 } from './matcher'
 import { loadGeometryData } from './geometryLoader'
+import { normalizeDecimalInput } from './decimalInput'
 
 /** What the rider wants, as opposed to what their body implies. */
 type Preference = Character | 'none'
@@ -301,10 +302,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <strong>Inseam</strong>
             <span className="buyfit-input-unit">
               <input
-                type="number"
-                step="0.1"
+                type="text"
+                inputMode="decimal"
                 value={inseam}
-                onInput={(e) => setInseam((e.target as HTMLInputElement).value)}
+                onInput={(e) => setInseam(normalizeDecimalInput((e.target as HTMLInputElement).value))}
                 placeholder="e.g., 84"
                 className="buyfit-input"
               />
@@ -319,10 +320,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <strong>Height</strong>
             <span className="buyfit-input-unit">
               <input
-                type="number"
-                step="0.1"
+                type="text"
+                inputMode="decimal"
                 value={height}
-                onInput={(e) => setHeight((e.target as HTMLInputElement).value)}
+                onInput={(e) => setHeight(normalizeDecimalInput((e.target as HTMLInputElement).value))}
                 placeholder="e.g., 178"
                 className="buyfit-input"
               />
@@ -337,10 +338,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <strong>Shoulder Width</strong>
             <span className="buyfit-input-unit">
               <input
-                type="number"
-                step="0.1"
+                type="text"
+                inputMode="decimal"
                 value={shoulderWidth}
-                onInput={(e) => setShoulderWidth((e.target as HTMLInputElement).value)}
+                onInput={(e) => setShoulderWidth(normalizeDecimalInput((e.target as HTMLInputElement).value))}
                 placeholder="e.g., 41"
                 className="buyfit-input"
               />
