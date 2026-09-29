@@ -209,3 +209,79 @@ describe('headlineSizes', () => {
     expect(headlineSizes(2100, db)).toEqual([])
   })
 })
+
+describe('open-ended height bands', () => {
+  const bikeWithOpenBands: Bike[] = [
+    {
+      brand: 'Charlie',
+      model: 'Three',
+      bikeId: 'charlie-three',
+      family: 'Three',
+      frameName: 'Three',
+      generation: '',
+      year: 2026,
+      verified: '2026-09-29',
+      sizes: [
+        {
+          size: 'XS',
+          stack: 480,
+          reach: 360,
+          ett: 500,
+          seatTube: 420,
+          riderHeightMin: null,
+          riderHeightMax: 1650,
+        },
+        {
+          size: 'XL',
+          stack: 620,
+          reach: 410,
+          ett: 580,
+          seatTube: 560,
+          riderHeightMin: 1900,
+          riderHeightMax: null,
+        },
+        {
+          size: 'U',
+          stack: 550,
+          reach: 385,
+          ett: 540,
+          seatTube: 490,
+          riderHeightMin: null,
+          riderHeightMax: null,
+        },
+      ],
+    },
+  ]
+
+  it('treats a null riderHeightMin as open on the lower end', () => {
+    // Height 1500 matches XS (null min, max 1650).
+    expect(headlineSizes(1500, bikeWithOpenBands)).toEqual(['XS'])
+  })
+
+  it('includes a size when the height equals the max bound', () => {
+    // Height 1650 matches XS (null min, max 1650).
+    expect(headlineSizes(1650, bikeWithOpenBands)).toEqual(['XS'])
+  })
+
+  it('excludes sizes when the height is outside the open-ended band', () => {
+    // Height 1651 matches neither size with a bound.
+    expect(getStackReachWindow(1651, bikeWithOpenBands)).toBeNull()
+  })
+
+  it('skips the gap between open-ended sizes', () => {
+    // Height 1899 matches neither (below XL's min of 1900, above XS's max of 1650).
+    expect(getStackReachWindow(1899, bikeWithOpenBands)).toBeNull()
+  })
+
+  it('treats a null riderHeightMax as open on the upper end', () => {
+    // Height 2100 matches XL (min 1900, null max).
+    expect(headlineSizes(2100, bikeWithOpenBands)).toEqual(['XL'])
+  })
+
+  it('never matches a size with both bounds null', () => {
+    // U has both bounds null and must never match.
+    // Height 1750 falls between XS max and XL min, so only U could match.
+    // Since U is skipped, the result is null.
+    expect(getStackReachWindow(1750, bikeWithOpenBands)).toBeNull()
+  })
+})
