@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { ratioOf, type BikeSize, type StackReachWindow } from './matcher'
 
 /**
@@ -10,8 +11,10 @@ import { ratioOf, type BikeSize, type StackReachWindow } from './matcher'
  * drawing is only a picture of it.
  */
 
-const W = 520
-const H = 340
+// The drawing is laid out in CSS pixels at the width of its container, so it
+// can fill the section while text and points keep their size.
+const DEFAULT_W = 520
+const heightFor = (w: number) => Math.round(Math.min(Math.max(w * 0.6, 300), 520))
 const PAD = { top: 22, right: 28, bottom: 46, left: 58 }
 
 // Labels sit beside their point, nudged up or down when two labels would
@@ -81,7 +84,20 @@ export function StackReachPlot({
   median: number | null
   names: Map<string, string>
 }) {
+  const box = useRef<HTMLDivElement>(null)
+  const [W, setW] = useState(DEFAULT_W)
+  useLayoutEffect(() => {
+    const el = box.current
+    if (!el) return
+    const measure = () => el.clientWidth > 0 && setW(Math.round(el.clientWidth))
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [bikes.length === 0])
+
   if (bikes.length === 0) return null
+  const H = heightFor(W)
 
   const nameOf = (b: BikeSize) => names.get(b.bikeId) ?? `${b.brand} ${b.family}`
 
@@ -106,13 +122,33 @@ export function StackReachPlot({
   )
 
 
+  const win = {
+    x: px(fitWindow.reachMin),
+    y: py(fitWindow.stackMax),
+    width: Math.max(px(fitWindow.reachMax) - px(fitWindow.reachMin), 1),
+    height: Math.max(py(fitWindow.stackMin) - py(fitWindow.stackMax), 1),
+  }
+
   return (
+    <div class="plot-box" ref={box}>
     <svg
       class="plot"
       viewBox={`0 0 ${W} ${H}`}
+      width={W}
+      height={H}
       role="img"
       aria-label={`Stack and reach of ${bikes.length} bikes that fit, against your search window`}
     >
+      <defs>
+        {/* The middle of the window is the best fit; it fades out towards the
+            edges, which are only where the sample of fitting sizes ran out. */}
+        <radialGradient id="plot-window-fade" cx="0.5" cy="0.5" r="0.71">
+          <stop offset="0" class="plot-fade-stop" stop-opacity="0.34" />
+          <stop offset="0.45" class="plot-fade-stop" stop-opacity="0.16" />
+          <stop offset="1" class="plot-fade-stop" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
       <line class="plot-axis" x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={H - PAD.bottom} />
       <line
         class="plot-axis"
@@ -141,26 +177,8 @@ export function StackReachPlot({
         reach mm
       </text>
 
-      <rect
-        class="plot-dim-fill"
-        x={px(fitWindow.reachMin)}
-        y={py(fitWindow.stackMax)}
-        width={Math.max(px(fitWindow.reachMax) - px(fitWindow.reachMin), 1)}
-        height={Math.max(py(fitWindow.stackMin) - py(fitWindow.stackMax), 1)}
-      />
-      <rect
-        class="plot-dim"
-        fill="none"
-        x={px(fitWindow.reachMin)}
-        y={py(fitWindow.stackMax)}
-        width={Math.max(px(fitWindow.reachMax) - px(fitWindow.reachMin), 1)}
-        height={Math.max(py(fitWindow.stackMin) - py(fitWindow.stackMax), 1)}
-      />
-      <text
-        class="plot-dim-text"
-        x={px(fitWindow.reachMin)}
-        y={py(fitWindow.stackMax) - 7}
-      >
+      <rect fill="url(#plot-window-fade)" {...win} />
+      <text class="plot-dim-text" x={win.x} y={win.y - 7}>
         your window
       </text>
 
@@ -210,5 +228,6 @@ export function StackReachPlot({
         )
       })}
     </svg>
+    </div>
   )
 }
