@@ -1,102 +1,57 @@
 #!/usr/bin/env bash
+# Build velofit and bikedb at their checked-out HEADs on the container host
+# and roll the stack onto them.
+#
+# Usage, from anywhere: deploy/deploy.sh
+#   BIKEDB_REPO  bikedb checkout (default: ../bikedb next to this repo)
+#   VELOFIT_HOST ssh target      (default: claude@ataltpr06.lnxnet.org)
+#
+# Images are built on the host itself through `podhost`, so nothing travels
+# through a registry: the ghcr packages are private and the host has no login.
+# Each image is tagged with its repo's short HEAD sha, and those tags go into
+# ~/velofit/.env as VELOFIT_TAG and BIKEDB_TAG.
+#
+# The update is a plain `podman-compose up -d`. podman-compose (1.6 on the
+# host) runs the stack as pod_velofit and may restart db along with the app
+# containers; the volume survives, and a dump is taken first. This replaced
+# recreate.sh, which swapped containers one by one and cannot attach them to
+# a pod.
 set -euo pipefail
 
-# Deploy velofit + bikedb to podman host.
-# Assumes, as one-time host setup:
-#   sudo loginctl enable-linger claude   (rootless containers survive logout/reboot)
-#   ghcr package visibility set to public (host pulls anonymously)
-# HOST is an ssh alias: user claude on ataltpr06, via the dk-gate jump host.
-# The host is not reachable from here on any port but 22, so health checks
-# run over ssh rather than curling it directly.
+VELOFIT_REPO=$(cd "$(dirname "$0")/.." && pwd)
+BIKEDB_REPO=${BIKEDB_REPO:-$VELOFIT_REPO/../bikedb}
+HOST=${VELOFIT_HOST:-claude@ataltpr06.lnxnet.org}
 
-VELOFIT_REPO=/Users/dkofler/code/velofit
-BIKEDB_REPO=/Users/dkofler/code/bikedb
-HOST=${VELOFIT_HOST:-tpr06}
-HOST_DIR=velofit  # relative to the remote $HOME; never expand locally
-
-# Resolve tag from velofit HEAD
-TAG=$(cd "$VELOFIT_REPO" && git rev-parse --short HEAD)
-
-# Refuse to run if either repo's working tree is dirty
-if ! (cd "$VELOFIT_REPO" && git diff --quiet && git diff --cached --quiet); then
-  echo "velofit working tree is dirty. Commit or stash changes."
-  exit 1
-fi
-
-if ! (cd "$BIKEDB_REPO" && git diff --quiet && git diff --cached --quiet); then
-  echo "bikedb working tree is dirty. Commit or stash changes."
-  exit 1
-fi
-
-echo "Building images for tag: $TAG"
-
-# Build both images for linux/amd64
-cd "$VELOFIT_REPO"
-podman build --platform linux/amd64 -f deploy/Containerfile -t ghcr.io/fox27374/velofit:$TAG -t ghcr.io/fox27374/velofit:latest .
-
-cd "$BIKEDB_REPO"
-for svc in api scraper web; do
-  podman build --platform linux/amd64 -f Dockerfile.$svc -t ghcr.io/fox27374/bikedb-$svc:$TAG -t ghcr.io/fox27374/bikedb-$svc:latest .
-done
-
-# Login and push images
-echo "Pushing images to ghcr.io..."
-gh auth token | podman login ghcr.io -u fox27374 --password-stdin
-
-podman push ghcr.io/fox27374/velofit:$TAG
-podman push ghcr.io/fox27374/velofit:latest
-for svc in api scraper web; do
-  podman push ghcr.io/fox27374/bikedb-$svc:$TAG
-  podman push ghcr.io/fox27374/bikedb-$svc:latest
-done
-
-# Copy compose and systemd unit to host
-echo "Copying config to host..."
-ssh "$HOST" "mkdir -p \$HOME/$HOST_DIR"
-scp "$VELOFIT_REPO/deploy/compose.yaml" "$HOST:$HOST_DIR/"
-scp "$VELOFIT_REPO/deploy/velofit.service" "$HOST:$HOST_DIR/"
-
-# Generate or update .env on host
-echo "Setting up .env on host..."
-ssh "$HOST" "
-  cd \$HOME/$HOST_DIR
-  if [ ! -f .env ]; then
-    umask 077
-    PASS=\$(openssl rand -base64 32 | tr -d '/@ \"')
-    echo \"POSTGRES_PASSWORD=\$PASS\" > .env
-    echo \"IMAGE_TAG=$TAG\" >> .env
-  else
-    sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' .env
+for repo in "$VELOFIT_REPO" "$BIKEDB_REPO"; do
+  if [ -n "$(git -C "$repo" status --porcelain)" ]; then
+    echo "$repo has uncommitted changes; commit or stash them first." >&2
+    exit 1
   fi
-  grep -q '^BIKEDB_INTERNAL_TOKEN=' .env || echo \"BIKEDB_INTERNAL_TOKEN=\$(openssl rand -hex 32)\" >> .env
-"
-
-# Install systemd user unit
-echo "Installing systemd user unit..."
-ssh "$HOST" "
-  set -e
-  mkdir -p \$HOME/.config/systemd/user
-  cp \$HOME/$HOST_DIR/velofit.service \$HOME/.config/systemd/user/
-  systemctl --user daemon-reload
-  systemctl --user enable velofit
-  cd \$HOME/$HOST_DIR
-  podman-compose pull
-  systemctl --user restart velofit
-"
-
-# Health check
-echo "Waiting for services to be healthy..."
-TIMEOUT=60
-ELAPSED=0
-
-while [ $ELAPSED -lt $TIMEOUT ]; do
-  if ssh "$HOST" 'curl -sf http://localhost:8080/health >/dev/null && curl -sf http://localhost:8081/ >/dev/null'; then
-    echo "Health check passed!"
-    exit 0
-  fi
-  sleep 2
-  ELAPSED=$((ELAPSED + 2))
 done
+VT=$(git -C "$VELOFIT_REPO" rev-parse --short HEAD)
+BT=$(git -C "$BIKEDB_REPO" rev-parse --short HEAD)
+echo "velofit $VT, bikedb $BT"
 
-echo "Health check timeout after $TIMEOUT seconds"
-exit 1
+(cd "$VELOFIT_REPO" &&
+  podhost podman build -q --platform linux/amd64 -f deploy/Containerfile \
+    -t "ghcr.io/fox27374/velofit:$VT" .)
+(cd "$BIKEDB_REPO" &&
+  podhost "for x in api scraper web; do podman build -q --platform linux/amd64 -f Dockerfile.\$x -t ghcr.io/fox27374/bikedb-\$x:$BT . || exit 1; done")
+
+# compose.yaml and the unit are copied too, so the host never runs a stale one.
+scp -q "$VELOFIT_REPO/deploy/compose.yaml" "$VELOFIT_REPO/deploy/velofit.service" "$HOST:velofit/"
+
+ssh "$HOST" "set -euo pipefail
+  cd ~/velofit
+  mkdir -p backups
+  if podman container exists velofit_db_1; then
+    podman exec velofit_db_1 pg_dump -U bikedb -d bikedb > backups/bikedb-\$(date +%Y%m%d-%H%M%S).sql
+  fi
+  sed -i -e 's/^VELOFIT_TAG=.*/VELOFIT_TAG=$VT/' -e 's/^BIKEDB_TAG=.*/BIKEDB_TAG=$BT/' .env
+  podman-compose up -d >/dev/null
+  for _ in \$(seq 60); do
+    curl -sf localhost:8080/health >/dev/null && curl -sf localhost:8081/ >/dev/null && break
+    sleep 2
+  done
+  podman ps --format '{{.Names}} {{.Image}} {{.Status}}' | grep velofit_
+  curl -sf localhost:8081/api/v1/brands >/dev/null && echo 'deployed velofit $VT, bikedb $BT'"
