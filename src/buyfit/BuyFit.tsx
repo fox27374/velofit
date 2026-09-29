@@ -3,6 +3,7 @@ import {
   calculateSizing,
 } from './sizing'
 import { readSavedMeasurements } from './storage'
+import { checkMeasurements, type MeasurementField } from './plausibility'
 import { StackReachPlot } from './StackReachPlot'
 import { InfoPanel } from './InfoPanel'
 import { ResultsHeader } from './ResultsHeader'
@@ -169,6 +170,15 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [showMeasuringGuide, setShowMeasuringGuide] = useState(false)
   const [selectedBrands, setSelectedBrands] = useState<Set<string> | null>(null)
 
+  // Fields the rider has left at least once; their messages show only then,
+  // so typing "1" on the way to "180" does not flash an error.
+  const [touched, setTouched] = useState<Record<MeasurementField, boolean>>({
+    inseam: false,
+    height: false,
+    shoulderWidth: false,
+  })
+  const touch = (field: MeasurementField) => setTouched((t) => ({ ...t, [field]: true }))
+
   // Load bikes on mount
   useEffect(() => {
     loadGeometryData()
@@ -186,7 +196,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   // Load saved measurements on mount
   useEffect(() => {
     const saved = readSavedMeasurements(localStorage.getItem('buyfit_measurements'))
-    if (saved) {
+    const plausible =
+      saved !== null &&
+      checkMeasurements(parseFloat(saved.inseam), parseFloat(saved.height), parseFloat(saved.shoulderWidth)).ok
+    if (saved && plausible) {
       setInseam(saved.inseam)
       setHeight(saved.height)
       setShoulderWidth(saved.shoulderWidth)
@@ -207,7 +220,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const inseamMm = inseamNum ? Math.round(inseamNum * multiplier) : 0
   const heightMm = heightNum ? Math.round(heightNum * multiplier) : 0
   const shoulderWidthMm = shoulderWidthNum ? Math.round(shoulderWidthNum * multiplier) : 0
-  const allValid = inseamMm > 0 && heightMm > 0 && shoulderWidthMm > 0
+  const check = checkMeasurements(inseamNum, heightNum, shoulderWidthNum)
+  const allValid = check.ok
+  const anyEmpty = inseam === '' || height === '' || shoulderWidth === ''
 
   // Save to localStorage whenever valid measurements change
   useEffect(() => {
@@ -307,6 +322,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                 inputMode="decimal"
                 value={inseam}
                 onInput={(e) => setInseam(normalizeDecimalInput((e.target as HTMLInputElement).value))}
+                onBlur={() => touch('inseam')}
                 placeholder="e.g., 84"
                 className="buyfit-input"
               />
@@ -315,6 +331,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <p className="buyfit-help">
               Barefoot, crotch-to-floor against a wall. A 1 cm error moves saddle height about 9 mm.
             </p>
+            {touched.inseam && check.fields.inseam && (
+              <p className="buyfit-error" role="alert">{check.fields.inseam}</p>
+            )}
           </label>
 
           <label className="buyfit-field">
@@ -325,6 +344,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                 inputMode="decimal"
                 value={height}
                 onInput={(e) => setHeight(normalizeDecimalInput((e.target as HTMLInputElement).value))}
+                onBlur={() => touch('height')}
                 placeholder="e.g., 178"
                 className="buyfit-input"
               />
@@ -333,6 +353,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             <p className="buyfit-help">
               Total height barefoot. Used to find bikes in your height band.
             </p>
+            {touched.height && check.fields.height && (
+              <p className="buyfit-error" role="alert">{check.fields.height}</p>
+            )}
           </label>
 
           <label className="buyfit-field">
@@ -343,6 +366,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                 inputMode="decimal"
                 value={shoulderWidth}
                 onInput={(e) => setShoulderWidth(normalizeDecimalInput((e.target as HTMLInputElement).value))}
+                onBlur={() => touch('shoulderWidth')}
                 placeholder="e.g., 41"
                 className="buyfit-input"
               />
@@ -352,8 +376,15 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               Biacromial width, centre-to-centre (acromion to acromion). The UCI regulates three
               different handlebar width definitions; this one is used here.
             </p>
+            {touched.shoulderWidth && check.fields.shoulderWidth && (
+              <p className="buyfit-error" role="alert">{check.fields.shoulderWidth}</p>
+            )}
           </label>
         </div>
+
+        {touched.inseam && touched.height && check.ratio && (
+          <p className="buyfit-error" role="alert">{check.ratio}</p>
+        )}
 
         <div className="buyfit-input-controls">
           <label className="buyfit-field buyfit-field--plain">
@@ -402,7 +433,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       </div>
 
       {/* Show only "Enter measurements" message if not all valid */}
-      {!allValid && (
+      {anyEmpty && (
         <div className="buyfit-prompt">
           <p>Enter all three measurements</p>
         </div>
