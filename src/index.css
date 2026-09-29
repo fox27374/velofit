@@ -192,6 +192,12 @@ a {
   font-size: 0.875rem;
 }
 
+.buyfit-error {
+  color: var(--dim);
+  font-size: 0.875rem;
+  margin: 0.25rem 0 0;
+}
+
 /* ---- page layout ----------------------------------------------------- */
 
 .buyfit-page {
