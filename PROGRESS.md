@@ -64,6 +64,11 @@ once left db in a stale "Stopping" state that took the site down for ~7
 minutes on 2026-09-25. `deploy/recreate.sh` swaps the four app containers
 from their own `podman inspect` config while db keeps running; see the README.
 
+**Superseded 2026-09-29:** the host's podman-compose is now 1.6 and runs the
+stack as a pod, which `recreate.sh` cannot join (it failed twice that day).
+`deploy/deploy.sh` now builds on the host via `podhost` and runs
+`podman-compose up -d`; `recreate.sh` is deleted.
+
 ## API-backed BuyFit and tpr06 deployment, 2026-09-22
 
 BuyFit now fetches bike geometry from the bikedb REST API at runtime instead of
@@ -478,10 +483,7 @@ numbers. Bike type is *selected by the user*, never detected from the image.
      merge into their family; harmless for fit, wrong as a source.
    - Stray 172.56 mm crank lengths on random sizes look like an extraction
      error (probably a unit conversion).
-9. **deploy/deploy.sh is stale**: it pushes to ghcr and pulls on the host,
-   but the packages are private and the host has no ghcr login, and it still
-   writes `IMAGE_TAG`. Real deploys ship images over ssh and run
-   `deploy/recreate.sh` (README). Either make deploy.sh do that or delete it.
-10. **The stack/reach chart is capped at 34rem** while the page is 64rem.
-    Stretching the SVG only scales its text; real extra room needs the plot's
-    internal width to follow the container.
+9. ~~**deploy/deploy.sh is stale**~~ — rewritten 2026-09-29: builds on the
+   host via `podhost` and runs `podman-compose up -d`; `recreate.sh` deleted.
+10. ~~**The stack/reach chart is capped at 34rem**~~ — done 2026-09-29: the
+    plot is laid out at its container's pixel width.

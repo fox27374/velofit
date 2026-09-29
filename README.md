@@ -89,32 +89,24 @@ velofit image proxies to `bikedb:8080`. `~/velofit/.env` holds
 user unit `velofit.service` runs `podman-compose up -d` at boot, and
 `loginctl enable-linger claude` keeps it alive without a login.
 
-**Updating.** The `ghcr.io/fox27374/*` packages are private and the host has
-no registry login, so images travel over ssh, and podman-compose 1.0.6 is not
-used for updates: it ignores `--no-deps` and restarts db with whatever it
-recreates. Instead:
+**Updating.** From the agent box, with both repos checked out side by side
+and committed:
 
 ```sh
-# on this Mac, per image (bikedb: Dockerfile.api / .scraper / .web from the bikedb repo root)
-podman build --platform linux/amd64 -f deploy/Containerfile -t ghcr.io/fox27374/velofit:$TAG .
-podman save ghcr.io/fox27374/velofit:$TAG | gzip -1 | ssh tpr06 'gunzip | podman load'
-
-# on the host: dump first, set the tags in .env, then swap the app containers
-podman exec velofit_db_1 pg_dump -U bikedb -d bikedb > ~/velofit/backups/bikedb-$(date +%Y%m%d-%H%M%S).sql
-bash ~/velofit/recreate.sh <bikedb-tag> <velofit-tag>
+deploy/deploy.sh
 ```
 
-[`deploy/recreate.sh`](deploy/recreate.sh) (copy it to `~/velofit/`) removes
-velofit, web, scraper and the API in dependency order and starts them again
-on the new images from their own `podman inspect` config, restating the
-healthchecks; db keeps running. To update velofit alone, `podman run
---replace` its container with the same labels, network alias, port and
-`--requires`; nothing depends on it. If db ever sticks in "Stopping" with no
-process behind it, `podman rm -f --depend velofit_db_1` (the volume survives)
-and then, as a separate step, `systemctl --user restart velofit`.
+It builds `velofit` and the three `bikedb-*` images on the host through
+`podhost` (the `ghcr.io/fox27374/*` packages are private and the host has no
+registry login, so nothing is pushed), tags each with its repo's short HEAD
+sha, copies `compose.yaml` and the unit, dumps the database to
+`~/velofit/backups/`, writes the tags into `.env` and runs
+`podman-compose up -d`. podman-compose 1.6 runs the stack as the pod
+`pod_velofit` and may restart db with the app containers; the volume survives.
 
-[`deploy/deploy.sh`](deploy/deploy.sh) predates all of this and assumes
-public images; see `PROGRESS.md` next step 9.
+The old `recreate.sh`, which swapped containers one at a time to keep db
+running under podman-compose 1.0.6, cannot attach containers to that pod and
+took the stack down twice on 2026-09-29; it is gone.
 
 ## Accuracy, honestly
 
