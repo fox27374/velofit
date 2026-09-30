@@ -103,6 +103,18 @@ sha, copies `compose.yaml` and the unit, dumps the database to
 `~/velofit/backups/`, writes the tags into `.env` and runs
 `podman-compose up -d`. podman-compose 1.6 runs the stack as the pod
 `pod_velofit` and may restart db with the app containers; the volume survives.
+Afterwards it keeps the newest 3 image tags per repository (`KEEP`) and the
+newest 20 dumps (`BACKUPS`) on the host.
+
+**Rolling back.** To go back to image tags that are still on the host:
+
+```sh
+deploy/deploy.sh --tags <velofit-tag> <bikedb-tag>
+```
+
+It skips the build and the pruning, dumps the database and switches the tags.
+Migrations are not undone, so pick a bikedb tag whose schema the database
+still fits.
 
 The old `recreate.sh`, which swapped containers one at a time to keep db
 running under podman-compose 1.0.6, cannot attach containers to that pod and

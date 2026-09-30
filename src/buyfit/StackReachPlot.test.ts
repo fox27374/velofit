@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { labelText, placeLabels } from './StackReachPlot'
+import { labelText, placeLabels, pointLabels } from './StackReachPlot'
 
 const pt = (x: number, y: number, text = `${x},${y}`) => ({ x, y, text })
 
@@ -78,5 +78,31 @@ describe('placeLabels', () => {
   it('shows a repeated name once, even for sizes far apart', () => {
     const out = placeLabels([pt(100, 100, 'Trek Madone'), pt(300, 20, 'Trek Madone')])
     expect(out.filter((l) => l !== null)).toHaveLength(1)
+  })
+})
+
+describe('pointLabels', () => {
+  const name = (b: { bikeId: string }) => `Bike ${b.bikeId}`
+
+  it('leaves a single-size bike without its size', () => {
+    expect(pointLabels([{ bikeId: 'a', size: 'M' }], name)).toEqual(['Bike a'])
+  })
+
+  it('adds the size to every label of a bike shown in several sizes', () => {
+    const bikes = [
+      { bikeId: 'a', size: 'M' },
+      { bikeId: 'b', size: '54' },
+      { bikeId: 'a', size: 'L' },
+    ]
+    expect(pointLabels(bikes, name)).toEqual(['Bike a M', 'Bike b', 'Bike a L'])
+  })
+
+  it('truncates the name, not the size', () => {
+    const long = () => 'x'.repeat(30)
+    const bikes = [
+      { bikeId: 'a', size: 'M' },
+      { bikeId: 'a', size: 'L' },
+    ]
+    expect(pointLabels(bikes, long)[1]).toBe('x'.repeat(23) + '… L')
   })
 })
