@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'preact/hooks'
 import {
   calculateSizing,
+  inseamRatio,
 } from './sizing'
 import { readSavedMeasurements } from './storage'
 import { checkMeasurements, type MeasurementField } from './plausibility'
-import { StackReachPlot } from './StackReachPlot'
+import { StackReachPlot, legHint } from './StackReachPlot'
 import { InfoPanel } from './InfoPanel'
 import { ResultsHeader } from './ResultsHeader'
 import {
@@ -241,6 +242,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const matches = allValid && fitWindow && bikes
     ? matchBikes(heightMm, fitWindow.stackMin, fitWindow.stackMax, fitWindow.reachMin, fitWindow.reachMax, bikes)
     : []
+  const legProportion = allValid ? inseamRatio(inseamMm, heightMm)?.proportion ?? null : null
   const headline = allValid && bikes ? headlineSizes(heightMm, bikes) : []
 
   // Initialize brand filter when matches change
@@ -515,13 +517,14 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             {/* Chart and window info */}
             {fitWindow && matches.length > 0 && selectedBrands && selectedBrands.size > 0 && (
               <>
-                <StackReachPlot bikes={filteredMatches} fitWindow={fitWindow} median={filteredSplit.median} names={names} />
+                <StackReachPlot bikes={filteredMatches} fitWindow={fitWindow} median={filteredSplit.median} names={names} legProportion={legProportion} />
                 <div className="plot-legend">
                   <b className="is-racy">racier half</b>
                   <b className="is-upright">more upright half</b>
                   <span>window: stack {fitWindow.stackMin}–{fitWindow.stackMax},
                     reach {fitWindow.reachMin}–{fitWindow.reachMax} mm</span>
                 </div>
+                {legHint(legProportion) && <p className="plot-leg-hint">{legHint(legProportion)}</p>}
               </>
             )}
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { labelText, placeLabels, pointLabels } from './StackReachPlot'
+import { labelText, legFocus, legHint, placeLabels, pointLabels } from './StackReachPlot'
 
 const pt = (x: number, y: number, text = `${x},${y}`) => ({ x, y, text })
 
@@ -104,5 +104,24 @@ describe('pointLabels', () => {
       { bikeId: 'a', size: 'L' },
     ]
     expect(pointLabels(bikes, long)[1]).toBe('x'.repeat(23) + '… L')
+  })
+})
+
+describe('leg proportion', () => {
+  it('leaves the focus centred and says nothing for typical or unknown legs', () => {
+    for (const p of ['typical', null, undefined] as const) {
+      expect(legFocus(p)).toEqual({ fx: 0.5, fy: 0.5 })
+      expect(legHint(p)).toBeNull()
+    }
+  })
+
+  it('leans the focus to the upper left for long legs', () => {
+    expect(legFocus('long')).toEqual({ fx: 0.3, fy: 0.3 })
+    expect(legHint('long')).toMatch(/^Long legs:.*upper-left.*more stack, less reach/)
+  })
+
+  it('leans the focus to the lower right for short legs', () => {
+    expect(legFocus('short')).toEqual({ fx: 0.7, fy: 0.7 })
+    expect(legHint('short')).toMatch(/^Short legs:.*lower-right.*less stack, more reach/)
   })
 })
