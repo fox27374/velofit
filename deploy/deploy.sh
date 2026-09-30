@@ -5,6 +5,7 @@
 # Usage, from anywhere: deploy/deploy.sh
 #   BIKEDB_REPO  bikedb checkout (default: ../bikedb next to this repo)
 #   VELOFIT_HOST ssh target      (default: claude@ataltpr06.lnxnet.org)
+#   KEEP         image tags kept per repository on the host (default: 3)
 #
 # Images are built on the host itself through `podhost`, so nothing travels
 # through a registry: the ghcr packages are private and the host has no login.
@@ -21,6 +22,7 @@ set -euo pipefail
 VELOFIT_REPO=$(cd "$(dirname "$0")/.." && pwd)
 BIKEDB_REPO=${BIKEDB_REPO:-$VELOFIT_REPO/../bikedb}
 HOST=${VELOFIT_HOST:-claude@ataltpr06.lnxnet.org}
+KEEP=${KEEP:-3}  # image tags of each repository kept on the host
 
 for repo in "$VELOFIT_REPO" "$BIKEDB_REPO"; do
   if [ -n "$(git -C "$repo" status --porcelain)" ]; then
@@ -54,4 +56,17 @@ ssh "$HOST" "set -euo pipefail
     sleep 2
   done
   podman ps --format '{{.Names}} {{.Image}} {{.Status}}' | grep velofit_
-  curl -sf localhost:8081/api/v1/brands >/dev/null && echo 'deployed velofit $VT, bikedb $BT'"
+  curl -sf localhost:8081/api/v1/brands >/dev/null
+  echo 'deployed velofit $VT, bikedb $BT'
+
+  # Every deploy leaves a new tag of each image behind. Keep the newest
+  # $KEEP of each (the one just deployed and a few to roll back to) and
+  # drop untagged build leftovers. Only our own repositories are touched;
+  # an image still in use refuses removal and is skipped.
+  for repo in velofit bikedb-api bikedb-scraper bikedb-web bikedb; do
+    podman images --format '{{.CreatedAt}}|{{.Repository}}:{{.Tag}}' ghcr.io/fox27374/\$repo \\
+      | sort -r | tail -n +$((KEEP + 1)) | cut -d'|' -f2 \\
+      | while read -r img; do podman rmi \"\$img\" >/dev/null 2>&1 || true; done
+  done
+  podman image prune -f >/dev/null
+  podman system df --format '{{.Type}} {{.Size}} ({{.Reclaimable}} reclaimable)' | head -1"
