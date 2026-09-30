@@ -33,6 +33,19 @@ const CHAR_W = 6
 export const labelText = (text: string) =>
   text.length > 24 ? text.substring(0, 23) + '…' : text
 
+// A bike shown in more than one size gets its size in every label, so each
+// point is named and the sizes can be told apart.
+export function pointLabels<B extends { bikeId: string; size: string }>(
+  bikes: B[],
+  nameOf: (b: B) => string
+): string[] {
+  const sizesShown = new Map<string, number>()
+  for (const b of bikes) sizesShown.set(b.bikeId, (sizesShown.get(b.bikeId) ?? 0) + 1)
+  return bikes.map(
+    (b) => labelText(nameOf(b)) + ((sizesShown.get(b.bikeId) ?? 0) > 1 ? ` ${b.size}` : '')
+  )
+}
+
 export interface LabelPlacement {
   dy: number
   side: 'right' | 'left'
@@ -115,16 +128,11 @@ export function StackReachPlot({
   const py = (stack: number) =>
     H - PAD.bottom - ((stack - y0) / (y1 - y0)) * (H - PAD.top - PAD.bottom)
 
-  // A bike shown in more than one size gets its size in every label, so each
-  // point is named and the sizes can be told apart.
-  const sizesShown = new Map<string, number>()
-  for (const b of bikes) sizesShown.set(b.bikeId, (sizesShown.get(b.bikeId) ?? 0) + 1)
-  const pointLabel = (b: BikeSize) =>
-    labelText(nameOf(b)) + ((sizesShown.get(b.bikeId) ?? 0) > 1 ? ` ${b.size}` : '')
+  const pointLabelList = pointLabels(bikes, nameOf)
 
   const isRacy = (b: BikeSize) => median !== null && ratioOf(b) < median
   const labels = placeLabels(
-    bikes.map((b) => ({ x: px(b.reach), y: py(b.stack), text: pointLabel(b) })),
+    bikes.map((b, i) => ({ x: px(b.reach), y: py(b.stack), text: pointLabelList[i] })),
     W - 4
   )
 
@@ -229,7 +237,7 @@ export function StackReachPlot({
               y={cy + label.dy}
               text-anchor={dir < 0 ? 'end' : 'start'}
             >
-              {pointLabel(bike)}
+              {pointLabelList[i]}
             </text>
           </g>
         )

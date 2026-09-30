@@ -2,10 +2,14 @@
 # Build velofit and bikedb at their checked-out HEADs on the container host
 # and roll the stack onto them.
 #
-# Usage, from anywhere: deploy/deploy.sh
+# Usage, from anywhere:
+#   deploy/deploy.sh                      build the checked-out HEADs and deploy
+#   deploy/deploy.sh --tags VT BT         roll back to image tags already on the
+#                                         host (no build, no pruning)
 #   BIKEDB_REPO  bikedb checkout (default: ../bikedb next to this repo)
 #   VELOFIT_HOST ssh target      (default: claude@ataltpr06.lnxnet.org)
 #   KEEP         image tags kept per repository on the host (default: 3)
+#   BACKUPS      database dumps kept on the host (default: 20)
 #
 # Images are built on the host itself through `podhost`, so nothing travels
 # through a registry: the ghcr packages are private and the host has no login.
@@ -23,31 +27,48 @@ VELOFIT_REPO=$(cd "$(dirname "$0")/.." && pwd)
 BIKEDB_REPO=${BIKEDB_REPO:-$VELOFIT_REPO/../bikedb}
 HOST=${VELOFIT_HOST:-claude@ataltpr06.lnxnet.org}
 KEEP=${KEEP:-3}  # image tags of each repository kept on the host
+BACKUPS=${BACKUPS:-20}  # database dumps kept on the host
 
-for repo in "$VELOFIT_REPO" "$BIKEDB_REPO"; do
+ROLLBACK=0
+if [ "${1:-}" = "--tags" ]; then
+  [ $# -eq 3 ] || { echo "usage: deploy.sh --tags <velofit-tag> <bikedb-tag>" >&2; exit 2; }
+  ROLLBACK=1 VT=$2 BT=$3
+  ssh "$HOST" "for i in velofit:$VT bikedb-api:$BT bikedb-scraper:$BT bikedb-web:$BT; do
+      podman image exists ghcr.io/fox27374/\$i || { echo \"missing image \$i on host\" >&2; exit 1; }
+    done"
+elif [ $# -gt 0 ]; then
+  echo "usage: deploy.sh [--tags <velofit-tag> <bikedb-tag>]" >&2; exit 2
+fi
+
+[ $ROLLBACK -eq 1 ] || for repo in "$VELOFIT_REPO" "$BIKEDB_REPO"; do
   if [ -n "$(git -C "$repo" status --porcelain)" ]; then
     echo "$repo has uncommitted changes; commit or stash them first." >&2
     exit 1
   fi
 done
-VT=$(git -C "$VELOFIT_REPO" rev-parse --short HEAD)
-BT=$(git -C "$BIKEDB_REPO" rev-parse --short HEAD)
+if [ $ROLLBACK -eq 0 ]; then
+  VT=$(git -C "$VELOFIT_REPO" rev-parse --short HEAD)
+  BT=$(git -C "$BIKEDB_REPO" rev-parse --short HEAD)
+fi
 echo "velofit $VT, bikedb $BT"
 
-(cd "$VELOFIT_REPO" &&
-  podhost podman build -q --platform linux/amd64 -f deploy/Containerfile \
-    -t "ghcr.io/fox27374/velofit:$VT" .)
-(cd "$BIKEDB_REPO" &&
-  podhost "for x in api scraper web; do podman build -q --platform linux/amd64 -f Dockerfile.\$x -t ghcr.io/fox27374/bikedb-\$x:$BT . || exit 1; done")
+if [ $ROLLBACK -eq 0 ]; then
+  (cd "$VELOFIT_REPO" &&
+    podhost podman build -q --platform linux/amd64 -f deploy/Containerfile \
+      -t "ghcr.io/fox27374/velofit:$VT" .)
+  (cd "$BIKEDB_REPO" &&
+    podhost "for x in api scraper web; do podman build -q --platform linux/amd64 -f Dockerfile.\$x -t ghcr.io/fox27374/bikedb-\$x:$BT . || exit 1; done")
 
-# compose.yaml and the unit are copied too, so the host never runs a stale one.
-scp -q "$VELOFIT_REPO/deploy/compose.yaml" "$VELOFIT_REPO/deploy/velofit.service" "$HOST:velofit/"
+  # compose.yaml and the unit are copied too, so the host never runs a stale one.
+  scp -q "$VELOFIT_REPO/deploy/compose.yaml" "$VELOFIT_REPO/deploy/velofit.service" "$HOST:velofit/"
+fi
 
 ssh "$HOST" "set -euo pipefail
   cd ~/velofit
   mkdir -p backups
   if podman container exists velofit_db_1; then
     podman exec velofit_db_1 pg_dump -U bikedb -d bikedb > backups/bikedb-\$(date +%Y%m%d-%H%M%S).sql
+    ls -1t backups/bikedb-*.sql | tail -n +$((BACKUPS + 1)) | xargs -r rm -f
   fi
   sed -i -e 's/^VELOFIT_TAG=.*/VELOFIT_TAG=$VT/' -e 's/^BIKEDB_TAG=.*/BIKEDB_TAG=$BT/' .env
   podman-compose up -d >/dev/null
@@ -58,6 +79,7 @@ ssh "$HOST" "set -euo pipefail
   podman ps --format '{{.Names}} {{.Image}} {{.Status}}' | grep velofit_
   curl -sf localhost:8081/api/v1/brands >/dev/null
   echo 'deployed velofit $VT, bikedb $BT'
+  [ $ROLLBACK -eq 1 ] && exit 0
 
   # Every deploy leaves a new tag of each image behind. Keep the newest
   # $KEEP of each (the one just deployed and a few to roll back to) and
