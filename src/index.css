@@ -833,3 +833,9 @@ a {
     gap: 1.5rem;
   }
 }
+
+.plot-leg-hint {
+  margin: 0.4rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}

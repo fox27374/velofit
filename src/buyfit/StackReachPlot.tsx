@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks'
+import type { LegProportion } from './sizing'
 import { ratioOf, type BikeSize, type StackReachWindow } from './matcher'
 
 /**
@@ -46,6 +47,25 @@ export function pointLabels<B extends { bikeId: string; size: string }>(
   )
 }
 
+// Leg proportion only points the window's brightest spot at the corner that
+// may suit the rider; the step is fixed so it never implies an amount. Stack
+// grows upwards, so long legs (more stack, less reach) look to the upper left.
+const LEG_STEP = 0.2
+
+export function legFocus(p: LegProportion | null | undefined): { fx: number; fy: number } {
+  if (p === 'long') return { fx: 0.5 - LEG_STEP, fy: 0.5 - LEG_STEP }
+  if (p === 'short') return { fx: 0.5 + LEG_STEP, fy: 0.5 + LEG_STEP }
+  return { fx: 0.5, fy: 0.5 }
+}
+
+export function legHint(p: LegProportion | null | undefined): string | null {
+  if (p === 'long')
+    return 'Long legs: the brighter upper-left of your window (more stack, less reach) may suit you better.'
+  if (p === 'short')
+    return 'Short legs: the brighter lower-right of your window (less stack, more reach) may suit you better.'
+  return null
+}
+
 export interface LabelPlacement {
   dy: number
   side: 'right' | 'left'
@@ -91,12 +111,15 @@ export function StackReachPlot({
   fitWindow,
   median,
   names,
+  legProportion,
 }: {
   bikes: BikeSize[]
   fitWindow: StackReachWindow
   median: number | null
   names: Map<string, string>
+  legProportion?: LegProportion | null
 }) {
+  const focus = legFocus(legProportion)
   const box = useRef<HTMLDivElement>(null)
   const [W, setW] = useState(DEFAULT_W)
   useLayoutEffect(() => {
@@ -156,8 +179,9 @@ export function StackReachPlot({
     >
       <defs>
         {/* The middle of the window is the best fit; it fades out towards the
-            edges, which are only where the sample of fitting sizes ran out. */}
-        <radialGradient id="plot-window-fade" cx="0.5" cy="0.5" r="0.71">
+            edges, which are only where the sample of fitting sizes ran out. For long
+            or short legs the bright spot leans towards the favoured corner. */}
+        <radialGradient id="plot-window-fade" cx="0.5" cy="0.5" r="0.71" fx={focus.fx} fy={focus.fy}>
           <stop offset="0" class="plot-fade-stop" stop-opacity="0.34" />
           <stop offset="0.45" class="plot-fade-stop" stop-opacity="0.16" />
           <stop offset="1" class="plot-fade-stop" stop-opacity="0" />
