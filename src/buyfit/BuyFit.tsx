@@ -319,8 +319,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
       {allValid && !editing && (
         <div className="buyfit-summary">
-          <span>
-            Inseam {inseam} cm, height {height} cm, shoulders {shoulderWidth} cm
+          <span className="buyfit-summary-values">
+            <span>Inseam {inseam} cm</span>
+            <span>Height {height} cm</span>
+            <span>Shoulders {shoulderWidth} cm</span>
           </span>
           <button type="button" className="buyfit-summary-edit" onClick={() => setEditing(true)}>
             Edit

@@ -375,9 +375,18 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  border-bottom: 1px solid var(--rule);
   color: var(--ink-muted);
   font-size: 0.9rem;
+}
+
+.buyfit-summary-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1rem;
+}
+
+.buyfit-summary-values span {
+  white-space: nowrap;
 }
 
 .buyfit-summary-edit,
