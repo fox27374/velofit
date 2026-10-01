@@ -169,6 +169,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showMeasuringGuide, setShowMeasuringGuide] = useState(false)
+  // Saved measurements start folded into one line so a returning rider lands
+  // on the results, not on two screens of inputs.
+  const [editing, setEditing] = useState(true)
   const [selectedBrands, setSelectedBrands] = useState<Set<string> | null>(null)
 
   // Fields the rider has left at least once; their messages show only then,
@@ -207,6 +210,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       if (saved.preference) setPreference(saved.preference as Preference)
       // Don't show measuring guide if we have saved data
       setShowMeasuringGuide(false)
+      setEditing(false)
     } else {
       // First visit: show guide by default
       setShowMeasuringGuide(true)
@@ -313,8 +317,19 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         frame. Tap ⓘ on any number to see how well it is sourced.
       </p>
 
+      {allValid && !editing && (
+        <div className="buyfit-summary">
+          <span>
+            Inseam {inseam} cm, height {height} cm, shoulders {shoulderWidth} cm
+          </span>
+          <button type="button" className="buyfit-summary-edit" onClick={() => setEditing(true)}>
+            Edit
+          </button>
+        </div>
+      )}
+
       {/* Inputs section */}
-      <div className="buyfit-inputs">
+      <div className={allValid && !editing ? 'buyfit-inputs is-folded' : 'buyfit-inputs'}>
         <div className="buyfit-input-row">
           <label className="buyfit-field">
             <strong>Inseam</strong>
@@ -433,6 +448,12 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           </div>
         </details>
       </div>
+
+      {allValid && editing && (
+        <button type="button" className="buyfit-done" onClick={() => setEditing(false)}>
+          Done
+        </button>
+      )}
 
       {/* Show only "Enter measurements" message if not all valid */}
       {anyEmpty && (

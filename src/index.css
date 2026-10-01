@@ -172,6 +172,7 @@ a {
 
 .buyfit-back {
   justify-self: start;
+  min-height: 2.75rem;
   padding: 0;
   border: 0;
   background: none;
@@ -348,6 +349,9 @@ a {
 }
 
 .buyfit-details summary {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
@@ -360,6 +364,47 @@ a {
 
 .buyfit-guide-content {
   margin-top: 1rem;
+}
+
+.buyfit-inputs.is-folded {
+  display: none;
+}
+
+.buyfit-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.buyfit-summary-edit,
+.buyfit-done {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.buyfit-summary-edit {
+  flex: none;
+}
+
+.buyfit-done {
+  justify-self: start;
+  margin-top: 1rem;
+}
+
+.buyfit-summary-edit:hover,
+.buyfit-done:hover {
+  border-color: var(--ink);
 }
 
 .buyfit-prompt {
@@ -393,7 +438,8 @@ a {
 }
 
 .buyfit-brand-chip {
-  padding: 0.4rem 0.8rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.9rem;
   border: 1px solid var(--rule-strong);
   border-radius: 3px;
   background: var(--paper);
@@ -481,6 +527,7 @@ a {
 }
 
 .info-button {
+  position: relative;
   width: 1.4rem;
   height: 1.4rem;
   padding: 0;
@@ -492,6 +539,13 @@ a {
   font-size: 0.8rem;
   line-height: 1;
   cursor: pointer;
+}
+
+/* The ring stays small; the touch area reaches 44px. */
+.info-button::after {
+  content: '';
+  position: absolute;
+  inset: -0.7rem;
 }
 
 .info-button:hover,
