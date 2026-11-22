@@ -158,6 +158,14 @@ describe('getFrameGeometryRange', () => {
   it('is null when no bike covers the height', () => {
     expect(getFrameGeometryRange(2100, db)).toBeNull()
   })
+
+  it('leaves unpublished (0) lengths out of the range', () => {
+    const missing = db.map((b) => ({ ...b, sizes: b.sizes.map((s) => ({ ...s })) }))
+    missing[0].sizes.forEach((s) => { s.ett = 0; s.seatTube = 0 })
+    const range = getFrameGeometryRange(1750, [...db, ...missing])!
+    expect(range.ettMin).toBe(545)
+    expect(range.seatTubeMin).toBe(480)
+  })
 })
 
 describe('splitByCharacter', () => {

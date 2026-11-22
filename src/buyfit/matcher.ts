@@ -127,6 +127,12 @@ export function getStackReachWindow(
  * and stem are absent on purpose: makers do not publish them per size, so
  * there is nothing to report.
  */
+/** The loader stores an unpublished length as 0; leave those out of a range (all missing → [0]). */
+function published(values: number[]): number[] {
+  const known = values.filter((v) => v > 0)
+  return known.length > 0 ? known : [0]
+}
+
 export function getFrameGeometryRange(
   riderHeight: number,
   db: Bike[]
@@ -145,10 +151,10 @@ export function getFrameGeometryRange(
           .map((r) => r.size)
       ),
     ],
-    seatTubeMin: Math.min(...rows.map((r) => r.seatTube)),
-    seatTubeMax: Math.max(...rows.map((r) => r.seatTube)),
-    ettMin: Math.min(...rows.map((r) => r.ett)),
-    ettMax: Math.max(...rows.map((r) => r.ett)),
+    seatTubeMin: Math.min(...published(rows.map((r) => r.seatTube))),
+    seatTubeMax: Math.max(...published(rows.map((r) => r.seatTube))),
+    ettMin: Math.min(...published(rows.map((r) => r.ett))),
+    ettMax: Math.max(...published(rows.map((r) => r.ett))),
   }
 }
 
