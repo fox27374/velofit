@@ -12,8 +12,8 @@ interface ApiRow {
   model: string
   model_year?: number
   size: string
-  stack_mm?: number
-  reach_mm?: number
+  stack_mm?: number | null
+  reach_mm?: number | null
   top_tube_length_mm?: number
   seat_tube_length_mm?: number
   rider_height_min_mm?: number | null
@@ -30,8 +30,9 @@ interface ApiRow {
 function apiRowToBikeSize(row: ApiRow): BikeSizeRow {
   return {
     size: row.size,
-    stack: row.stack_mm ?? 0,
-    reach: row.reach_mm ?? 0,
+    // Null, not 0: a 0 would drag the window's minimum to 0. Such a size cannot match.
+    stack: row.stack_mm ?? null,
+    reach: row.reach_mm ?? null,
     ett: row.top_tube_length_mm ?? 0,
     seatTube: row.seat_tube_length_mm ?? 0,
     riderHeightMin: row.rider_height_min_mm ?? null,
@@ -46,7 +47,10 @@ interface LoadResult {
   noHeightDataCount: number
 }
 
-export async function loadGeometryData(): Promise<LoadResult> {
+/** The API's `category` values BuyFit loads: road, or triathlon for tri mode. */
+export type GeometryCategory = 'road' | 'triathlon'
+
+export async function loadGeometryData(category: GeometryCategory = 'road'): Promise<LoadResult> {
   const url = import.meta.env.VITE_BIKEDB_URL || DEFAULT_API_URL
 
   let allRows: ApiRow[] = []
@@ -56,7 +60,7 @@ export async function loadGeometryData(): Promise<LoadResult> {
   while (true) {
     try {
       const response = await fetch(
-        `${url}/api/v1/geometries?category=road&limit=200&offset=${offset}`
+        `${url}/api/v1/geometries?category=${category}&limit=200&offset=${offset}`
       )
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)

@@ -14,10 +14,36 @@ export interface SizingOutput {
   crankLength: string
   /** Why that band, in one sentence, so the number never travels alone. */
   crankNote: string
+  /** Tri mode only: what a tri saddle does to the road band. Null on road. */
+  saddleNote: string | null
 }
 
 /** What the rider said they want the bike to feel like. */
 export type RidingPreference = Character | 'none'
+
+/** Road, or triathlon/TT. Tri changes the crank, saddle and saddle-width outputs (§9). */
+export type Discipline = 'road' | 'triathlon'
+
+/**
+ * Tri crank: 165 mm, with the shorter option named. Direction moderately sourced,
+ * the number weak (§9.2). Ignores riding preference: tri always gets this band.
+ */
+const TRI_CRANK = {
+  range: '165 mm',
+  note:
+    'Shorter (155–160 mm) is fine if your hip feels closed at the top of the stroke; ' +
+    'no study found a power cost for going shorter. Aero positions close the hip most ' +
+    'at top dead centre, so the evidence points shorter here (§9.2).',
+}
+
+/**
+ * Tri saddle height: the road band stays, with the tri shift stated as unmeasured
+ * (§9.1). Moving the saddle on a tri bike is fitter practice, not a study result.
+ */
+const TRI_SADDLE_NOTE =
+  'On a tri bike you sit further forward. Fitters move this by about 1 cm either way, ' +
+  'depending on the saddle. Nose-forward saddles (such as ISM) usually start about 5 mm lower. ' +
+  'Set it on the bike (§9.1).'
 
 /**
  * Crank length as a band with a reason.
@@ -92,7 +118,8 @@ export function calculateSizing(
   inseam: number,
   _height: number,
   shoulderWidth: number,
-  preference: RidingPreference = 'none'
+  preference: RidingPreference = 'none',
+  discipline: Discipline = 'road'
 ): SizingOutput {
   // Saddle height: 0.870–0.895 × inseam (Sourced: LeMond/Hamley/Holliday)
   const saddleHeightMin = Math.round(inseam * 0.870)
@@ -102,7 +129,8 @@ export function calculateSizing(
   const handlebarWidthMin = shoulderWidth - 20
   const handlebarWidthMax = shoulderWidth + 20
 
-  const crank = crankLengthBand(preference)
+  const tri = discipline === 'triathlon'
+  const crank = tri ? TRI_CRANK : crankLengthBand(preference)
 
   return {
     saddleHeightMin,
@@ -112,6 +140,7 @@ export function calculateSizing(
     handlebarWidthMax,
     crankLength: crank.range,
     crankNote: crank.note,
+    saddleNote: tri ? TRI_SADDLE_NOTE : null,
   }
 }
 
@@ -165,9 +194,21 @@ export interface SaddleWidth {
  */
 export function saddleWidth(
   sitBoneMm: number,
-  preference: RidingPreference = 'none'
+  preference: RidingPreference = 'none',
+  discipline: Discipline = 'road'
 ): SaddleWidth | null {
   if (sitBoneMm <= 0) return null
+  if (discipline === 'triathlon') {
+    // §9.4: +10 for a conventional saddle only; the riding allowance does not apply.
+    return {
+      widthMm: sitBoneMm + 10,
+      note:
+        'Sit bones plus 10 mm, for a conventional saddle only. Nose-forward tri saddles (such as ' +
+        'ISM) are not sized from sit-bone width; the maker says to choose by test ride, and to set ' +
+        'the saddle about 5 cm further back and 5 mm lower than a normal saddle. Do not use this ' +
+        'number for those.',
+    }
+  }
   const allowance = SADDLE_ALLOWANCE_MM[preference]
   return {
     widthMm: sitBoneMm + allowance,

@@ -158,3 +158,34 @@ describe('bodyProportions', () => {
   })
 })
 
+
+describe('tri discipline (§9)', () => {
+  it('keeps the road saddle band and adds the tri saddle note', () => {
+    const road = calculateSizing(886, 1830, 410, 'none', 'road')
+    const tri = calculateSizing(886, 1830, 410, 'none', 'triathlon')
+    expect([tri.saddleHeightMin, tri.saddleHeightMax]).toEqual([road.saddleHeightMin, road.saddleHeightMax])
+    expect(road.saddleNote).toBeNull()
+    expect(tri.saddleNote).toMatch(/1 cm either way/)
+  })
+
+  it('fixes the crank at 165 mm whatever the riding preference', () => {
+    for (const pref of ['none', 'racy', 'relaxed'] as const) {
+      const tri = calculateSizing(886, 1830, 410, pref, 'triathlon')
+      expect(tri.crankLength).toBe('165 mm')
+      expect(tri.crankNote).toMatch(/155–160 mm/)
+    }
+  })
+
+  it('leaves the road crank output unchanged when discipline is omitted', () => {
+    expect(calculateSizing(886, 1830, 410, 'none').crankLength).toBe('165–170 mm')
+  })
+
+  it('sizes a tri saddle at sit bones + 10 mm, whatever the preference, and says it is conventional only', () => {
+    for (const pref of ['none', 'racy', 'relaxed'] as const) {
+      const tri = saddleWidth(130, pref, 'triathlon')!
+      expect(tri.widthMm).toBe(140)
+      expect(tri.note).toMatch(/conventional saddle only/)
+      expect(tri.note).toMatch(/ISM/)
+    }
+  })
+})

@@ -9,8 +9,9 @@
 
 export interface BikeSizeRow {
   size: string
-  stack: number
-  reach: number
+  /** Null when the maker publishes no stack or reach: such a size can never match. */
+  stack: number | null
+  reach: number | null
   ett: number
   seatTube: number
   /** Published rider-height band in mm. Null means the maker gives no bound on that side. */
@@ -38,7 +39,9 @@ export interface Bike {
   sizes: BikeSizeRow[]
 }
 
-export interface BikeSize extends BikeSizeRow {
+export interface BikeSize extends Omit<BikeSizeRow, 'stack' | 'reach'> {
+  stack: number
+  reach: number
   brand: string
   model: string
   /** bikedb bike id; one per frame, shared by all its sizes. */
@@ -54,6 +57,11 @@ export interface BikeSize extends BikeSizeRow {
   stackDelta: number
   reachDelta: number
   distanceFromCentre: number
+  /**
+   * The maker gives no rider-height band, so the size is listed only because its
+   * stack and reach fall inside the window. It never contributed to the window.
+   */
+  noHeightBand: boolean
 }
 
 export interface StackReachWindow {
@@ -72,8 +80,15 @@ export interface FrameGeometryRange {
   ettMax: number
 }
 
+type Measured<T extends BikeSizeRow> = T & { stack: number; reach: number }
+
+/** A size whose maker publishes both stack and reach. */
+function measured<T extends BikeSizeRow>(size: T): size is Measured<T> {
+  return size.stack !== null && size.reach !== null
+}
+
 /** Every model+size whose published rider-height band contains this height.
- * A missing bound is open on that side; a size with both bounds null is skipped. */
+ * A missing bound is open on that side; a size with both bounds null is never here. */
 function rowsForHeight(riderHeight: number, db: Bike[]): (BikeSizeRow & Bike)[] {
   return db.flatMap((bike) =>
     bike.sizes
@@ -95,7 +110,7 @@ export function getStackReachWindow(
   riderHeight: number,
   db: Bike[]
 ): StackReachWindow | null {
-  const rows = rowsForHeight(riderHeight, db)
+  const rows = rowsForHeight(riderHeight, db).filter(measured)
   if (rows.length === 0) return null
 
   return {
@@ -122,9 +137,12 @@ export function getFrameGeometryRange(
   return {
     // Ordered by stack, not alphabetically: size labels sort into nonsense
     // ("L, M, ML, S, XL, XS") and mix letters with numbers across makers.
+    // A size with no stack published sorts last rather than producing NaN.
     sizes: [
       ...new Set(
-        [...rows].sort((a, b) => a.stack - b.stack).map((r) => r.size)
+        [...rows]
+          .sort((a, b) => (a.stack ?? Number.MAX_SAFE_INTEGER) - (b.stack ?? Number.MAX_SAFE_INTEGER))
+          .map((r) => r.size)
       ),
     ],
     seatTubeMin: Math.min(...rows.map((r) => r.seatTube)),
@@ -135,8 +153,9 @@ export function getFrameGeometryRange(
 }
 
 /**
- * Every model+size in the height band, nearest the window centre first. All of
- * them, with their deltas — never a single winner, never a score.
+ * Every model+size in the height band, plus every size with no height band whose
+ * stack and reach fall inside the window (inclusive), nearest the window centre
+ * first. All of them, with their deltas — never a single winner, never a score.
  */
 export function matchBikes(
   riderHeight: number,
@@ -149,7 +168,26 @@ export function matchBikes(
   const stackCentre = (windowStackMin + windowStackMax) / 2
   const reachCentre = (windowReachMin + windowReachMax) / 2
 
-  return rowsForHeight(riderHeight, db)
+  const banded = rowsForHeight(riderHeight, db)
+    .filter(measured)
+    .map((row) => ({ ...row, noHeightBand: false }))
+
+  const unbanded = db.flatMap((bike) =>
+    bike.sizes
+      .filter(measured)
+      .filter(
+        (size) =>
+          size.riderHeightMin === null &&
+          size.riderHeightMax === null &&
+          size.stack >= windowStackMin &&
+          size.stack <= windowStackMax &&
+          size.reach >= windowReachMin &&
+          size.reach <= windowReachMax
+      )
+      .map((size) => ({ ...bike, ...size, noHeightBand: true }))
+  )
+
+  return [...banded, ...unbanded]
     .map(({ sizes: _sizes, ...row }) => {
       const stackDelta = row.stack - stackCentre
       const reachDelta = row.reach - reachCentre

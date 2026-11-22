@@ -154,3 +154,26 @@ describe('unit-less centimetre saves', () => {
     expect(saved?.inseam).toBe('88.6')
   })
 })
+
+describe('readSavedMeasurements discipline', () => {
+  it('reads a saved triathlon discipline', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({ inseam: '88', height: '183', shoulderWidth: '40', unit: 'cm', discipline: 'triathlon' })
+    )
+    expect(result?.discipline).toBe('triathlon')
+  })
+
+  it('leaves discipline undefined for a save from before tri mode, which BuyFit reads as road', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({ inseam: '88', height: '183', shoulderWidth: '40', unit: 'cm' })
+    )
+    expect(result?.discipline).toBeUndefined()
+  })
+
+  it('ignores an unknown discipline value', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({ inseam: '88', height: '183', shoulderWidth: '40', unit: 'cm', discipline: 'gravel' })
+    )
+    expect(result?.discipline).toBeUndefined()
+  })
+})

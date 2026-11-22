@@ -285,3 +285,69 @@ describe('open-ended height bands', () => {
     expect(getStackReachWindow(1750, bikeWithOpenBands)).toBeNull()
   })
 })
+
+describe('sizes with no height band', () => {
+  // Alfa and Bravo from the top of this file cover 1700–1800, so a 1750 rider
+  // sees a window of stack 550–590 and reach 385–395 from their banded rows.
+  const withUnbanded: Bike[] = [
+    ...db,
+    {
+      brand: 'Delta',
+      model: 'Four',
+      bikeId: 'delta-four',
+      family: 'Four',
+      frameName: 'Four',
+      generation: '',
+      year: 2026,
+      verified: '2026-11-22',
+      sizes: [
+        { size: 'in', stack: 560, reach: 390, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        { size: 'edge-max', stack: 590, reach: 395, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        { size: 'out-stack', stack: 591, reach: 390, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        { size: 'out-reach', stack: 560, reach: 396, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        { size: 'no-geometry', stack: null, reach: null, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        { size: 'orbea-like', stack: null, reach: null, ett: 550, seatTube: 500, riderHeightMin: 1750, riderHeightMax: 1850 },
+      ],
+    },
+  ]
+
+  it('lists a size with no band when its stack and reach are inside the window, flagged', () => {
+    const results = matchBikes(1750, 550, 590, 385, 395, withUnbanded)
+    const inside = results.find((r) => r.model === 'Four' && r.size === 'in')!
+    expect(inside.noHeightBand).toBe(true)
+    expect(results.find((r) => r.model === 'One' && r.size === 'M')!.noHeightBand).toBe(false)
+  })
+
+  it('includes a size exactly on the window edges, and excludes one a single unit outside', () => {
+    const sizes = matchBikes(1750, 550, 590, 385, 395, withUnbanded)
+      .filter((r) => r.model === 'Four')
+      .map((r) => r.size)
+    expect(sizes).toContain('edge-max')
+    expect(sizes).not.toContain('out-stack')
+    expect(sizes).not.toContain('out-reach')
+  })
+
+  it('never lists a size whose stack or reach is not published', () => {
+    const sizes = matchBikes(1750, 0, 10000, 0, 10000, withUnbanded)
+      .filter((r) => r.model === 'Four')
+      .map((r) => r.size)
+    expect(sizes).not.toContain('no-geometry')
+    expect(sizes).not.toContain('orbea-like')
+  })
+
+  it('does not move the window: unbanded sizes never contribute to it', () => {
+    const without = getStackReachWindow(1750, db)
+    const withExtra = getStackReachWindow(1750, withUnbanded)
+    expect(withExtra).toEqual(without)
+  })
+
+  it('gives finite deltas and no NaN for a row with null stack or reach in the database', () => {
+    const results = matchBikes(1750, 550, 590, 385, 395, withUnbanded)
+    for (const r of results) {
+      expect(Number.isFinite(r.stackDelta)).toBe(true)
+      expect(Number.isFinite(r.reachDelta)).toBe(true)
+    }
+    expect(() => getFrameGeometryRange(1750, withUnbanded)).not.toThrow()
+    expect(() => headlineSizes(1750, withUnbanded)).not.toThrow()
+  })
+})

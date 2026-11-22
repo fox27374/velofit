@@ -161,8 +161,8 @@ chart. **No scraping** of 99spokes, geometrygeeks or Bike Insights: it breaches
 their terms, and in the EU their compiled collection carries *sui generis*
 database right independent of the individual figures, which are facts and free.
 
-Road only. ~15 models in v1 — roughly 90 rows, enough to find every schema
-problem that 100 would. The matcher is tested against a synthetic table, never
+Road and tri, loaded by the API's `category` (`road` or `triathlon`). ~15 models
+in v1 — roughly 90 rows, enough to find every schema problem that 100 would. The matcher is tested against a synthetic table, never
 against the shipped data, so typing in real bikes cannot break the tests.
 
 First real model in: **Trek Madone SLR 9 AXS Gen 8 (2026)**, six sizes, stack
@@ -196,6 +196,15 @@ and size that fits with its mm deltas. Never a single winner, never a 0–100
 score: the window usually contains several sizes across several bikes, which is
 the true answer and the useful one when a shop has three of them in stock.
 
+**Sizes with no height band.** Some makers (Cervélo, BMC) publish stack and
+reach but no rider-height range. Such a size never contributes to the window:
+the window is still the spread of the banded rows. But it is listed when its
+stack and reach both fall inside the window (edges inclusive), flagged
+`noHeightBand`, with the note "no height range published — listed because its
+stack and reach are inside your window". A size with no stack or no reach
+(Orbea Ordu) cannot match at all. Null is never read as 0, which would drag the
+window's minimum to 0.
+
 ### Preference, and why it is allowed to exist
 
 Body measurements cannot rank two bikes that both fit — the Madone ML and the
@@ -225,6 +234,30 @@ Budget, groupset and brand are deliberately absent: they are properties of a
 *build*, not a frame. One Domane SLR exists at several prices with identical
 geometry, so a price field would need a whole build-level table under every
 frame.
+
+### Tri mode
+
+A **Road / Triathlon** switch on the form (default road, saved with the
+measurements; a save from before the switch reads as road). Tri loads the
+`triathlon` category and matches the same way, with these output changes, from
+`doc/frame-sizing-research.md` §9:
+
+- **Saddle height** keeps the road band, 0.870–0.895 × inseam, with a note that
+  fitters move it about 1 cm either way on a tri bike, and nose-forward saddles
+  (ISM) usually start about 5 mm lower. The tri shift is Weak, so none is applied.
+- **Crank length** is 165 mm, with "155–160 mm is fine if your hip feels closed
+  at the top of the stroke". Riding preference does not change it in tri.
+- **Handlebar width** is not shown. Tri bars are set in a fit, and no source
+  gives a body rule.
+- **Saddle width** is sit bones + 10 mm, labelled "conventional saddle only",
+  with a note that nose-forward tri saddles are not sized from sit-bone width.
+  The riding allowance does not apply.
+- **Frame list** is labelled a coarse filter, because the front end adds most
+  of the stack and adjacent sizes overlap (§9.5).
+
+Riding preference stays on in tri. It still splits the shortlist into the
+racier and more upright halves, which is a bike-character sort and not a
+saddle or crank output.
 
 ### Headline size
 
@@ -264,9 +297,9 @@ Tables / **BuyFit**.
 
 ## Not in v1
 
-- Tri and MTB, in both the formulas and the database. Tri geometry is a
-  different fit problem — steep seat angle, weight on the aerobars — so an
-  Orbea Ordu matched by road rules would be matched wrong.
+- MTB, in both the formulas and the database. Tri is in (see Tri mode): its
+  geometry is a different fit problem, so tri outputs are their own, not road
+  rules reused.
 - Flexibility tests of any kind.
 - Foot length field.
 - A shared rider profile with the video fit. **Consequence:** inseam is typed

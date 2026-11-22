@@ -1,4 +1,4 @@
-import type { Sex } from './sizing'
+import type { Discipline, Sex } from './sizing'
 
 /**
  * The rider's saved measurements, in centimetres, as the input fields hold
@@ -14,6 +14,8 @@ export interface SavedMeasurements {
   armLength?: string
   sitBoneWidth?: string
   sex?: Sex
+  /** Absent in saves from before tri mode; BuyFit reads absent as road. */
+  discipline?: Discipline
 }
 
 /**
@@ -60,5 +62,6 @@ export function readSavedMeasurements(raw: string | null): SavedMeasurements | n
     armLength: optional(d.armLength),
     sitBoneWidth: optional(d.sitBoneWidth),
     sex: d.sex === 'male' || d.sex === 'female' ? d.sex : undefined,
+    discipline: d.discipline === 'road' || d.discipline === 'triathlon' ? d.discipline : undefined,
   }
 }

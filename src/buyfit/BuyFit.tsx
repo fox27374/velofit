@@ -5,6 +5,7 @@ import {
   inseamRatio,
   saddleWidth,
   type BodyProportion,
+  type Discipline,
   type Sex,
 } from './sizing'
 import { readSavedMeasurements } from './storage'
@@ -29,7 +30,7 @@ import {
   type BikeSize,
   type Bike,
 } from './matcher'
-import { loadGeometryData } from './geometryLoader'
+import { loadGeometryData, type GeometryCategory } from './geometryLoader'
 import { normalizeDecimalInput } from './decimalInput'
 import { displayLabels } from './displayName'
 
@@ -142,6 +143,11 @@ function BikeRow({ bike, name }: { bike: BikeSize; name: string }) {
       </strong>
       <span className="buyfit-result-size">size {bike.size}</span>
       <span className="buyfit-delta">{measurementLine(bike)}</span>
+      {bike.noHeightBand && (
+        <span className="buyfit-note">
+          No height range published — listed because its stack and reach are inside your window.
+        </span>
+      )}
       <span className="buyfit-delta">
         {bike.stackDelta > 0 ? '+' : ''}{Math.round(bike.stackDelta)} mm stack,{' '}
         {bike.reachDelta > 0 ? '+' : ''}{Math.round(bike.reachDelta)} mm reach from the middle of
@@ -266,6 +272,8 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [height, setHeight] = useState<string>('')
   const [shoulderWidth, setShoulderWidth] = useState<string>('')
   const [preference, setPreference] = useState<Preference>('none')
+  // Tri changes the crank, saddle and saddle-width outputs and the bike data (§9).
+  const [discipline, setDiscipline] = useState<Discipline>('road')
   // Optional: none of these moves the bike matching (doc/buyfit-design.md, Inputs).
   const [sternumHeight, setSternumHeight] = useState<string>('')
   const [armLength, setArmLength] = useState<string>('')
@@ -293,19 +301,30 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const touch = (field: MeasurementField | OptionalField) =>
     setTouched((t) => ({ ...t, [field]: true }))
 
-  // Load bikes on mount
+  // Load bikes for the chosen discipline, and again when it changes. A reply for a
+  // category the rider has already left is dropped.
   useEffect(() => {
-    loadGeometryData()
+    let current = true
+    const category: GeometryCategory = discipline
+    setLoading(true)
+    setError(null)
+    setBikes(null)
+    loadGeometryData(category)
       .then((result) => {
+        if (!current) return
         setBikes(result.bikes)
         setLoading(false)
       })
       .catch(() => {
+        if (!current) return
         const apiUrl = import.meta.env.VITE_BIKEDB_URL || 'http://localhost:8080'
         setError(`No connection to the bike database at ${apiUrl}. The app needs the API to load geometry data. Start the server and reload.`)
         setLoading(false)
       })
-  }, [])
+    return () => {
+      current = false
+    }
+  }, [discipline])
 
   // Load saved measurements on mount
   useEffect(() => {
@@ -318,6 +337,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       setHeight(saved.height)
       setShoulderWidth(saved.shoulderWidth)
       if (saved.preference) setPreference(saved.preference as Preference)
+      setDiscipline(saved.discipline ?? 'road')
       setSternumHeight(saved.sternumHeight ?? '')
       setArmLength(saved.armLength ?? '')
       setSitBoneWidth(saved.sitBoneWidth ?? '')
@@ -361,6 +381,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           height,
           shoulderWidth,
           preference,
+          discipline,
           sternumHeight,
           armLength,
           sitBoneWidth,
@@ -370,11 +391,11 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         })
       )
     }
-  }, [inseam, height, shoulderWidth, preference, sternumHeight, armLength, sitBoneWidth, sex, allValid])
+  }, [inseam, height, shoulderWidth, preference, discipline, sternumHeight, armLength, sitBoneWidth, sex, allValid])
 
   // Calculate outputs only if all inputs are valid
-  const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference) : null
-  const saddle = allValid ? saddleWidth(sitBoneMm, preference) : null
+  const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference, discipline) : null
+  const saddle = allValid ? saddleWidth(sitBoneMm, preference, discipline) : null
   const proportions = allValid
     ? bodyProportions({
         heightMm,
@@ -585,6 +606,17 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
         <div className="buyfit-input-controls">
           <label className="buyfit-field buyfit-field--plain">
+            <strong>Bike type</strong>
+            <select
+              value={discipline}
+              onChange={(e) => setDiscipline((e.target as HTMLSelectElement).value as Discipline)}
+              className="buyfit-select"
+            >
+              <option value="road">Road</option>
+              <option value="triathlon">Triathlon / TT</option>
+            </select>
+          </label>
+          <label className="buyfit-field buyfit-field--plain">
             <strong>Riding position you want</strong>
             <select
               value={preference}
@@ -700,19 +732,22 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               <span className="buyfit-value">
                 {sizing.saddleHeightMin}–{sizing.saddleHeightMax} mm
               </span>
+              {sizing.saddleNote && <p className="buyfit-note">{sizing.saddleNote}</p>}
             </div>
 
-            <div className="buyfit-output">
-              <div className="buyfit-card-title">
-                <strong>Handlebar width</strong>
-                <InfoPanel label="handlebar width" evidence="Weak" anchor="31-handlebar-width-from-shoulder-width">
-                  Measured centre to centre.
-                </InfoPanel>
+            {discipline === 'road' && (
+              <div className="buyfit-output">
+                <div className="buyfit-card-title">
+                  <strong>Handlebar width</strong>
+                  <InfoPanel label="handlebar width" evidence="Weak" anchor="31-handlebar-width-from-shoulder-width">
+                    Measured centre to centre.
+                  </InfoPanel>
+                </div>
+                <span className="buyfit-value">
+                  {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm
+                </span>
               </div>
-              <span className="buyfit-value">
-                {sizing.handlebarWidthMin}–{sizing.handlebarWidthMax} mm
-              </span>
-            </div>
+            )}
 
             <div className="buyfit-output">
               <div className="buyfit-card-title">
@@ -733,6 +768,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                   </InfoPanel>
                 </div>
                 <span className="buyfit-value">{saddle.widthMm} mm</span>
+                {discipline === 'triathlon' && (
+                  <p className="buyfit-note">Conventional saddle only.</p>
+                )}
               </div>
             )}
 
@@ -863,6 +901,14 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             {filteredMatches.length > 0 && selectedBrands && selectedBrands.size > 0 && (
               <div>
                 <h3 className="buyfit-group-title">Bikes that fit your window</h3>
+                {discipline === 'triathlon' && (
+                  <p className="buyfit-note">
+                    Tri bikes are sized from where your armrests need to be, not from your height. These
+                    frames suit your height. Which size works best depends on the cockpit (risers, stem,
+                    extensions) and is set in a fit. If two sizes are shown, both can usually fit you.
+                    Treat this list as a coarse filter.
+                  </p>
+                )}
                 <p className="buyfit-note">
                   Every bike listed fits your window; the groups are about what you want, not what
                   fits. They are split at the median stack-to-reach ratio of your own matches, so
