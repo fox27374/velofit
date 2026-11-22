@@ -121,8 +121,8 @@ export function calculateSizing(
  *
  * The band itself is weak: §4.5 of the research doc records that the
  * cycling-specific 41–51% range comes from self-reported forum aggregates,
- * with no study behind it, and that ANSUR II could settle it but has not been
- * extracted. So this is a flag for the rider to interpret, not an input to any
+ * with no study behind it. §8.3 has since extracted ANSUR II, but this band is
+ * kept as it was. So this is a flag for the rider to interpret, not an input to any
  * calculation.
  *
  * Returns null when either measurement is missing or non-positive.

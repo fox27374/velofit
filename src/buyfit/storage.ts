@@ -37,7 +37,8 @@ export function readSavedMeasurements(raw: string | null): SavedMeasurements | n
   }
   if (typeof data !== 'object' || data === null) return null
   const d = data as Record<string, unknown>
-  const inMm = d.unit !== 'cm'
+  // Unit-less saves from 2026-09-27 to 2026-11-22 are centimetres; a height under 300 gives them away.
+  const inMm = d.unit === 'mm' || (d.unit === undefined && !(parseFloat(String(d.height)) < 300))
 
   const field = (value: unknown): string => {
     const text = value === undefined || value === null ? '' : String(value)

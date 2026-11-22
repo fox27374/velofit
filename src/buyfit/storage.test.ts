@@ -146,3 +146,11 @@ describe('readSavedMeasurements, optional fields', () => {
     expect(result?.sex).toBeUndefined()
   })
 })
+
+describe('unit-less centimetre saves', () => {
+  it('reads a unit-less save with a height under 300 as centimetres', () => {
+    const saved = readSavedMeasurements(JSON.stringify({ inseam: '88.6', height: '183', shoulderWidth: '40' }))
+    expect(saved?.height).toBe('183')
+    expect(saved?.inseam).toBe('88.6')
+  })
+})

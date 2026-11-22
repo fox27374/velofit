@@ -143,7 +143,7 @@ function MeasureMark({ n, geometry: g }: { n: number; geometry: SketchMeasure })
       ))}
       <circle className="body-sketch-dot" cx={x1} cy={y1} r="2" />
       <circle className="body-sketch-dot" cx={x2} cy={y2} r="2" />
-      <circle className="body-sketch-badge" cx={g.badge[0]} cy={g.badge[1]} r="8" />
+      <circle className="body-sketch-badge" cx={g.badge[0]} cy={g.badge[1]} r="10" />
       <text className="body-sketch-badge-text" x={g.badge[0]} y={g.badge[1]}>
         {n}
       </text>
