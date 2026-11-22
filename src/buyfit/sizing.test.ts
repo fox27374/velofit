@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import {
+  bodyProportions,
   calculateSizing,
   crankLengthBand,
   inseamRatio,
+  saddleWidth,
 } from './sizing'
+
+// The reference rider from doc/frame-sizing-research.md §8.3: male, 183.0 cm.
+const REF = { heightMm: 1830, inseamMm: 886, sternumMm: 1489, armMm: 612 }
 
 describe('calculateSizing', () => {
   it('calculates saddle height as 0.870–0.895 × inseam', () => {
@@ -82,6 +87,74 @@ describe('inseamRatio', () => {
     expect(inseamRatio(0, 1800)).toBeNull()
     expect(inseamRatio(800, 0)).toBeNull()
     expect(inseamRatio(-800, 1800)).toBeNull()
+  })
+})
+
+describe('saddleWidth', () => {
+  // Reference rider, sit bones 128 mm centre to centre (§8.1 allowances).
+  it('adds the riding-position allowance to centre-to-centre sit-bone width (§8.1)', () => {
+    expect(saddleWidth(128, 'racy')?.widthMm).toBe(138)
+    expect(saddleWidth(128, 'none')?.widthMm).toBe(148)
+    expect(saddleWidth(128, 'relaxed')?.widthMm).toBe(158)
+  })
+
+  it('says the allowance is brand guidance, and what the width means', () => {
+    const note = saddleWidth(128)?.note ?? ''
+    expect(note).toContain('brand guidance')
+    expect(note).toContain('effective')
+  })
+
+  it('returns null when sit-bone width is missing', () => {
+    expect(saddleWidth(0)).toBeNull()
+  })
+})
+
+describe('bodyProportions', () => {
+  it('reports percentages of height without a reference when sex is not set', () => {
+    const p = bodyProportions(REF)
+    expect(p.sternum?.percentOfHeight).toBe(81.4)
+    expect(p.torso?.percentOfHeight).toBe(33)
+    expect(p.arm?.percentOfHeight).toBe(33.4)
+    expect(p.sternum?.ansurMm).toBeUndefined()
+    expect(p.sternum?.label).toBeUndefined()
+  })
+
+  // Male, 1830 mm, sternum 1489 mm:
+  // ANSUR sternum = -101.4 + 0.8769 × 1830 = 1503.3 mm, SD 11.7 → z = -1.22.
+  it('labels the reference rider sternum as short (z ≈ −1.2)', () => {
+    const sternum = bodyProportions({ ...REF, sex: 'male' }).sternum!
+    expect(sternum.ansurMm).toBeCloseTo(1503.3, 1)
+    expect(sternum.z).toBeCloseTo(-1.22, 2)
+    expect(sternum.label).toBe('short')
+  })
+
+  // Torso = 1489 - 886 = 603 mm. ANSUR torso = 74.9 + 0.2948 × 1830 = 614.4 mm,
+  // SD 24.2 → z = -0.47, so typical.
+  it('labels the reference rider torso as typical (z ≈ −0.5)', () => {
+    const torso = bodyProportions({ ...REF, sex: 'male' }).torso!
+    expect(torso.measuredMm).toBe(603)
+    expect(torso.z).toBeCloseTo(-0.47, 2)
+    expect(torso.label).toBe('typical')
+  })
+
+  // ANSUR arm = -35.4 + 0.3636 × 1830 = 630.0 mm, SD 17.6 → z = -1.02. Arm never
+  // gets a label, whatever its z.
+  it('gives the reference rider arm an ANSUR average and z, but never a label', () => {
+    const arm = bodyProportions({ ...REF, sex: 'male' }).arm!
+    expect(arm.ansurMm).toBeCloseTo(630.0, 0)
+    expect(arm.z).toBeCloseTo(-1.02, 2)
+    expect(arm.label).toBeUndefined()
+  })
+
+  it('leaves torso out when sternum height or inseam is missing', () => {
+    expect(bodyProportions({ ...REF, sternumMm: 0 }).torso).toBeNull()
+    expect(bodyProportions({ ...REF, inseamMm: 0 }).torso).toBeNull()
+  })
+
+  it('leaves unentered measures out and returns nulls without a height', () => {
+    const p = bodyProportions({ heightMm: 1830, inseamMm: 0, sternumMm: 0, armMm: 0 })
+    expect(p).toEqual({ sternum: null, torso: null, arm: null })
+    expect(bodyProportions({ ...REF, heightMm: 0 }).sternum).toBeNull()
   })
 })
 

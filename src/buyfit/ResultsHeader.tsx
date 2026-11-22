@@ -18,18 +18,32 @@ export function ResultsHeader({
   heightMm,
   inseamMm,
   shoulderMm,
+  sternumMm,
+  armMm,
+  sitBoneMm,
   sizes,
 }: {
   heightMm: number
   inseamMm: number
   shoulderMm: number
+  /** The optional measures, in mm; left out of the sketch when absent. */
+  sternumMm?: number
+  armMm?: number
+  sitBoneMm?: number
   /** The most common size labels for this height; empty when no bike lists it. */
   sizes: string[]
 }) {
   const ratio = inseamRatio(inseamMm, heightMm)
   return (
     <section className="results-header" aria-label="Your measurements and size">
-      <BodySketch heightMm={heightMm} inseamMm={inseamMm} shoulderMm={shoulderMm} />
+      <BodySketch
+        heightMm={heightMm}
+        inseamMm={inseamMm}
+        shoulderMm={shoulderMm}
+        sternumMm={sternumMm}
+        armMm={armMm}
+        sitBoneMm={sitBoneMm}
+      />
       <div className="results-header-summary">
         <div className="buyfit-card-title">
           <h2>

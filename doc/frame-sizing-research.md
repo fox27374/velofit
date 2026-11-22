@@ -765,11 +765,86 @@ themselves do not have, because the numbers on them mean different things.
     clones. **Not sources.** They are the origin of several uncited multipliers in circulation
     (notably `0.65 × inseam`) and were not used for any number above.
 
+**Saddle width and sit bones (§8.1–§8.2)**
+
+35. Lin Z-J, Wang H-H, Chen C-H. "The Effect of Bicycle Saddle Widths on Saddle Pressure in
+    Female Cyclists." *J Sports Sci Med* 2023;22(3):425–430. DOI: 10.52082/jssm.2023.425.
+    PMC10499128. n = 10 women; saddle width = ischial width +1 cm gave the best pressure
+    distribution. **Method for ischial width not stated, comfort not measured, and the power
+    output differs between abstract and methods.**
+36. Chen Y-L. "Changes in external ischial tuberosity width at varying trunk–thigh angles
+    between sexes using two measurement methods." *Sci Rep* 2021;11:19676.
+    DOI: 10.1038/s41598-021-99232-w. PMC8490358. n = 45 men + 45 women. With the clay impress
+    method (centre-to-centre), width is stable across posture; on a hard-surface pressure mat
+    it shrinks by about 11.5 mm from 105° to 60° trunk–thigh angle.
+37. SQlab (manufacturer). Sit-bone measurement and saddle width system pages:
+    https://www.sq-lab.com/en/us/ergonomics/sit-bone-measurement-for-bike-saddles ·
+    https://www.sq-lab.com/en/technology/saddle-width-system ·
+    https://www.sq-lab.com/en/brand/news/gravel-ergonomics-advice (sporty +1 cm, moderate +2 cm) ·
+    https://www.sq-lab.com/en/bicycle-type/trekking-bike/saddles (+3 cm) ·
+    MTB page (+2 cm; via search summary, page not read directly). **Manufacturer guidance; no
+    study cited.**
+38. SQlab, "Stop guessing. Start measuring."
+    https://www.sq-lab.com/en/us/brand/news/0017_stop-guessing-start-measuring- — "Mark the
+    center of both imprints and measure the distance between them."
+39. Selle Italia idmatch size guide. https://www.selleitalia.com/size-guide/ — S below 120 mm,
+    L above 120 mm; pelvic rotation picks the cut-out size (1/2/3), not the width.
+    **Manufacturer guidance.**
+40. Specialized sit-bone → saddle-width chart (143 / 155 / 168 mm), as reproduced on a
+    Performance Bike product page ("All measurements are provided by the manufacturer").
+    https://www.performancebike.com/specialized-power-pro-mirror-saddle-black-27122-8703-p/p1416860
+    **specialized.com returned 403; not read on the manufacturer's own site.**
+41. Ergon, "Measuring Your Sit Bone Width for the Right Saddle Size."
+    https://www.ergonbike.com/en/magazine/measuring-your-sit-bone-width-for-the-right-saddle-size
+    Centre-to-centre; S/M vs M/L boundary at about 12 cm. **Manufacturer guidance.**
+42. bike-components.de, "Measuring sit bone distance" guide.
+    https://www.bike-components.de/blog/en/guides/measuring-sit-bone-distance-bicycle-saddle-home-saddle-width
+    Retailer guide: allowance of 0 (tri) to "up to four centimeters" (upright).
+43. Potter JJ, Sauer JL, Weisshaar CL, Thelen DG, Ploeg HL. "Gender differences in bicycle saddle
+    pressure distribution during seated cycling." *Med Sci Sports Exerc* 2008;40(6):1126–1134.
+    DOI: 10.1249/MSS.0b013e3181666eea. Abstract only.
+44. Spears IR, Cummins NK, Brenchley Z, et al. "The effect of saddle design on stresses in the
+    perineum during cycling." *Med Sci Sports Exerc* 2003;35(9):1620–1625.
+    DOI: 10.1249/01.MSS.0000084559.35162.73. Single-pelvis finite-element model; abstract only.
+45. Bressel E, Nash D, Dolny D. "Association between attributes of a cyclist and bicycle seat
+    pressure." *J Sex Med* 2010;7(10):3424–3433. DOI: 10.1111/j.1743-6109.2010.01905.x.
+46. Larsen AS, Larsen FG, Sørensen FF, et al. "The effect of saddle nose width and cutout on saddle
+    pressure distribution and perceived discomfort in women during ergometer cycling."
+    *Appl Ergon* 2018;70:175–181. DOI: 10.1016/j.apergo.2018.03.002. Tests the nose, not the rear
+    width; recorded so the search is not repeated.
+47. Sauer JL, Potter JJ, Weisshaar CL, Ploeg HL, Thelen DG. "Influence of gender, power, and hand
+    position on pelvic motion during seated cycling." *Med Sci Sports Exerc* 2007;39(12):2204–2211.
+    DOI: 10.1249/mss.0b013e3181568b66.
+
+**Body proportions (§8.3)**
+
+48. ANSUR II public data, Penn State OpenLab mirror:
+    https://tools.openlab.psu.edu/publicData/ANSUR_II_MALE_Public.csv ·
+    https://tools.openlab.psu.edu/publicData/ANSUR_II_FEMALE_Public.csv (index page
+    https://www.openlab.psu.edu/ansur2/). 4,082 men and 1,986 women. The §8.3 ratios were
+    computed from these files, unweighted. This supersedes the "statistics not extracted" note
+    on source 32 for crotch height.
+49. *Measurer's Handbook: US Army and Marine Corps
+    Anthropometric Surveys, 2010–2011.* NATICK/TR-11/017.
+    https://tools.openlab.psu.edu/publicData/ANSURII-TR11-017.pdf — landmark and measurement
+    definitions quoted in §8.3. **Authors not captured.**
+50. Chen Y-L, Yang P-J. "A preliminary study of the measurement of external ischial tuberosity
+    width and its gender differences." *J Phys Ther Sci* 2016;28(3):820–823.
+    DOI: 10.1589/jpts.28.820. n = 15 + 15 Taiwanese adults. Impress method: men 11.96 cm, women
+    13.53 cm.
+
 ---
 
 ## 7. Confidence and gaps
 
 ### Well sourced
+
+- **Sit bones are measured centre-to-centre** (cardboard, gel or clay). Every manufacturer
+  method agrees, and the research impress method is the same measurement made precise (§8.1).
+- **ANSUR II proportions** (§8.3): male inseam 48.15 ± 1.41%, sternum height
+  81.91 ± 0.71%, torso 33.75 ± 1.39%, arm (acromion→stylion) 34.34 ± 1.01% of stature. Female
+  values in §8.3. Computed from 6,068 public records. The definitions come from the Measurer's
+  Handbook. Torso% is nearly the mirror of inseam% (r ≈ −0.87).
 
 - **Saddle height ≈ 0.870–0.895 × inseam as a starting range**, with a ±20–25 mm honest band.
   Two independent lineages agreeing to ~1.5 mm, a peer-reviewed null between them, a
@@ -797,6 +872,13 @@ themselves do not have, because the numbers on them mean different things.
   predictor. Real, but weak, and the predictor is a clinical test the app cannot run.
 - **The Genzling ↔ "French Fit" identification.** An inference from the shared sternal-notch
   measurement. Plausible, undocumented.
+- **Riding position changes the effective sit-bone contact width** (§8.2). Chen 2021: on a hard
+  surface, about −11.5 mm from 105° to 60° trunk–thigh angle; Potter 2008: centre of pressure moves
+  forward in the drops. The direction is sourced. The seated postures were not cycling, and no
+  study converts this into a saddle allowance.
+- **ANSUR II ratios as civilian cyclist norms** (§8.3). The statistics themselves are well
+  sourced (computed from the public files). The population is a young, fit US military sample,
+  unweighted.
 
 ### Weak, unverified, or actively rejected
 
@@ -820,6 +902,21 @@ themselves do not have, because the numbers on them mean different things.
 - **Inseam-to-stature variation of 41–51%.** Forum self-reports. ANSUR II would settle it;
   not extracted here.
 - **Cyclefit methodology.** Nothing published located at all.
+- **Saddle width = sit bones + 10–30 mm** (§8.1). Manufacturer guidance (SQlab), not
+  evidence. The only independent test is Lin 2023 (n = 10 women, +1 cm best, ischial-width
+  method unstated). Specialized's chart (143/155/168) implies a different and more generous
+  allowance. Spears 2003's "at least two times the bi-ischial width" is irreconcilable with all
+  commercial rules and unexplained.
+- **Per-position saddle allowance (+1 / +2 / +3 cm).** No study located. SQlab only. Two
+  other versions also circulate. Competitive Cyclist's "+10–30 mm" could not be read (the site
+  is geo-blocked from the EU, §1.1). Zinn Cycles' "+2 cm standard, +3–4 cm upright" was seen
+  only in a search summary. Neither page was read directly.
+- **Fitter "arm length" landmark and fitter "average" reference values.** No published fitter
+  protocol was found. The reference rider's fitter averages sit 2.1 cm (sternum height) and
+  3.1 cm (arm) below ANSUR II at 183 cm, but match it on inseam. The fitter's reference is
+  unknown.
+- **Sit-bone population norms for Europeans.** Only Taiwanese (Chen 2016/2021) and small US samples
+  were located. No population dataset of centre-to-centre sit-bone width was found.
 - **The flexibility self-rating.** No study located relates a self-rating to the Knee Extension
   Angle or modified Schober tests that the one relevant regression actually used. Any output
   gated on it rests on an unvalidated proxy.
@@ -835,3 +932,219 @@ themselves do not have, because the numbers on them mean different things.
 3. **Decide whether the stack/reach search window ships at all.** It is the only output that
    could plausibly be called "frame sizing", and it is entirely derived (§2.2). If it ships,
    its confidence label is the most important string in the feature.
+4. **Get the Lin 2023 ischial-width method** (§8.1). If its 15.5 cm is an outer-edge measure, the
+   "+1 cm" maps to a different centre-to-centre allowance.
+5. **Find a published fitter arm-length protocol** (landmark at the wrist, and arm hanging vs
+   horizontal) before velofit labels arms "long" or "short" next to a fitter's report.
+
+---
+
+## 8. Saddle width and body-proportion reference values
+
+Research date: 2026-11-22. Added after §1–§7; same rules. Sources are numbered on from §6
+(35–50), and the gaps are listed in §7. Each claim below carries one of the §7 grades. A fifth
+label, **manufacturer guidance**, marks a brand's own recommendation. It is never counted as
+evidence.
+
+### 8.1 Saddle width from sit-bone width
+
+**How sit bones are measured, and what the number means.** Every manufacturer method found
+uses the same home test. The rider sits on corrugated cardboard (or a gel or memory-foam pad)
+with feet raised so the knees are at about 90°, then stands up. The rider marks **the centre of
+each imprint** and measures between the two marks. So the input to every rule below is
+**centre-to-centre** distance. SQlab says this directly ("Mark the center of both imprints and
+measure the distance between them" [38]); Ergon says "Measure the distance between the centres
+of the indentations" [41]; the Specialized chart on a retailer page says "Make a dot in the
+center of each sit bone impression" [40]. **Well sourced** that the convention is
+centre-to-centre.
+
+The research name for this quantity is *external ischial tuberosity width* (EITW). Chen 2021
+[36] measured it by having the sitter press into clay, then measuring between the deepest
+point of each hollow with a vernier caliper. That is the cardboard method made precise, so it
+is also centre-to-centre. On this method EITW **did not change with trunk–thigh angle**
+(spread across 60–105°: 2.8 mm for men, 2.1 mm for women). Means: men 112.6–115.4 mm,
+women 125.9–128.0 mm (n = 45 + 45, young Taiwanese adults) [36]. Women's sit bones were about
+13 mm wider [36]; Sauer et al., as cited in [36], found 18 mm. **Well sourced** that the
+soft-medium method is stable and that the sex difference is 13–18 mm.
+The population means do not transfer to other populations without checking.
+
+On a **hard flat surface with a pressure mat**, the result moves with posture instead. See §8.2.
+
+**The rules that exist. All are manufacturer guidance; none publishes a validation.**
+
+| Source | Rule (input: sit bones centre-to-centre) | Implied allowance |
+|---|---|---|
+| SQlab, road / sporty [37] | sit bones **+ 1 cm** | +10 mm |
+| SQlab, moderate / more upright [37] | sit bones **+ 2 cm** | +20 mm |
+| SQlab, MTB [37] | sit bones **+ 2 cm** | +20 mm |
+| SQlab, trekking [37] | sit bones **+ 3 cm** | +30 mm |
+| bike-components.de guide (SQlab tools) [42] | fully stretched (tri) **+ 0**; upright "up to four centimetres" | 0 to +40 mm |
+| Specialized chart, via a retailer [40] | 80–121 → 143 mm; 122–140 → 155 mm; 141–180 → 168 mm | +15 to +63 mm, by band |
+| Selle Italia idmatch [39] | < 120 mm → **S**, > 120 mm → **L** (no mm width given) | not stated |
+| Ergon [41] | S/M vs M/L boundary at about 12 cm | not stated |
+
+SQlab also says "a more aggressive posture shifts the pressure point further forward on the
+saddle" and that, when unsure, the wider of two sizes is the safer choice [37]. Saddle width
+itself has no standard definition. SQlab defines *effective* width as the points beyond which
+the saddle falls by more than 1 cm [37]. Brands that print only the total width are not
+comparable on this number. The same problem applies to handlebar width (§3.1).
+
+**Is any rule validated? Mostly no.**
+
+- **Lin, Wang & Chen 2023** [35] is the only located study that tests saddle width against the
+  rider's own ischial width. n = 10 young women, 3D-printed saddles 14–17 cm wide, 30 s of
+  pressure-mat data per condition at 90 rpm. A saddle **1 cm wider** than ischial width gave
+  lower peak and mean pressure under the posterior ischium. It also gave a smaller contact
+  area over the pubic bone than saddles equal to the ischial width or 1 cm narrower. The
+  abstract claims "better comfort", but **no comfort rating was collected**. The paper does not
+  say how ischial width was measured. Its mean of 15.5 cm is well above the 12.6–12.8 cm that
+  [36] found for women. So it may not be a centre-to-centre number. The abstract says 150 W and
+  the methods say 100 W. **Weak.** It points the same way as SQlab's +1 cm road rule, but cannot
+  carry a formula.
+- **Spears et al. 2003** [44] used a finite-element model of **one** male pelvis. Perineal stress
+  fell once the saddle supported both tuberosities, "best achieved when the saddle was at least
+  two times wider than the bi-ischial width". The abstract does not define the bi-ischial width
+  it used. "Two times" is far wider than any commercial rule (a 128 mm rider would need
+  256 mm). **Weak**, and not reconciled with the rules above. It does support the direction:
+  too narrow loads the perineum.
+- **Potter et al. 2008** [43] (n = 22): IT width correlated with where the centre of pressure
+  sat on the saddle, but no width rule was tested.
+- **Bressel et al. 2010** [45] (n = 40 men): **body weight** explained up to 50% of mean seat
+  pressure; pelvic tilt and flexibility explained peak pressure. IT width was measured but was
+  not a leading predictor. **Moderately sourced**: sit-bone width is not the main driver of
+  seat pressure.
+- **Larsen et al. 2018** [46] (n = 19 women): this study tested **nose** width and cut-out, not
+  rear width. Not relevant to the rule.
+
+**What velofit can print.**
+
+> **Saddle width ≈ sit-bone width (centre-to-centre) + 10 to 30 mm.** Use +10 mm for a low road
+> position, +20 mm for moderate or MTB, and +30 mm for upright or trekking. Between two sizes,
+> take the wider one.
+
+Grade: **manufacturer guidance (SQlab)**, plus **Weak** independent support for the +10 mm end
+(Lin 2023, n = 10). Label it "brand guidance, not a validated rule", and name the convention:
+the input is centre-to-centre and the output is the saddle's *effective* width. Note in the UI
+that Specialized's chart is more generous in the low band. For the reference rider
+(128 mm), the rule gives **138 / 148 / 158 mm**, while Specialized's chart gives 155 mm for any
+position.
+
+### 8.2 Does riding position change the right width?
+
+**Direction: moderately sourced. Magnitude: manufacturer guidance only.**
+
+The mechanism is that as the pelvis rotates forward, the rider sits further forward on the
+ischial and pubic rami. Those rami converge towards the front, so the contact points get
+closer together. Two studies support the direction:
+
+- **Chen 2021** [36] measured the same 90 people on a **hard flat pressure mat**. The measured
+  contact width shrank as the trunk–thigh (TT) angle closed, while the clay method did not
+  change (§8.1). Seated-pressure EITW, mean (SD):
+
+  | TT angle | Men | Women |
+  |---|---|---|
+  | 105° | 122.6 (13.9) mm | 136.3 (10.5) mm |
+  | 90° | 120.7 (13.4) mm | 134.0 (8.7) mm |
+  | 75° | 116.6 (12.9) mm | 129.4 (10.2) mm |
+  | 60° | 111.1 (12.7) mm | 124.6 (10.9) mm |
+
+  That is **about −11.5 mm across 45° of closing**, roughly 2.5 mm per 10°. These are seated
+  postures with the back against a wall, not riding. A road position in the drops closes the
+  hip further than 60°, and that range was not tested.
+- **Potter et al. 2008** [43]: going from the tops to the drops moved the centre of pressure
+  forward in every region and lowered posterior load. In women, it raised anterior load.
+  **Sauer et al. 2007** [47] measured anterior pelvic tilt in the drops: 21 ± 3° for men and
+  24 ± 4° for women.
+
+**What is not sourced.** No study tests a saddle-width *allowance* per riding position. The
++1 / +2 / +3 cm steps are SQlab's [37]. "Up to +4 cm upright, +0 for tri" is a retailer guide
+[42]. Selle Italia maps pelvic rotation to **cut-out size**, not width [39]. Treat the steps as
+manufacturer guidance.
+
+**Implementation.** Take the allowance from the riding-position choice velofit already
+collects: +10 / +20 / +30 mm. Show it as brand guidance. Chen's numbers are a plausibility
+check only: they put a 10–20 mm gap between upright and aggressive sitting, the same size as
+SQlab's step. They are not a formula.
+
+### 8.3 Arm and torso length relative to stature (ANSUR II)
+
+**Dataset.** ANSUR II public release [48]: 4,082 men and 1,986 women, US Army, 2010–2012. Every
+row has all 93 dimensions, so there are no missing values. Values are in mm. The ratios below
+were computed for this document from the public CSVs. Each row was used once, with **no
+population weighting**, so these are not the weighted Army statistics in the Summary Report.
+Landmark definitions come from the Measurer's Handbook [49].
+
+**Which ANSUR variable matches which fitter measurement.**
+
+| Fitter term | Closest ANSUR II variable | Handbook definition [49] |
+|---|---|---|
+| Inseam (Schrittlänge) | `crotchheight` | Floor to crotch, anthropometer blade raised "in firm contact with the crotch", with "additional upward pressure". Same as the §0 convention. |
+| Sternum height (Brustbeinhöhe) | `suprasternaleheight` | Floor to suprasternale, "the inferior point of the jugular notch of the sternum (top of the breastbone)". **An exact match** for floor to jugular notch. |
+| Torso length | `suprasternaleheight − crotchheight` | Derived. ANSUR has no single variable for this. |
+| Arm length | `acromionradialelength + radialestylionlength` | Acromion (tip of the shoulder) to radiale (top of the radius at the elbow), plus radiale to stylion (tip of the radial styloid at the wrist), arm hanging. A beam caliper is laid parallel to each segment. |
+| Arm length, vertical alternative | `acromialheight − wristheight` | Both measured to the floor with the arm hanging straight. About 0.6% of stature shorter, because the arm does not hang perfectly vertical. |
+
+A fitter's "arm length" is usually a tape measure laid along the hanging arm from the acromion
+to the wrist. That matches **acromion → stylion as two segments** best, but only if the
+fitter ends at the radial styloid, the bony bump on the thumb side, which sits at about the
+wrist crease. That landmark match is inferred, not sourced. A fitter who measures to the
+centre of the fist or to the grip will get a larger number. **Weak**: fitter landmarks are not
+published (see the gap in §7).
+
+**Results, as a percentage of stature (mean ± 1 SD).**
+
+| Measure | Men (n = 4,082) | Women (n = 1,986) |
+|---|---|---|
+| Stature | 1756 ± 69 mm | 1629 ± 64 mm |
+| Inseam (crotch height) | **48.15 ± 1.41 %** | **48.02 ± 1.51 %** |
+| Sternum height (suprasternale) | **81.91 ± 0.71 %** | **81.64 ± 0.71 %** |
+| Torso (suprasternale − crotch) | **33.75 ± 1.39 %** | **33.62 ± 1.34 %** |
+| Arm (acromion→radiale→stylion) | **34.34 ± 1.01 %** | **33.92 ± 1.08 %** |
+| Arm (acromial ht − wrist ht) | 33.77 ± 1.08 % | 33.21 ± 1.12 % |
+| Span | 103.30 ± 2.74 % | 101.95 ± 2.92 % |
+
+Grade: **Well sourced** as statistics of ANSUR II. Applying them to civilian cyclists is
+**Moderately sourced**. The sample is military, aged 17–58 (median 28 for men, 27 for women; about 85% are 40 or younger), screened for fitness, and
+US-mixed in ethnicity.
+
+**Ratios drift with stature.** Taller people have proportionally longer legs. A linear fit on
+stature (mm), with the residual SD (the "±1 SD" at a given height), gives:
+
+| Measure | Men | Women |
+|---|---|---|
+| Inseam | `−176.3 + 0.5821·S`, resid SD 23.9 | `−179.1 + 0.5904·S`, resid SD 23.6 |
+| Sternum height | `−101.4 + 0.8769·S`, resid SD 11.7 | `−93.6 + 0.8740·S`, resid SD 11.0 |
+| Torso | `74.9 + 0.2948·S`, resid SD 24.2 | `85.5 + 0.2836·S`, resid SD 21.5 |
+| Arm (segments) | `−35.4 + 0.3636·S`, resid SD 17.6 | `−58.5 + 0.3752·S`, resid SD 17.5 |
+
+From the regression, the expected male inseam is 47.5% of stature at 1650 mm and 48.9% at
+1900 mm. That drift is about 1 SD across the range. **Classify with the regression
+form, not a fixed ratio.**
+
+**Torso adds almost nothing beyond inseam.** Sternum height is very tight (SD 0.71% of stature,
+r = 0.98 with stature). So torso% and inseam% are almost mirror images: r = −0.87 for men and
+−0.88 for women. In practice, "long torso" means "short legs for the height". Arm% correlates
++0.52 to +0.58 with inseam% and −0.39 to −0.45 with torso%.
+
+**Suggested classification.** Let *z* = (measured − predicted from stature) / residual SD,
+computed separately for men and women. Use **long** for *z* > +1, **short** for *z* < −1, and
+**typical** in between. By construction, about 16% of people fall into each tail. The band is a
+convention, not a cycling finding. Holliday & Swart (§1.9) found that arm length predicted no
+fit variable.
+
+**Sanity check against the reference rider** (male, 183.0 cm):
+
+| Measure | Rider | ANSUR II predicted at 1830 mm | *z* | Fitter's "vs average" |
+|---|---|---|---|---|
+| Inseam | 88.6 cm | 88.9 cm (ratio: 88.1) | −0.1 | +0.5 → fitter average 88.1 |
+| Sternum height | 148.9 cm | 150.3 cm (ratio: 149.9) | −1.2 | +0.7 → fitter average 148.2 |
+| Arm | 61.2 cm | 63.0 cm (ratio: 62.8) | −1.0 | +1.3 → fitter average 59.9 |
+| Torso | 60.3 cm | 61.4 cm (ratio: 61.8) | −0.5 | — |
+
+The inseam agrees with the fixed-ratio ANSUR value to 0.0 cm. **Sternum height and arm do
+not.** The fitter's average sternum is 2.1 cm lower and the fitter's average arm is 3.1 cm
+shorter than ANSUR at the same height. Against ANSUR, the rider is *short* in sternum and arm
+(*z* ≈ −1). Against the fitter, he is above average. The fitter either uses a different
+reference population or ends the arm at a different landmark, or both. Neither is
+published. **velofit must say which reference it uses**, and it must not mix its labels with
+a fitter's "+x cm vs average".

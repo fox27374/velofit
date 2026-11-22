@@ -70,10 +70,20 @@ not about evidence.
 
 ### Inputs
 
-Inseam, height, shoulder width. Nothing else — every field must have a
-consumer. Arm length, torso length and foot length are **not collected**:
-Holliday & Swart measured the first two and they survived into no model, and
-no published mapping from foot length to any frame dimension exists.
+Inseam, height, shoulder width. Nothing else is required — every field must
+have a consumer. Four optional fields add detail: **sternum height** (floor to
+the jugular notch), **arm length** (shoulder tip to wrist), **sit-bone width**
+(centre to centre, measured seated) and **sex**.
+
+Sit-bone width sets the saddle width output (§8.1, brand allowance). Sex is
+never a sizing input: it only picks the US Army ANSUR II averages (§8.3) that
+sternum height, torso and arm are compared with. Those three are shown as
+proportions and **never move the stack/reach window**. Holliday & Swart (§2.3,
+n = 50) found that arm length and stature predicted no fit variable, and no
+source maps a proportion to a frame dimension. Arm length is never labelled
+long or short: a fitter's wrist landmark is only inferred. Foot length is
+**not collected**, because no published mapping from foot length to any frame
+dimension exists.
 
 **No flexibility input.** The only saddle-height model that worked used two
 clinically measured tests (Knee Extension Angle, modified Schober). A
@@ -111,6 +121,8 @@ as the frame geometry card's seat-tube and top-tube ranges, stays visible.
 | Stack/reach window | height → the maker's own size label → min–max of that label's stack and reach across the database | No source |
 | Frame size, seat tube, ETT | wide windows from what bikes in the window ship with | No source, basis stated as *not from your body* |
 | Inseam-to-height ratio | inseam ÷ height, classified against the 45–48% band, reported only | No source |
+| Saddle width | sit-bone width (centre to centre) + 10 / 20 / 30 mm for racier / none / upright, shown when sit-bone width is entered | No source (brand guidance, not a validated rule) |
+| Proportions | sternum height, torso (sternum minus inseam) and arm as % of height; with sex set, the ANSUR II average and z; long / typical / short for sternum and torso only | Weak |
 
 **Crank length narrowed to 165–170 mm, and tilts with the preference.** The
 research doc's defensible output is 165–175 mm, and §3.2 refuses the Palm and
@@ -256,7 +268,7 @@ Tables / **BuyFit**.
   different fit problem — steep seat angle, weight on the aerobars — so an
   Orbea Ordu matched by road rules would be matched wrong.
 - Flexibility tests of any kind.
-- Arm length, torso length, foot length fields.
+- Foot length field.
 - A shared rider profile with the video fit. **Consequence:** inseam is typed
   twice, and the video fit keeps printing saddle height unscored even though
   BuyFit now knows the inseam that would let it be scored.

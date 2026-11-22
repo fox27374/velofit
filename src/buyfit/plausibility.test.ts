@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkMeasurements } from './plausibility'
+import { checkMeasurements, checkOptionalMeasurements } from './plausibility'
 
 describe('checkMeasurements', () => {
   it('case 1: valid measurements all in range', () => {
@@ -82,5 +82,43 @@ describe('checkMeasurements', () => {
   it('case 9: zero value', () => {
     const result = checkMeasurements(0, 178, 41)
     expect(result.fields.inseam).toBe('Inseam must be between 50 and 110 cm.')
+  })
+})
+
+describe('checkOptionalMeasurements', () => {
+
+  it('is silent for plausible values and for empty fields', () => {
+    // Reference rider: 1489/1830 = 81.4%, 612/1830 = 33.4%, sit bones 12.8 cm.
+    expect(checkOptionalMeasurements(183, 88.6, 148.9, 61.2, 12.8)).toEqual({
+      sternumHeight: null,
+      armLength: null,
+      sitBoneWidth: null,
+    })
+    expect(checkOptionalMeasurements(183, 88.6, NaN, NaN, NaN)).toEqual({
+      sternumHeight: null,
+      armLength: null,
+      sitBoneWidth: null,
+    })
+  })
+
+  it('warns when sternum height is not between inseam and height', () => {
+    expect(checkOptionalMeasurements(183, 88.6, 183, NaN, NaN).sternumHeight).toMatch(/below your height/)
+    expect(checkOptionalMeasurements(183, 88.6, 88, NaN, NaN).sternumHeight).toMatch(/above your inseam/)
+  })
+
+  it('warns when sternum height is outside 78–86% of height', () => {
+    expect(checkOptionalMeasurements(180, 85, 130, NaN, NaN).sternumHeight).toMatch(/72.2% of height/)
+    expect(checkOptionalMeasurements(180, 85, 160, NaN, NaN).sternumHeight).toMatch(/88.9%/)
+  })
+
+  it('warns when arm length is outside 30–39% of height, and only with height entered', () => {
+    expect(checkOptionalMeasurements(180, NaN, NaN, 45, NaN).armLength).toMatch(/25%/)
+    expect(checkOptionalMeasurements(NaN, NaN, NaN, 45, NaN).armLength).toBeNull()
+  })
+
+  it('warns when sit-bone width is outside 90–180 mm', () => {
+    expect(checkOptionalMeasurements(NaN, NaN, NaN, NaN, 8.9).sitBoneWidth).toMatch(/9–18 cm/)
+    expect(checkOptionalMeasurements(NaN, NaN, NaN, NaN, 18.1).sitBoneWidth).toMatch(/9–18 cm/)
+    expect(checkOptionalMeasurements(NaN, NaN, NaN, NaN, 9).sitBoneWidth).toBeNull()
   })
 })

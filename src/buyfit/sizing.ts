@@ -121,8 +121,8 @@ export function calculateSizing(
  *
  * The band itself is weak: §4.5 of the research doc records that the
  * cycling-specific 41–51% range comes from self-reported forum aggregates,
- * with no study behind it, and that ANSUR II could settle it but has not been
- * extracted. So this is a flag for the rider to interpret, not an input to any
+ * with no study behind it. §8.3 has since extracted ANSUR II, but this band is
+ * kept as it was. So this is a flag for the rider to interpret, not an input to any
  * calculation.
  *
  * Returns null when either measurement is missing or non-positive.
@@ -135,5 +135,134 @@ export function inseamRatio(inseam: number, height: number): InseamRatio | null 
     percent > 48 ? 'long' : percent < 45 ? 'short' : 'typical'
 
   return { percent, proportion }
+}
+
+/** Sex, used only for the ANSUR II population averages. Never for sizing. */
+export type Sex = 'male' | 'female'
+
+/**
+ * Riding-position allowance on top of sit-bone width, in mm (§8.1, §8.2). These
+ * are SQlab's steps: road +10, moderate or MTB +20, trekking +30. Brand
+ * guidance, not a validated rule; Lin et al. 2023 (n = 10) weakly supports only
+ * the +10 end.
+ */
+const SADDLE_ALLOWANCE_MM: Record<RidingPreference, number> = {
+  racy: 10,
+  none: 20,
+  relaxed: 30,
+}
+
+export interface SaddleWidth {
+  /** Sit-bone width plus the allowance, in mm. */
+  widthMm: number
+  note: string
+}
+
+/**
+ * Recommended effective saddle width from a centre-to-centre sit-bone
+ * measurement (§8.1). Returns null when the measurement is missing or
+ * non-positive.
+ */
+export function saddleWidth(
+  sitBoneMm: number,
+  preference: RidingPreference = 'none'
+): SaddleWidth | null {
+  if (sitBoneMm <= 0) return null
+  const allowance = SADDLE_ALLOWANCE_MM[preference]
+  return {
+    widthMm: sitBoneMm + allowance,
+    note:
+      `Sit bones plus ${allowance} mm. That allowance is brand guidance (SQlab), not a ` +
+      `validated rule. Saddle width has no standard definition: this is the effective ` +
+      `width, where the saddle drops more than 1 cm. Between two sizes, take the wider. ` +
+      `Leaning forward narrows your contact, so a racier position can use the smaller allowance.`,
+  }
+}
+
+/**
+ * ANSUR II linear fits on stature, from doc/frame-sizing-research.md §8.3:
+ * predicted mm = a + b × stature (mm), with residual SD in mm. Inseam is not
+ * here: it is already an input, and only the proportions need a reference.
+ */
+interface AnsurFit {
+  a: number
+  b: number
+  sd: number
+}
+
+type ProportionKey = 'sternum' | 'torso' | 'arm'
+
+const ANSUR_FITS: Record<Sex, Record<ProportionKey, AnsurFit>> = {
+  male: {
+    sternum: { a: -101.4, b: 0.8769, sd: 11.7 },
+    torso: { a: 74.9, b: 0.2948, sd: 24.2 },
+    arm: { a: -35.4, b: 0.3636, sd: 17.6 },
+  },
+  female: {
+    sternum: { a: -93.6, b: 0.874, sd: 11.0 },
+    torso: { a: 85.5, b: 0.2836, sd: 21.5 },
+    arm: { a: -58.5, b: 0.3752, sd: 17.5 },
+  },
+}
+
+export interface BodyProportion {
+  /** The measurement in mm. */
+  measuredMm: number
+  /** The measurement as a percentage of height, one decimal. */
+  percentOfHeight: number
+  /** ANSUR II average at this stature in mm. Only when sex is set. */
+  ansurMm?: number
+  /** (measured − ANSUR average) / residual SD. Only when sex is set. */
+  z?: number
+  /** Sternum and torso only, and only when sex is set. Never set for arm. */
+  label?: LegProportion
+}
+
+export interface BodyProportions {
+  sternum: BodyProportion | null
+  /** Sternum height minus inseam: derived, since ANSUR II has no torso variable. */
+  torso: BodyProportion | null
+  arm: BodyProportion | null
+}
+
+/**
+ * Sternum height, torso and arm as a share of height, with the ANSUR II average
+ * for the rider's sex (§8.3). Reference only: it never moves the bike matching,
+ * because Holliday & Swart found no fit variable that arm length predicts (§2.3).
+ *
+ * A value of 0 or less means "not entered" and is left out. Torso needs both
+ * sternum height and inseam.
+ */
+export function bodyProportions(input: {
+  heightMm: number
+  inseamMm: number
+  sternumMm: number
+  armMm: number
+  sex?: Sex
+}): BodyProportions {
+  const { heightMm, inseamMm, sternumMm, armMm, sex } = input
+  if (heightMm <= 0) return { sternum: null, torso: null, arm: null }
+
+  const measure = (measuredMm: number, key: ProportionKey): BodyProportion => {
+    const result: BodyProportion = {
+      measuredMm,
+      percentOfHeight: Math.round((measuredMm / heightMm) * 1000) / 10,
+    }
+    const fit = sex ? ANSUR_FITS[sex][key] : undefined
+    if (!fit) return result
+    const predicted = fit.a + fit.b * heightMm
+    const z = (measuredMm - predicted) / fit.sd
+    result.ansurMm = predicted
+    result.z = z
+    if (key !== 'arm') result.label = z > 1 ? 'long' : z < -1 ? 'short' : 'typical'
+    return result
+  }
+
+  const torsoMm = sternumMm > 0 && inseamMm > 0 ? sternumMm - inseamMm : 0
+  return {
+    sternum: sternumMm > 0 ? measure(sternumMm, 'sternum') : null,
+    torso: torsoMm > 0 ? measure(torsoMm, 'torso') : null,
+    arm: armMm > 0 ? measure(armMm, 'arm') : null,
+  }
 }
 

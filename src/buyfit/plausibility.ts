@@ -102,3 +102,70 @@ export function checkMeasurements(
 
   return { fields, ratio, ok }
 }
+
+/** The optional measurements. Their messages are warnings: they never block the page. */
+export type OptionalField = 'sternumHeight' | 'armLength' | 'sitBoneWidth'
+
+/** Plausible share of height for sternum height and arm length (§8.3 spread, widened). */
+export const OPTIONAL_RATIO = {
+  sternumHeight: { min: 78, max: 86 },
+  armLength: { min: 30, max: 39 },
+}
+
+/** Plausible sit-bone width, centre to centre, in mm. */
+export const SIT_BONE_MM = { min: 90, max: 180 }
+
+/**
+ * Warnings for the optional measurements, in centimetres. NaN means empty and
+ * gets no message. Heights are compared only when height is entered.
+ */
+export function checkOptionalMeasurements(
+  heightCm: number,
+  inseamCm: number,
+  sternumCm: number,
+  armCm: number,
+  sitBoneCm: number
+): Record<OptionalField, string | null> {
+  const fields: Record<OptionalField, string | null> = {
+    sternumHeight: null,
+    armLength: null,
+    sitBoneWidth: null,
+  }
+  const percentOf = (part: number) => Math.round((part / heightCm) * 1000) / 10
+
+  if (!Number.isNaN(sternumCm)) {
+    if (
+      (!Number.isNaN(heightCm) && sternumCm >= heightCm) ||
+      (!Number.isNaN(inseamCm) && sternumCm <= inseamCm)
+    ) {
+      fields.sternumHeight = 'Sternum height should be below your height and above your inseam.'
+    } else if (!Number.isNaN(heightCm)) {
+      const pct = percentOf(sternumCm)
+      if (pct < OPTIONAL_RATIO.sternumHeight.min || pct > OPTIONAL_RATIO.sternumHeight.max) {
+        fields.sternumHeight =
+          `Sternum height is ${pct}% of height; expected ${OPTIONAL_RATIO.sternumHeight.min}–` +
+          `${OPTIONAL_RATIO.sternumHeight.max}%. Check the notch you measured to.`
+      }
+    }
+  }
+
+  if (!Number.isNaN(armCm) && !Number.isNaN(heightCm)) {
+    const pct = percentOf(armCm)
+    if (pct < OPTIONAL_RATIO.armLength.min || pct > OPTIONAL_RATIO.armLength.max) {
+      fields.armLength =
+        `Arm length is ${pct}% of height; expected ${OPTIONAL_RATIO.armLength.min}–` +
+        `${OPTIONAL_RATIO.armLength.max}%. Check the wrist landmark.`
+    }
+  }
+
+  if (!Number.isNaN(sitBoneCm)) {
+    const mm = sitBoneCm * 10
+    if (mm < SIT_BONE_MM.min || mm > SIT_BONE_MM.max) {
+      fields.sitBoneWidth =
+        `Sit-bone width should be ${SIT_BONE_MM.min / 10}–${SIT_BONE_MM.max / 10} cm, ` +
+        `centre to centre.`
+    }
+  }
+
+  return fields
+}
