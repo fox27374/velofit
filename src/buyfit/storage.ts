@@ -1,12 +1,19 @@
+import type { Sex } from './sizing'
+
 /**
  * The rider's saved measurements, in centimetres, as the input fields hold
- * them (strings, so an empty field stays empty).
+ * them (strings, so an empty field stays empty). The optional fields were added
+ * later: absent in older saves, so they come back undefined.
  */
 export interface SavedMeasurements {
   inseam: string
   height: string
   shoulderWidth: string
   preference?: string
+  sternumHeight?: string
+  armLength?: string
+  sitBoneWidth?: string
+  sex?: Sex
 }
 
 /**
@@ -15,8 +22,8 @@ export interface SavedMeasurements {
  * Until 2026-09-27 the page offered mm or cm and saved a `unit` field, with mm
  * as the default. Values saved with `unit: 'mm'`, or with no unit at all, are
  * millimetres and are converted to centimetres here, once. Values saved with
- * `unit: 'cm'` are returned unchanged. From now on the page saves centimetres
- * and no unit.
+ * `unit: 'cm'` are returned unchanged. From 2026-11-22 the page saves
+ * `unit: 'cm'`: saving no unit made a reload divide every value by ten.
  *
  * Returns null when nothing is saved or the saved text is not a JSON object.
  */
@@ -39,10 +46,18 @@ export function readSavedMeasurements(raw: string | null): SavedMeasurements | n
     return Number.isNaN(n) ? '' : String(Math.round(n) / 10)
   }
 
+  // The optional fields only ever existed in centimetres, so they are never converted.
+  const optional = (value: unknown): string | undefined =>
+    value === undefined || value === null ? undefined : String(value)
+
   return {
     inseam: field(d.inseam),
     height: field(d.height),
     shoulderWidth: field(d.shoulderWidth),
     preference: typeof d.preference === 'string' ? d.preference : undefined,
+    sternumHeight: optional(d.sternumHeight),
+    armLength: optional(d.armLength),
+    sitBoneWidth: optional(d.sitBoneWidth),
+    sex: d.sex === 'male' || d.sex === 'female' ? d.sex : undefined,
   }
 }

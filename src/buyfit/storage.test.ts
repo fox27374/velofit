@@ -98,3 +98,51 @@ describe('readSavedMeasurements', () => {
     })
   })
 })
+
+describe('readSavedMeasurements, optional fields', () => {
+  it('returns the optional fields undefined when an older save has none', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({ inseam: '84.5', height: '178', shoulderWidth: '41', unit: 'cm' })
+    )
+    expect(result?.sternumHeight).toBeUndefined()
+    expect(result?.armLength).toBeUndefined()
+    expect(result?.sitBoneWidth).toBeUndefined()
+    expect(result?.sex).toBeUndefined()
+  })
+
+  it('reads optional centimetre values unchanged in a cm save', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({
+        inseam: '88.6',
+        height: '183',
+        shoulderWidth: '41',
+        sternumHeight: '148.9',
+        armLength: '61.2',
+        sitBoneWidth: '12.8',
+        sex: 'male',
+        unit: 'cm',
+      })
+    )
+    expect(result).toMatchObject({
+      inseam: '88.6',
+      sternumHeight: '148.9',
+      armLength: '61.2',
+      sitBoneWidth: '12.8',
+      sex: 'male',
+    })
+  })
+
+  it('keeps an optional field the rider left empty as an empty string', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({ inseam: '84', height: '178', shoulderWidth: '41', armLength: '' })
+    )
+    expect(result?.armLength).toBe('')
+  })
+
+  it('ignores a sex value that is neither male nor female', () => {
+    const result = readSavedMeasurements(
+      JSON.stringify({ inseam: '84', height: '178', shoulderWidth: '41', sex: 'other' })
+    )
+    expect(result?.sex).toBeUndefined()
+  })
+})

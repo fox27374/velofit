@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'preact/hooks'
 import {
+  bodyProportions,
   calculateSizing,
   inseamRatio,
+  saddleWidth,
+  type BodyProportion,
+  type Sex,
 } from './sizing'
 import { readSavedMeasurements } from './storage'
-import { checkMeasurements, type MeasurementField } from './plausibility'
+import {
+  checkMeasurements,
+  checkOptionalMeasurements,
+  type MeasurementField,
+  type OptionalField,
+} from './plausibility'
 import { StackReachPlot, legHint } from './StackReachPlot'
 import { InfoPanel } from './InfoPanel'
 import { ResultsHeader } from './ResultsHeader'
+import { BodySketch, formatCm } from './BodySketch'
 import {
   matchBikes,
   getStackReachWindow,
@@ -158,6 +168,97 @@ function BikeRow({ bike, name }: { bike: BikeSize; name: string }) {
 
 
 /**
+ * One proportion: the measurement, its share of height, and when sex is set the
+ * ANSUR II average. Only sternum and torso get a label and z: arm length's
+ * landmark match to a fitter is inferred (§8.3), so it is shown with no verdict.
+ */
+function ProportionCard({
+  title,
+  value,
+  labelled = false,
+  sex,
+  note,
+}: {
+  title: string
+  value: BodyProportion
+  labelled?: boolean
+  sex: Sex | ''
+  note?: string
+}) {
+  const showComparison = value.ansurMm !== undefined
+  return (
+    <div className="buyfit-output">
+      <div className="buyfit-card-title">
+        <strong>{title}</strong>
+        <InfoPanel label={title.toLowerCase()} evidence="Weak" anchor="83-arm-and-torso-length-relative-to-stature-ansur-ii">
+          Set against US Army ANSUR II (2012) averages at your height and sex, not your fitter's
+          reference. Long or short means more than 1 SD from that average. Arm length is never
+          labelled, because the wrist landmark a fitter uses is only inferred. Holliday & Swart
+          found that arm length predicted no bike fit variable (§2.3). Information only.
+        </InfoPanel>
+      </div>
+      <span className="buyfit-value">
+        {formatCm(value.measuredMm)} · {value.percentOfHeight}% of height
+      </span>
+      {showComparison && (
+        <p className="buyfit-note">
+          ANSUR II average at your height: {formatCm(value.ansurMm!)}
+          {labelled && value.label && value.z !== undefined && (
+            <>
+              {' '}· {value.label} (z {value.z >= 0 ? '+' : ''}{value.z.toFixed(1)})
+            </>
+          )}
+        </p>
+      )}
+      {!showComparison && sex === '' && (
+        <p className="buyfit-note">Set sex to compare with the ANSUR II average.</p>
+      )}
+      {note && <p className="buyfit-note">{note}</p>}
+    </div>
+  )
+}
+
+/** One optional centimetre field. Its warning shows only once the rider has left it. */
+function OptionalCmField({
+  label,
+  help,
+  placeholder,
+  value,
+  onInput,
+  onBlur,
+  warning,
+}: {
+  label: string
+  help: string
+  placeholder: string
+  value: string
+  onInput: (value: string) => void
+  onBlur: () => void
+  /** Shown as a note, never as an error: optional values do not block the page. */
+  warning: string | null
+}) {
+  return (
+    <label className="buyfit-field">
+      <strong>{label}</strong>
+      <span className="buyfit-input-unit">
+        <input
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onInput={(e) => onInput(normalizeDecimalInput((e.target as HTMLInputElement).value))}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          className="buyfit-input"
+        />
+        <span aria-hidden="true">cm</span>
+      </span>
+      <p className="buyfit-help">{help}</p>
+      {warning && <p className="buyfit-note" role="status">{warning}</p>}
+    </label>
+  )
+}
+
+/**
  * Main BuyFit component — single unified page with live updating
  */
 export function BuyFit({ onHome }: { onHome: () => void }) {
@@ -165,6 +266,11 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [height, setHeight] = useState<string>('')
   const [shoulderWidth, setShoulderWidth] = useState<string>('')
   const [preference, setPreference] = useState<Preference>('none')
+  // Optional: none of these moves the bike matching (doc/buyfit-design.md, Inputs).
+  const [sternumHeight, setSternumHeight] = useState<string>('')
+  const [armLength, setArmLength] = useState<string>('')
+  const [sitBoneWidth, setSitBoneWidth] = useState<string>('')
+  const [sex, setSex] = useState<Sex | ''>('')
   const [bikes, setBikes] = useState<Bike[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -176,12 +282,16 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
   // Fields the rider has left at least once; their messages show only then,
   // so typing "1" on the way to "180" does not flash an error.
-  const [touched, setTouched] = useState<Record<MeasurementField, boolean>>({
+  const [touched, setTouched] = useState<Record<MeasurementField | OptionalField, boolean>>({
     inseam: false,
     height: false,
     shoulderWidth: false,
+    sternumHeight: false,
+    armLength: false,
+    sitBoneWidth: false,
   })
-  const touch = (field: MeasurementField) => setTouched((t) => ({ ...t, [field]: true }))
+  const touch = (field: MeasurementField | OptionalField) =>
+    setTouched((t) => ({ ...t, [field]: true }))
 
   // Load bikes on mount
   useEffect(() => {
@@ -208,6 +318,10 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       setHeight(saved.height)
       setShoulderWidth(saved.shoulderWidth)
       if (saved.preference) setPreference(saved.preference as Preference)
+      setSternumHeight(saved.sternumHeight ?? '')
+      setArmLength(saved.armLength ?? '')
+      setSitBoneWidth(saved.sitBoneWidth ?? '')
+      setSex(saved.sex ?? '')
       // Don't show measuring guide if we have saved data
       setShowMeasuringGuide(false)
       setEditing(false)
@@ -228,19 +342,48 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const check = checkMeasurements(inseamNum, heightNum, shoulderWidthNum)
   const allValid = check.ok
   const anyEmpty = inseam === '' || height === '' || shoulderWidth === ''
+  // Optional measures: 0 when empty, and warnings only, never part of allValid.
+  const sternumNum = parseFloat(sternumHeight)
+  const armNum = parseFloat(armLength)
+  const sitBoneNum = parseFloat(sitBoneWidth)
+  const sternumMm = sternumNum ? Math.round(sternumNum * multiplier) : 0
+  const armMm = armNum ? Math.round(armNum * multiplier) : 0
+  const sitBoneMm = sitBoneNum ? Math.round(sitBoneNum * multiplier) : 0
+  const optionalCheck = checkOptionalMeasurements(heightNum, inseamNum, sternumNum, armNum, sitBoneNum)
 
   // Save to localStorage whenever valid measurements change
   useEffect(() => {
     if (allValid) {
       localStorage.setItem(
         'buyfit_measurements',
-        JSON.stringify({ inseam, height, shoulderWidth, preference })
+        JSON.stringify({
+          inseam,
+          height,
+          shoulderWidth,
+          preference,
+          sternumHeight,
+          armLength,
+          sitBoneWidth,
+          sex,
+          // Without a unit, storage.ts would read these centimetres as millimetres.
+          unit: 'cm',
+        })
       )
     }
-  }, [inseam, height, shoulderWidth, preference, allValid])
+  }, [inseam, height, shoulderWidth, preference, sternumHeight, armLength, sitBoneWidth, sex, allValid])
 
   // Calculate outputs only if all inputs are valid
   const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference) : null
+  const saddle = allValid ? saddleWidth(sitBoneMm, preference) : null
+  const proportions = allValid
+    ? bodyProportions({
+        heightMm,
+        inseamMm,
+        sternumMm,
+        armMm,
+        sex: sex === '' ? undefined : sex,
+      })
+    : null
   const fitWindow = allValid && bikes ? getStackReachWindow(heightMm, bikes) : null
   const geometry = allValid && bikes ? getFrameGeometryRange(heightMm, bikes) : null
   const matches = allValid && fitWindow && bikes
@@ -405,6 +548,41 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           <p className="buyfit-error" role="alert">{check.ratio}</p>
         )}
 
+        <div className="buyfit-optional">
+          <p className="buyfit-help">
+            Optional. Each adds a number; none of them changes which bikes match.
+          </p>
+          <div className="buyfit-input-row">
+            <OptionalCmField
+              label="Sternum height"
+              help="Barefoot, floor to the top of the breastbone (jugular notch). Compared with the US Army average."
+              placeholder="e.g., 149"
+              value={sternumHeight}
+              onInput={setSternumHeight}
+              onBlur={() => touch('sternumHeight')}
+              warning={touched.sternumHeight ? optionalCheck.sternumHeight : null}
+            />
+            <OptionalCmField
+              label="Arm length"
+              help="Shoulder tip to wrist bone, arm hanging relaxed. Information only."
+              placeholder="e.g., 61"
+              value={armLength}
+              onInput={setArmLength}
+              onBlur={() => touch('armLength')}
+              warning={touched.armLength ? optionalCheck.armLength : null}
+            />
+            <OptionalCmField
+              label="Sit-bone width"
+              help="Centre to centre, measured seated on cardboard. Sets a saddle width."
+              placeholder="e.g., 13"
+              value={sitBoneWidth}
+              onInput={setSitBoneWidth}
+              onBlur={() => touch('sitBoneWidth')}
+              warning={touched.sitBoneWidth ? optionalCheck.sitBoneWidth : null}
+            />
+          </div>
+        </div>
+
         <div className="buyfit-input-controls">
           <label className="buyfit-field buyfit-field--plain">
             <strong>Riding position you want</strong>
@@ -418,6 +596,19 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               <option value="relaxed">More upright</option>
             </select>
           </label>
+          <label className="buyfit-field buyfit-field--plain">
+            <strong>Sex</strong>
+            <select
+              value={sex}
+              onChange={(e) => setSex((e.target as HTMLSelectElement).value as Sex | '')}
+              className="buyfit-select"
+            >
+              <option value="">Not set</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+            <span className="buyfit-help">Used only for the population averages in Proportions.</span>
+          </label>
         </div>
 
         <details
@@ -427,6 +618,27 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         >
           <summary>How to measure</summary>
           <div className="buyfit-guide-content">
+            <BodySketch noValues />
+            <ol className="buyfit-steps" start={4}>
+              <li>
+                <strong>Sternum height.</strong> Stand barefoot against a wall. Press the edge of a
+                book level into the notch at the top of your breastbone, then measure from the floor
+                to that point.
+              </li>
+              <li>
+                <strong>Arm length.</strong> Let the arm hang relaxed. Measure from the bony tip of
+                the shoulder to the wrist bone on the thumb side.
+              </li>
+              <li>
+                <strong>Sit-bone width.</strong> Sit upright on corrugated cardboard on a hard chair,
+                feet flat. Lift your feet briefly, stand, and measure centre to centre between the two
+                deepest dents.
+              </li>
+            </ol>
+            <p className="buyfit-help">
+              Sex is asked only to pick the population averages in Proportions. It changes no sizing
+              number.
+            </p>
             <div className="buyfit-diagram-row">
               <div className="buyfit-diagram-item">
                 <div className="buyfit-diagram-container">
@@ -471,6 +683,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
             heightMm={heightMm}
             inseamMm={inseamMm}
             shoulderMm={shoulderWidthMm}
+            sternumMm={sternumMm}
+            armMm={armMm}
+            sitBoneMm={sitBoneMm}
             sizes={headline}
           />
           {/* Analysis cards section */}
@@ -509,7 +724,51 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               <span className="buyfit-value">{sizing.crankLength}</span>
             </div>
 
+            {saddle && (
+              <div className="buyfit-output">
+                <div className="buyfit-card-title">
+                  <strong>Saddle width</strong>
+                  <InfoPanel label="saddle width" evidence="No source" anchor="81-saddle-width-from-sit-bone-width">
+                    {saddle.note}
+                  </InfoPanel>
+                </div>
+                <span className="buyfit-value">{saddle.widthMm} mm</span>
+              </div>
+            )}
+
           </div>
+
+          {proportions && (proportions.sternum || proportions.torso || proportions.arm) && (
+            <div className="buyfit-proportions">
+              <h3 className="buyfit-group-title">Proportions</h3>
+              <p className="buyfit-note">
+                Compared with US Army ANSUR II (2012), not your fitter's reference. Information only:
+                these never move the bike matching.
+              </p>
+              <div className="buyfit-analysis">
+                {proportions.sternum && (
+                  <ProportionCard
+                    title="Sternum height"
+                    value={proportions.sternum}
+                    labelled
+                    sex={sex}
+                  />
+                )}
+                {proportions.torso && (
+                  <ProportionCard
+                    title="Torso length"
+                    value={proportions.torso}
+                    labelled
+                    sex={sex}
+                    note="Sternum height minus inseam."
+                  />
+                )}
+                {proportions.arm && (
+                  <ProportionCard title="Arm length" value={proportions.arm} sex={sex} />
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Bikes section */}
           <div className="buyfit-bikes-section">
