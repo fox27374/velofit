@@ -83,11 +83,16 @@ ssh "$HOST" "set -euo pipefail
 
   # Every deploy leaves a new tag of each image behind. Keep the newest
   # $KEEP of each (the one just deployed and a few to roll back to) and
-  # drop untagged build leftovers. Only our own repositories are touched;
-  # an image still in use refuses removal and is skipped.
+  # drop untagged build leftovers. Only our own repositories are touched.
+  # The tags just deployed are never removed: a cached rebuild reuses an
+  # old image, so its CreatedAt sorts it as old, and rmi of one tag on a
+  # multi-tagged image only untags it, even while a container uses it.
+  # That removed bikedb-api/-scraper:375e8d8 on 2026-10-01 and the stack
+  # could not start again on 2026-11-03.
   for repo in velofit bikedb-api bikedb-scraper bikedb-web bikedb; do
     podman images --format '{{.CreatedAt}}|{{.Repository}}:{{.Tag}}' ghcr.io/fox27374/\$repo \\
       | sort -r | tail -n +$((KEEP + 1)) | cut -d'|' -f2 \\
+      | { grep -v -e ':$VT\$' -e ':$BT\$' || true; } \\
       | while read -r img; do podman rmi \"\$img\" >/dev/null 2>&1 || true; done
   done
   podman image prune -f >/dev/null
