@@ -833,6 +833,88 @@ themselves do not have, because the numbers on them mean different things.
     DOI: 10.1589/jpts.28.820. n = 15 + 15 Taiwanese adults. Impress method: men 11.96 cm, women
     13.53 cm.
 
+**Triathlon / TT sizing (§9)**
+
+51. Price D, Donne B. "Effect of variation in seat tube angle at different seat heights on
+    submaximal cycling performance in man." *J Sports Sci* 1997;15(4):395–402.
+    https://sponet.de/sponet/Record/4001871?lng=en — n = 14 road racers, 200 W, seat tube 68° /
+    74° / 80° at 96 / 100 / 104% of trochanteric height. 80° beat 74° on VO₂ and efficiency at
+    **all three** heights. **Abstract only**; no per-angle optimum height is reported.
+52. Garside I, Doran DA. "Effects of bicycle frame ergonomics on triathlon 10-km running
+    performance." *J Sports Sci* 2000;18(10):825–833. https://sponet.de/sponet/Record/4004706 —
+    n = 8 triathletes, 73° vs 81°, 40 km ride then 10 km run; run faster after 81°. **Abstract
+    and secondary summaries only; saddle-height handling not captured.**
+53. Ricard MD, Hills-Meyer P, Miller MG, Michael TJ. "The effects of bicycle frame geometry on
+    muscle activation and power during a Wingate anaerobic test." *J Sports Sci Med*
+    2006;5:25–32. https://www.jssm.org/jssm-05-25.xml-Fulltext — 72° vs 82°. "Subjects
+    self-selected their seat height prior to the start of each testing session."
+54. Heil DP, Pickels R. "The influence of bicycle geometry on time-trial positioning kinematics
+    and markers of performance." *Int J Phys Educ Fit Sports* 2019;8(1):11–24.
+    DOI: 10.26524/ijpefs1912. Seat tube 76° vs 80°. **Full text could not be fetched**; only the
+    statement that mean knee angle was insensitive to seat-tube angle while hip angle moved was
+    seen, in a search excerpt.
+55. Jongerius N, Wainwright B, Walker J, Bissas A. "The biomechanics of maintaining effective
+    force application across cycling positions." *J Biomech* 2022;138:111103.
+    https://eprints.glos.ac.uk/11044/ — 56 male cyclists, TT-trained vs road-trained. TT riders
+    prefer a more forward hip. **Abstract only.**
+56. McDonald R, Holliday W, Swart J. "Muscle recruitment patterns and saddle pressure indexes
+    with alterations in effective seat tube angle." *Sports Med Health Sci* 2022;4(1):29–37.
+    DOI: 10.1016/j.smhs.2021.10.007. https://pmc.ncbi.nlm.nih.gov/articles/PMC9219297 —
+    saddle height was re-set after each ±3 cm fore-aft move to hold static joint angles; knee
+    31.5–32.6°, no significant difference.
+57. Bini RR, Hume PA, Croft JL. "Cyclists and triathletes have different body positions on the
+    bicycle." *Eur J Sport Sci* 2014;14(S1):S109–S115. **Not read; cited by title only.**
+58. Slowman (Dan Empfield), "Seat height", Slowtwitch, 13 Sep 2007.
+    https://slowtwitch.com/industry/seat-height/ — his tri saddle "10mm or 12mm taller" than
+    road; knee about 143° road vs 145° tri; most of the gap is sitting "nearer the nose".
+59. Ferrer-Roca V, Rivero-Palomo V, Ogueta-Alday A, Rodríguez-Marroyo JA, García-López J. "Acute
+    effects of small changes in crank length on gross efficiency and pedalling technique
+    during submaximal cycling." *J Sports Sci* 2017;35(14):1328–1335.
+    DOI: 10.1080/02640414.2016.1215490. n = 12; preferred ±5 mm. **Abstract only.**
+60. Reynolds, Chidley, Briley, Outram. "The impact of minor crank length adjustments on lower
+    body cycling kinematics." *Sports Biomechanics* 2025. University of Derby repository
+    (https://repository.derby.ac.uk/item/qy8v2/). **Abstract only; initials, n and DOI not
+    captured.**
+61. Fred Matheny, "Crankarm study says length doesn't matter", RoadBikeRider (undated).
+    https://www.roadbikerider.com/crankarm-study-says-length-doesn-t-matter-d1/ — paraphrases
+    Jim Martin recommending 165 mm, the shortest stock length, for TT. **Secondary paraphrase,
+    not a Martin quote.**
+62. "Optimal handlebar position for track cyclists." *Sports Engineering* 2013;16:81–90.
+    DOI: 10.1007/s12283-013-0111-5. https://sponet.de/sponet/Record/4028906?lng=en — 7 + 7 track
+    cyclists in a wind tunnel; bar height mattered more than elbow-pad separation, high
+    between-rider variability. **Authors not confirmed (probably Underwood & Jermy); abstract
+    only.**
+63. Fit Werx (Ian), "Aerobar Arm Pad Width", *Triathlete* May 2002, updated 5 Feb 2016.
+    https://fitwerx.com/aerobar-arm-pad-width/ — upper arms should shield, "but is not wider
+    than, the thighs and hips". Fitter opinion, no data.
+64. ISM (manufacturer). FAQ: https://ismseat.com/help/frequently-asked-questions/ — "We do not use
+    sit bone width to determine which saddle you should choose." Setup guide:
+    https://ismseat.com/help/setup-guide/ — start "5 millimeters, or 1/4 inch lower", and set
+    the front "about 2-3 inches, or 5-8 centimeters" further back than a nosed saddle.
+    **Manufacturer guidance.**
+65. Greg Kopecky, "Challenging Triathlon Saddle Assumptions", Slowtwitch, 20 Jun 2018.
+    https://www.slowtwitch.com/cycling/challenging-triathlon-saddle-assumptions/ — widest point
+    = sit bones to +1–3 cm "a fine way to go (but not the only way)"; effective width of some
+    noseless saddles only 110–120 mm. Fitter opinion, no data.
+66. BikeFit.com, "How to fit a triathlon or time trial bike", part 1 (7 May 2015) and part 2
+    (6 May 2015). https://bikefit.com/blogs/bikefit-blog/how-to-fit-a-triathlon-or-time-trial-bike-part-1-overview ·
+    https://bikefit.com/blogs/bikefit-blog/how-to-fit-a-triathlon-or-time-trial-tt-bike-part-2-the-pelvis-saddle-fitting
+    — fit before buying; knee 27–37° from straight; "the millimeter adjustment is not as
+    important as you might believe"; UCI/USAC saddle nose 5 cm behind the BB (relayed, UCI rule
+    text not read here).
+67. Slowman, "What is Pad Y/X?", Slowtwitch, 28 Jun 2016. https://slowtwitch.com/industry/what-is-pad-y-x/
+    — Pad Y/X = BB to armrest pad; "tri bikes are harder because you have a handlebar on top of a
+    handlebar".
+68. Slowman, "The Ordu Gets a Pad XY Chart", Slowtwitch, 11 Jul 2016.
+    https://www.slowtwitch.com/industry/the-ordu-gets-a-pad-xy-chart/ — one rider's 630/500 pad
+    numbers "could ride either an M or an L".
+69. Slowman, "Your Ideal Tri Bike", Slowtwitch, 6 Jun 2016. https://slowtwitch.com/industry/your-ideal-tri-bike/
+    — many M/L tri frames converge near stack 540 / reach 425 mm.
+70. Slowtwitch forum, "Official FIT ASSISTANCE for Cervelo TT and Triathlon Bikes" (Cervélo fit
+    rep answering riders). https://forum.slowtwitch.com/t/official-fit-assistance-for-cervelo-tt-and-triathlon-bikes/775865
+    — sizes chosen from pad stack/reach, with back-of-pad vs mid-pad conventions differing.
+    **Forum; manufacturer-representative opinion.**
+
 ---
 
 ## 7. Confidence and gaps
@@ -876,6 +958,12 @@ themselves do not have, because the numbers on them mean different things.
   surface, about −11.5 mm from 105° to 60° trunk–thigh angle; Potter 2008: centre of pressure moves
   forward in the drops. The direction is sourced. The seated postures were not cycling, and no
   study converts this into a saddle allowance.
+- **Tri frame stack/reach is only a coarse filter** (§9.5). Manufacturer pad-X/Y charts and
+  fit reps size tri bikes from armrest coordinates, and adjacent sizes overlap. Empfield's
+  "fit first" method (§1.5) is the published basis. No study, but no source disagrees.
+- **A steep seat angle moves the hip more than the knee** (§9.1). Price & Donne 1997 (hip range
+  of motion smaller at 80°), Heil & Pickels 2019 (knee insensitive, excerpt only), McDonald
+  et al. 2022 (knee unchanged once height is re-set). Abstracts and excerpts only.
 - **ANSUR II ratios as civilian cyclist norms** (§8.3). The statistics themselves are well
   sourced (computed from the public files). The population is a young, fit US military sample,
   unweighted.
@@ -915,6 +1003,20 @@ themselves do not have, because the numbers on them mean different things.
   protocol was found. The reference rider's fitter averages sit 2.1 cm (sternum height) and
   3.1 cm (arm) below ANSUR II at 183 cm, but match it on inseam. The fitter's reference is
   unknown.
+- **Any tri-specific saddle-height multiplier** (§9.1). No study compares optimal saddle height
+  between road and TT positions or across seat angles. Fitter and manufacturer advice points
+  both ways: Empfield +10–12 mm, ISM −5 mm, Bike Fit Adviser more knee flexion, BikeFittr less.
+  Bini, Hume & Croft 2014 (cyclists vs triathletes) was not read.
+- **A tri crank length number** (§9.2). The direction (shorter opens the hip at TDC, at no
+  measured power cost) is sourced. The 165 mm figure is a secondary paraphrase of Martin;
+  anything shorter is fitter practice.
+- **Aerobar pad width from shoulder width** (§9.3). No study. Fitters disagree on the reference
+  (shoulders vs thighs and hips). One wind-tunnel study found pad separation mattered less than
+  bar height and varied between riders.
+- **Saddle width for nose-forward tri saddles** (§9.4). ISM explicitly does not size by sit
+  bones. The retailer "+0 for tri" and Kopecky's "+1–3 cm" are opinion.
+- **The reference rider's "Sattelposition 16.3 cm"** (§9.6). Interpreted geometrically as
+  horizontal BB-to-saddle offset; the fitter's reference point is not documented.
 - **Sit-bone population norms for Europeans.** Only Taiwanese (Chen 2016/2021) and small US samples
   were located. No population dataset of centre-to-centre sit-bone width was found.
 - **The flexibility self-rating.** No study located relates a self-rating to the Knee Extension
@@ -1148,3 +1250,200 @@ shorter than ANSUR at the same height. Against ANSUR, the rider is *short* in st
 reference population or ends the arm at a different landmark, or both. Neither is
 published. **velofit must say which reference it uses**, and it must not mix its labels with
 a fitter's "+x cm vs average".
+
+---
+
+## 9. Triathlon / TT sizing
+
+Research date: 2026-11-22. Added for velofit's tri mode; same rules as §8. Sources are numbered
+on from §6 (51–70), and the gaps are listed in §7. Grades are the §7 ones: **Well sourced**,
+**Moderately sourced**, **Weak**, **No source**, plus **manufacturer guidance**, which is never
+counted as evidence.
+
+**Context.** Tri mode keeps the road mode's matching rule: frames whose published rider-height
+band contains the rider's height, then compared by frame stack and reach. There is still no
+body-based reach formula (§2.3). The question for each BuyFit card is whether the road number
+carries over to an aero position on a 78–81° effective seat angle.
+
+**Summary for implementation.**
+
+| Card | Tri output | Grade |
+|---|---|---|
+| Saddle height | **Same band, 0.870–0.895 × inseam.** No tri shift. Add a note. | Road band: Moderately sourced. Any tri shift: **Weak** |
+| Crank length | **165 mm**, "shorter (155–160) is fine if you have it". | Direction: Moderately sourced. Number: **Weak** |
+| Handlebar width | **Hide.** Replace with an information card on pad width, no number. | **No source** for any body rule |
+| Saddle width | **Do not apply sit bones + allowance to nose-forward saddles.** Keep the rule only for conventional saddles, at +10 mm. | Manufacturer guidance, and it conflicts |
+| Frame shortlist | Keep the height-band match, labelled as a coarse filter. | Moderately sourced |
+
+### 9.1 Saddle height in an aero position
+
+**What the studies on steep seat angles did and did not test.** Four peer-reviewed papers vary
+seat-tube angle in the tri range. None compares the *optimal* saddle height between road and TT.
+
+- **Price & Donne 1997** [51]: 68°, 74° and 80°, each at 96, 100 and 104% of trochanteric height.
+  80° beat 74° on VO₂ and efficiency **at all three heights**, and hip range of motion was smaller
+  at 80° than at 68°. The abstract reports no optimum height per angle. So the paper says a steep
+  angle helps whatever the height. It does not say the height should change.
+- **Garside & Doran 2000** [52]: 73° vs 81°, n = 8 triathletes. The 10 km run after the 81° ride
+  was faster. How saddle height was carried across the two frames was not captured.
+- **Ricard et al. 2006** [53]: 72° vs 82°. Riders "self-selected their seat height" each session,
+  so height was not controlled and the paper cannot answer this question.
+- **Heil & Pickels 2019** [54]: 76° vs 80° in TT positions. The only text seen says mean knee
+  angle was insensitive to seat-tube angle while hip angle changed. **Full text not read.**
+
+Two further papers support the same mechanism. **McDonald, Holliday & Swart 2022** [56] moved the
+saddle ±3 cm fore-aft and then re-set height to hold static angles; knee stayed at 31.5–32.6°.
+**Jongerius et al. 2022** [55] found TT-trained riders prefer a more forward hip. So steepening
+the seat angle rotates the rider forward around the bottom bracket. The hip angle opens; the knee
+angle, which saddle height sets, does not need to move. **Moderately sourced** for the mechanism
+(abstracts and excerpts only); **No source** for a different multiplier.
+
+**What fitters and manufacturers say. They disagree in direction.**
+
+| Source | Tri vs road saddle height (BB to saddle top) |
+|---|---|
+| Empfield, Slowtwitch 2007 [58] | **+10–12 mm** in his own case; about 2° of knee, the rest from sitting "nearer the nose" |
+| ISM setup guide [64] | **−5 mm** when moving to a noseless saddle, "to maintain the same body height" |
+| Bike Fit Adviser (fit-targets §3) | slightly **more** knee flexion on tri (i.e. lower) |
+| BikeFittr (fit-targets §3) | **less** knee flexion on tri (i.e. higher) |
+| BikeFit.com [66] | no tri-specific height; knee 27–37°; "the millimeter adjustment is not as important as you might believe" |
+
+The two effects that move the number are known, and they cancel in part. Sitting on the nose
+lowers the effective height, because the seat tube measurement is taken further back than where
+the rider sits; that argues for a taller post. A noseless saddle puts the sit point lower and
+further back on the shell; that argues for a shorter one. Neither is a body measurement.
+
+**Rule for velofit.** Print the road band unchanged: **0.870–0.895 × inseam**, BB centre to
+saddle top along the seat tube. Add one line: "On a tri bike you sit further forward. Fitters
+move this by about 1 cm either way, depending on the saddle. Set it on the bike." Grade:
+**Moderately sourced** for the band itself (§2.1); **Weak** for any tri-specific shift, which is
+why none is applied. This agrees with `fit-targets-research.md` §3: no tri-specific target.
+
+**Reference rider check.** Inseam 886 mm gives **771–793 mm**. The studio set **775 mm**
+(0.875 × inseam), inside the band near the low end. The band holds for this rider.
+
+### 9.2 Crank length in an aero position
+
+**Mechanism: sourced.** In an aero position the hip is most closed at top dead centre. A shorter
+crank lowers the knee at TDC and opens that angle.
+
+- **Ferrer-Roca et al. 2017** [59] (n = 12): ±5 mm from the preferred length. A longer crank
+  raised maximum hip and knee flexion by about 1–3.4° (abstract versions differ), with **no
+  change in gross efficiency**. The authors: if in doubt between two lengths, take the shorter.
+- **Reynolds et al. 2025** [60]: small crank reductions lowered hip and knee flexion and
+  non-sagittal motion, with **no change in power output**. Abstract only.
+- **Martin & Spirduso 2001** [6]: 145 and 170 mm were not separable on maximal power (§3.2).
+- **Li et al. 2025** [7]: 175 mm gave worse perceived fatigue than 165 or 170 (§3.2).
+
+None of these tested an aero position. The step from "shorter opens the hip" to "a tri rider
+should go shorter" is an inference, but every source located draws it and none argues against
+it. **Moderately sourced** for the direction.
+
+**Number: weak.** Martin is relayed as recommending **165 mm** for TT, the shortest stock
+length [61]; that is a secondary paraphrase. Shorter lengths (150–160) are fitter and pro
+practice (§3.2: GB track 165/160), not study results. By Ferrer-Roca's figures, 170 → 165 opens
+the TDC hip angle by roughly 1–3°, a derived estimate.
+
+**Rule for velofit.** Tri mode outputs **165 mm**, with the note: "Shorter (155–160 mm) is fine
+if your hip feels closed at the top of the stroke; no study found a power cost for going
+shorter." It is the same as the current `'racy'` band. Grade: **Moderately sourced** (direction),
+**Weak** (the specific 165).
+
+### 9.3 Handlebar width, and pad width
+
+**Base-bar width.** On aerobars the hands are on the base bar only for climbing, cornering and
+braking. Tri base bars come as part of the cockpit, often with integrated bars, so the rider
+rarely picks a width. The shoulder-width rule (§3.1, Lin 2025) was tested on a road position
+with hands on the bar. **No source** transfers it to a tri base bar.
+
+**Pad (elbow) width.** No study relates armrest width to shoulder width.
+
+- **Wind tunnel** [62]: 14 track cyclists. Bar height affected drag area more than elbow-pad
+  separation, and the optimum varied a lot between riders. **Weak** (abstract only, authors not
+  confirmed). It argues against a body formula.
+- **Fitters disagree on the reference.** A retailer guide says pads should align with shoulder
+  width (search summary only). Fit Werx [63] says the upper arms should shield the body "but
+  [not be] wider than, the thighs and hips". A Slowtwitch forum fitter proposed a formula from
+  shoulder width and extension spacing, as an idea only. None has data.
+- Pad width is usually quoted **centre-to-centre**; ranges on stock bars run roughly 150–250 mm
+  (forum examples: 221, 243 mm). Not a recommendation.
+
+**Rule for velofit.** **Hide the handlebar-width card** in tri mode. If a card is kept, make it
+information only: "Aerobar pad width is set during a fit. It depends on shoulder mobility and
+aerodynamics more than on shoulder width, and no study gives a body rule." Print no number.
+Grade: **No source** for any rule.
+
+### 9.4 Saddle width for tri saddles
+
+**Conventional saddles in an aero position.** The §8 rule applies, at the narrow end. The pelvis
+is rotated furthest forward, so contact moves forward onto the converging rami (§8.2).
+bike-components.de gives **+0** for a "fully stretched" tri position [42]; SQlab gives +10 mm for
+its sportiest position [37]; Kopecky [65] says widest point equal to sit bones or 1–3 cm wider.
+Grade: **manufacturer guidance**, and the guidance spreads 0–30 mm.
+
+**Nose-forward and split-nose saddles (ISM, and similar).** These are not sized the same way.
+
+- **ISM** [64]: "We do not use sit bone width to determine which saddle you should choose."
+  ISM's model choice is by bike type and padding, not by width. The rider sits on the pubic rami,
+  and the saddle goes 5–8 cm further back and about 5 mm lower than a nosed saddle.
+- Kopecky [65] warns that some noseless saddles quote a maximum width outside the sitting area;
+  their effective width can be 110–120 mm.
+- No pressure-mapping study of sit-bone width against a nose-forward saddle was located. Lin 2023
+  (§8.1) used conventional shells. **No source.**
+
+**Rule for velofit.** In tri mode:
+
+1. Show sit bones **+ 10 mm** labelled "conventional saddles only" (the existing `'racy'`
+   allowance). Grade: manufacturer guidance (SQlab).
+2. Add: "Nose-forward tri saddles (e.g. ISM) are not sized from sit bones. The maker says so.
+   Choose by test ride; set it about 5 cm further back and 5 mm lower than a normal saddle."
+   Grade: manufacturer guidance (ISM).
+
+Do not print a tri-saddle width.
+
+### 9.5 Frame size choice: why frame stack and reach are only a coarse filter
+
+**The published method is fit first, then frame.** Empfield introduced stack and reach to pick a
+frame from a known position (§1.5). His tri version uses **Pad Y / Pad X**: vertical and
+horizontal BB-to-armrest distances [67]. "Tri bikes are harder because you have a handlebar on
+top of a handlebar." BikeFit.com says the same: get a fit before you buy [66]. Manufacturers
+follow it. Orbea and Trek publish Pad X/Y charts that map pad coordinates to a size *and* a stem
+and pedestal setup [67, 68]. Cervélo's fit rep on Slowtwitch sizes P-Series riders from pad stack
+and pad reach, not from height [70]. Grade: **Moderately sourced** as the accepted method. No
+study tests it, and no source argues against it.
+
+**Why the frame number is coarse, stated so the UI can say it.**
+
+1. **The front end adds most of the stack.** Aerobar risers, pedestals and stems sit between the
+   head-tube top and the pads. On integrated cockpits the frame stack/reach cannot be turned
+   into pad coordinates by simple arithmetic [67].
+2. **Adjacent sizes overlap.** One rider's 630/500 pad position "could ride either an M or an L"
+   Ordu [68]. The reference rider got M–L for Ordu and Timemachine: the same overlap.
+3. **Tri frames converge.** Many M/L tri frames sit near stack 540 / reach 425 mm [69], so frame
+   numbers separate brands less than the cockpit does.
+4. **Reach is still not predictable from the body** (§2.3, Holliday & Swart). The tri position
+   is more sensitive to flexibility (torso 12–25°, fit-targets §3), which a tape measure cannot
+   see.
+5. **Pad conventions differ.** Back of pad vs middle of pad, and centre vs edge [70]. Fit sheets
+   are not comparable without the convention.
+
+**Suggested UI text.** "Tri bikes are sized from where your armrests need to be, not from your
+height. These frames suit your height. Which size works best depends on the cockpit (risers,
+stem, extensions) and is set in a fit. If two sizes are shown, both can usually fit you."
+
+### 9.6 Reference rider (studio tri fit)
+
+Male, 183 cm, inseam 88.6 cm. Studio recommendations: Orbea Ordu **M–L**, BMC Timemachine 01
+**M–L**, Cervélo P-Series **56**.
+
+- **Saddle height 77.5 cm = 0.875 × inseam.** Inside the road band (77.1–79.3 cm), §9.1.
+- **Frames.** Two brands given as two sizes: consistent with §9.5, point 2. The same Cervélo fit
+  thread shows a 183 cm rider told "56 likely right" [70]; anecdotal, but it agrees.
+- **"Sattelposition 16.3 cm".** The reference point is not documented. The plausible reading is
+  **horizontal distance from the BB centre back to the saddle's sitting reference** (saddle
+  centre or sit point). At 775 mm along the seat tube, 163 mm behind the BB is an effective seat
+  angle of acos(163 / 775) ≈ **77.9°**, inside the 78–81° tri range. If instead it were the
+  saddle *nose* 163 mm behind the BB, the sit point would be about 26 cm back, a road angle near
+  70°, which does not fit a tri bike. For comparison, UCI time trials require the nose at least
+  5 cm behind the BB (relayed by [66]). Treat this reading as **derived, unverified**: ask the
+  studio which point they measure to before velofit displays it.
