@@ -153,9 +153,10 @@ export function getFrameGeometryRange(
 }
 
 /**
- * Every model+size in the height band, plus every size with no height band whose
- * stack and reach fall inside the window (inclusive), nearest the window centre
- * first. All of them, with their deltas — never a single winner, never a score.
+ * Every model+size in the height band, plus, for each bike with no height band,
+ * its one unbanded size nearest the window centre when that size's stack and
+ * reach fall inside the window (inclusive). Nearest the window centre first,
+ * with deltas — never a single winner across bikes, never a score.
  */
 export function matchBikes(
   riderHeight: number,
@@ -172,8 +173,10 @@ export function matchBikes(
     .filter(measured)
     .map((row) => ({ ...row, noHeightBand: false }))
 
-  const unbanded = db.flatMap((bike) =>
-    bike.sizes
+  // Per bike, only the unbanded size nearest the window centre: a maker's several
+  // unbanded sizes inside the window would otherwise flood the list.
+  const unbanded = db.flatMap((bike) => {
+    const candidates = bike.sizes
       .filter(measured)
       .filter(
         (size) =>
@@ -184,8 +187,13 @@ export function matchBikes(
           size.reach >= windowReachMin &&
           size.reach <= windowReachMax
       )
-      .map((size) => ({ ...bike, ...size, noHeightBand: true }))
-  )
+      .map((size) => ({
+        row: { ...bike, ...size, noHeightBand: true },
+        distance: Math.hypot(size.stack - stackCentre, size.reach - reachCentre),
+      }))
+    if (candidates.length === 0) return []
+    return [candidates.reduce((best, c) => (c.distance < best.distance ? c : best)).row]
+  })
 
   return [...banded, ...unbanded]
     .map(({ sizes: _sizes, ...row }) => {

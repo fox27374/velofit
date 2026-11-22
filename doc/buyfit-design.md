@@ -201,8 +201,11 @@ reach but no rider-height range. Such a size never contributes to the window:
 the window is still the spread of the banded rows. But it is listed when its
 stack and reach both fall inside the window (edges inclusive), flagged
 `noHeightBand`, with the note "no height range published — listed because its
-stack and reach are inside your window". A size with no stack or no reach
-(Orbea Ordu) cannot match at all. Null is never read as 0, which would drag the
+stack and reach are inside your window". **Only one such size per bike is
+listed**: the one nearest the window centre (the same distance as the banded
+rows' sort). A maker's several unbanded sizes would otherwise flood the list
+(all six Cervélo P-Series sizes were inside the 183 cm tri window). A size with
+no stack or no reach (Orbea Ordu) cannot match at all. Null is never read as 0, which would drag the
 window's minimum to 0.
 
 ### Preference, and why it is allowed to exist

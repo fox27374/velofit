@@ -113,9 +113,12 @@ describe('tri data for a 183 cm rider', () => {
     expect(p56!.noHeightBand).toBe(true)
   })
 
-  it('lists the banded matches and the unbanded sizes inside the window, and nothing else', () => {
+  it('lists the banded matches, plus one unbanded size per bike with none banded', () => {
     const matches = matchBikes(RIDER_MM, window!.stackMin, window!.stackMax, window!.reachMin, window!.reachMax, triDb)
     const labels = matches.map((m) => `${m.brand} ${m.model} ${m.size}`).sort()
+    // Unbanded: from each Cervélo model only the size nearest the window centre
+    // (554.5 / 415.5). P-Series 56 (549/422) is at distance 8.5. P5 58 (535/446) is at
+    // distance sqrt(19.5² + 30.5²) ≈ 36.2, the nearest P5 size; P5 61 is 39.5, P5 56 42.3.
     expect(labels).toEqual(
       [
         'BMC Speedmachine 01 L',
@@ -124,17 +127,8 @@ describe('tri data for a 183 cm rider', () => {
         'Canyon Speedmax CF M',
         'Canyon Speedmax L',
         'Canyon Speedmax M',
-        'Cervélo P-Series 48',
-        'Cervélo P-Series 51',
-        'Cervélo P-Series 54',
         'Cervélo P-Series 56',
-        'Cervélo P-Series 58',
-        'Cervélo P-Series 61',
-        'Cervélo P5 51',
-        'Cervélo P5 54',
-        'Cervélo P5 56',
         'Cervélo P5 58',
-        'Cervélo P5 61',
         'Trek Speed Concept SLR L',
       ].sort()
     )

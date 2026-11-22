@@ -319,12 +319,38 @@ describe('sizes with no height band', () => {
   })
 
   it('includes a size exactly on the window edges, and excludes one a single unit outside', () => {
-    const sizes = matchBikes(1750, 550, 590, 385, 395, withUnbanded)
-      .filter((r) => r.model === 'Four')
-      .map((r) => r.size)
-    expect(sizes).toContain('edge-max')
-    expect(sizes).not.toContain('out-stack')
-    expect(sizes).not.toContain('out-reach')
+    // Edge and outside sizes on their own bike, so only the closest-size rule is not in play.
+    const edges: Bike[] = [
+      {
+        ...withUnbanded[2],
+        bikeId: 'echo-five',
+        model: 'Five',
+        sizes: [
+          { size: 'edge-max', stack: 590, reach: 395, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+          { size: 'out-stack', stack: 591, reach: 390, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+          { size: 'out-reach', stack: 560, reach: 396, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        ],
+      },
+    ]
+    const sizes = matchBikes(1750, 550, 590, 385, 395, edges).map((r) => r.size)
+    expect(sizes).toEqual(['edge-max'])
+  })
+
+  it('lists only the closer of two unbanded sizes of one bike inside the window', () => {
+    // Window centre 570 / 390. 'near' is 10 away, 'far' is about 20.6 away.
+    const twoInside: Bike[] = [
+      {
+        ...withUnbanded[2],
+        bikeId: 'foxtrot-six',
+        model: 'Six',
+        sizes: [
+          { size: 'far', stack: 590, reach: 395, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+          { size: 'near', stack: 560, reach: 390, ett: 550, seatTube: 500, riderHeightMin: null, riderHeightMax: null },
+        ],
+      },
+    ]
+    const results = matchBikes(1750, 550, 590, 385, 395, twoInside)
+    expect(results.map((r) => r.size)).toEqual(['near'])
   })
 
   it('never lists a size whose stack or reach is not published', () => {

@@ -434,6 +434,21 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   ]
   if (preference === 'relaxed') groups.reverse()
 
+  // Shown in the empty and error states too, so the rider can switch back to road.
+  const bikeTypeField = (
+    <label className="buyfit-field buyfit-field--plain">
+      <strong>Bike type</strong>
+      <select
+        value={discipline}
+        onChange={(e) => setDiscipline((e.target as HTMLSelectElement).value as Discipline)}
+        className="buyfit-select"
+      >
+        <option value="road">Road</option>
+        <option value="triathlon">Triathlon / TT</option>
+      </select>
+    </label>
+  )
+
   if (loading) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
@@ -452,6 +467,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         <div style={{ color: 'var(--ink-muted)', marginBottom: '1rem' }}>
           {error}
         </div>
+        {bikeTypeField}
       </div>
     )
   }
@@ -466,6 +482,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         <div style={{ color: 'var(--ink-muted)' }}>
           No bikes found.
         </div>
+        {bikeTypeField}
       </div>
     )
   }
@@ -605,17 +622,7 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
         </div>
 
         <div className="buyfit-input-controls">
-          <label className="buyfit-field buyfit-field--plain">
-            <strong>Bike type</strong>
-            <select
-              value={discipline}
-              onChange={(e) => setDiscipline((e.target as HTMLSelectElement).value as Discipline)}
-              className="buyfit-select"
-            >
-              <option value="road">Road</option>
-              <option value="triathlon">Triathlon / TT</option>
-            </select>
-          </label>
+          {bikeTypeField}
           <label className="buyfit-field buyfit-field--plain">
             <strong>Riding position you want</strong>
             <select
