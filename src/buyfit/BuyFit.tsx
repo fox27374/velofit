@@ -10,6 +10,7 @@ import {
 } from './sizing'
 import { readSavedMeasurements } from './storage'
 import {
+  checkArmrest,
   checkMeasurements,
   checkOptionalMeasurements,
   type MeasurementField,
@@ -21,12 +22,15 @@ import { ResultsHeader } from './ResultsHeader'
 import { BodySketch, formatCm } from './BodySketch'
 import {
   matchBikes,
+  matchByArmrest,
+  hasArmrestData,
   getStackReachWindow,
   getFrameGeometryRange,
   splitByCharacter,
   ratioOf,
   headlineSizes,
   type Character,
+  type ArmrestMatch,
   type BikeSize,
   type Bike,
 } from './matcher'
@@ -133,6 +137,20 @@ function measurementLine(bike: BikeSize) {
     .filter(([, mm]) => mm > 0)
     .map(([name, mm]) => `${name} ${mm} mm`)
     .join(', ')
+}
+
+/** Tri only: one size whose armrest ranges contain the rider's pad position. */
+function ArmrestRow({ match, name }: { match: ArmrestMatch; name: string }) {
+  return (
+    <div className="buyfit-result">
+      <strong>{name}</strong>
+      <span className="buyfit-result-size">size {match.size}</span>
+      <span className="buyfit-delta">
+        stack +{match.stackUp} / −{match.stackDown} mm, reach +{match.reachForward} / −{match.reachBack} mm
+        of adjustment left
+      </span>
+    </div>
+  )
 }
 
 function BikeRow({ bike, name }: { bike: BikeSize; name: string }) {
@@ -278,6 +296,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
   const [sternumHeight, setSternumHeight] = useState<string>('')
   const [armLength, setArmLength] = useState<string>('')
   const [sitBoneWidth, setSitBoneWidth] = useState<string>('')
+  // Tri only. Both must be set before armrest matching runs (doc/buyfit-design.md, Tri mode).
+  const [armrestStack, setArmrestStack] = useState<string>('')
+  const [armrestReach, setArmrestReach] = useState<string>('')
   const [sex, setSex] = useState<Sex | ''>('')
   const [bikes, setBikes] = useState<Bike[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -290,15 +311,17 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
 
   // Fields the rider has left at least once; their messages show only then,
   // so typing "1" on the way to "180" does not flash an error.
-  const [touched, setTouched] = useState<Record<MeasurementField | OptionalField, boolean>>({
+  const [touched, setTouched] = useState<Record<MeasurementField | OptionalField | 'armrestStack' | 'armrestReach', boolean>>({
     inseam: false,
     height: false,
     shoulderWidth: false,
     sternumHeight: false,
     armLength: false,
     sitBoneWidth: false,
+    armrestStack: false,
+    armrestReach: false,
   })
-  const touch = (field: MeasurementField | OptionalField) =>
+  const touch = (field: MeasurementField | OptionalField | 'armrestStack' | 'armrestReach') =>
     setTouched((t) => ({ ...t, [field]: true }))
 
   // Load bikes for the chosen discipline, and again when it changes. A reply for a
@@ -341,6 +364,8 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
       setSternumHeight(saved.sternumHeight ?? '')
       setArmLength(saved.armLength ?? '')
       setSitBoneWidth(saved.sitBoneWidth ?? '')
+      setArmrestStack(saved.armrestStack ?? '')
+      setArmrestReach(saved.armrestReach ?? '')
       setSex(saved.sex ?? '')
       // Don't show measuring guide if we have saved data
       setShowMeasuringGuide(false)
@@ -385,13 +410,15 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           sternumHeight,
           armLength,
           sitBoneWidth,
+          armrestStack,
+          armrestReach,
           sex,
           // Without a unit, storage.ts would read these centimetres as millimetres.
           unit: 'cm',
         })
       )
     }
-  }, [inseam, height, shoulderWidth, preference, discipline, sternumHeight, armLength, sitBoneWidth, sex, allValid])
+  }, [inseam, height, shoulderWidth, preference, discipline, sternumHeight, armLength, sitBoneWidth, armrestStack, armrestReach, sex, allValid])
 
   // Calculate outputs only if all inputs are valid
   const sizing = allValid ? calculateSizing(inseamMm, heightMm, shoulderWidthMm, preference, discipline) : null
@@ -407,25 +434,42 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
     : null
   const fitWindow = allValid && bikes ? getStackReachWindow(heightMm, bikes) : null
   const geometry = allValid && bikes ? getFrameGeometryRange(heightMm, bikes) : null
-  const matches = allValid && fitWindow && bikes
-    ? matchBikes(heightMm, fitWindow.stackMin, fitWindow.stackMax, fitWindow.reachMin, fitWindow.reachMax, bikes)
+  // Tri with both pad fields set: sizes with armrest data leave the frame list and are
+  // matched by armrest instead. Everything else is exactly today's frame matching.
+  const armrestStackNum = parseFloat(armrestStack)
+  const armrestReachNum = parseFloat(armrestReach)
+  const padSet =
+    allValid && discipline === 'triathlon' && !Number.isNaN(armrestStackNum) && !Number.isNaN(armrestReachNum)
+  const frameBikes = padSet && bikes
+    ? bikes.map((bike) => ({ ...bike, sizes: bike.sizes.filter((size) => !hasArmrestData(size)) }))
+    : bikes
+  const matches = allValid && fitWindow && frameBikes
+    ? matchBikes(heightMm, fitWindow.stackMin, fitWindow.stackMax, fitWindow.reachMin, fitWindow.reachMax, frameBikes)
     : []
+  const armrestMatches = padSet && bikes ? matchByArmrest(armrestStackNum * 10, armrestReachNum * 10, bikes) : []
+  // The saddle-height band midpoint is D in §10.1; null-safe for the empty state.
+  const armrestCheck = sizing
+    ? checkArmrest((sizing.saddleHeightMin + sizing.saddleHeightMax) / 20, armrestStackNum, armrestReachNum)
+    : { stack: null, reach: null }
   const legProportion = allValid ? inseamRatio(inseamMm, heightMm)?.proportion ?? null : null
   const headline = allValid && bikes ? headlineSizes(heightMm, bikes) : []
 
   // Initialize brand filter when matches change
   useEffect(() => {
-    if (selectedBrands === null && matches.length > 0) {
-      const brands = new Set(matches.map((b) => b.brand))
+    if (selectedBrands === null && matches.length + armrestMatches.length > 0) {
+      const brands = new Set([...matches, ...armrestMatches].map((b) => b.brand))
       setSelectedBrands(brands)
     }
-  }, [matches, selectedBrands])
+  }, [matches, armrestMatches, selectedBrands])
 
   // Filter matches by selected brands
   const filteredMatches = selectedBrands
     ? matches.filter((b) => selectedBrands.has(b.brand))
     : matches
-  const names = displayLabels(filteredMatches)
+  const filteredArmrest = selectedBrands
+    ? armrestMatches.filter((b) => selectedBrands.has(b.brand))
+    : armrestMatches
+  const names = displayLabels([...filteredMatches, ...filteredArmrest])
   const filteredSplit = allValid ? splitByCharacter(filteredMatches) : { racy: [], relaxed: [], median: null }
 
   const groups: { key: Character; title: string; rows: typeof filteredMatches }[] = [
@@ -621,6 +665,35 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           </div>
         </div>
 
+        {discipline === 'triathlon' && (
+          <div className="buyfit-optional">
+            <p className="buyfit-help">
+              Optional, tri only. With both filled in, bikes are matched by where your armrests sit.
+              Measure to the rear of the pad (How to measure, step 7).
+            </p>
+            <div className="buyfit-input-row">
+              <OptionalCmField
+                label="Armrest stack"
+                help="BB centre up to the top of the rear of the armrest pad."
+                placeholder="e.g., 64.0"
+                value={armrestStack}
+                onInput={setArmrestStack}
+                onBlur={() => touch('armrestStack')}
+                warning={touched.armrestStack ? armrestCheck.stack : null}
+              />
+              <OptionalCmField
+                label="Armrest reach"
+                help="BB centre forward to the rear of the armrest pad."
+                placeholder="e.g., 43.0"
+                value={armrestReach}
+                onInput={setArmrestReach}
+                onBlur={() => touch('armrestReach')}
+                warning={touched.armrestReach ? armrestCheck.reach : null}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="buyfit-input-controls">
           {bikeTypeField}
           <label className="buyfit-field buyfit-field--plain">
@@ -674,6 +747,29 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
                 deepest dents.
               </li>
             </ol>
+            {discipline === 'triathlon' && (
+              <>
+                <p className="buyfit-help">
+                  <strong>Armrest stack and reach (tri only).</strong> Two people. Measure to the rear of
+                  the pad, the edge nearest you.
+                </p>
+                <ol className="buyfit-steps" start={7}>
+                  <li>
+                    Level the bike on a trainer or a level floor, using a level across both dropouts so
+                    the wheel axles are at the same height.
+                  </li>
+                  <li>
+                    <strong>Stack.</strong> Measure from the floor up to the centre of the bottom bracket.
+                    Then measure from the floor up to the top of the armrest pad. Subtract the first from
+                    the second.
+                  </li>
+                  <li>
+                    <strong>Reach.</strong> Hang a plumb line from the centre of the bottom bracket.
+                    Measure horizontally from the line to the rear of the pad.
+                  </li>
+                </ol>
+              </>
+            )}
             <p className="buyfit-help">
               Sex is asked only to pick the population averages in Proportions. It changes no sizing
               number.
@@ -818,9 +914,9 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
           {/* Bikes section */}
           <div className="buyfit-bikes-section">
             {/* Brand filter */}
-            {selectedBrands && matches.length > 0 && (
+            {selectedBrands && matches.length + armrestMatches.length > 0 && (
               <div className="buyfit-brand-filter">
-                {Array.from(new Set(matches.map((b) => b.brand))).map((brand) => (
+                {Array.from(new Set([...matches, ...armrestMatches].map((b) => b.brand))).map((brand) => (
                   <button
                     key={brand}
                     className="buyfit-brand-chip"
@@ -904,10 +1000,34 @@ export function BuyFit({ onHome }: { onHome: () => void }) {
               ) : null}
             </div>
 
+            {/* Armrest matches: tri with both pad fields set */}
+            {filteredArmrest.length > 0 && selectedBrands && selectedBrands.size > 0 && (
+              <div>
+                <h3 className="buyfit-group-title">Fit by armrest</h3>
+                <p className="buyfit-note">
+                  Sizes whose published armrest range contains your pad position. "+" is how far the pad
+                  can still move up or forward, "−" how far down or back. The largest margin is listed
+                  first. Canyon and Orbea do not state where on the pad they measure, so their reach can
+                  differ from yours by 40–50 mm. Confirm with the brand or a fitter before you buy.
+                </p>
+                <div className="buyfit-results">
+                  {filteredArmrest.map((match) => (
+                    <ArmrestRow
+                      key={`${match.bikeId}-${match.size}`}
+                      match={match}
+                      name={names.get(match.bikeId) ?? `${match.brand} ${match.model}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Bike list */}
             {filteredMatches.length > 0 && selectedBrands && selectedBrands.size > 0 && (
               <div>
-                <h3 className="buyfit-group-title">Bikes that fit your window</h3>
+                <h3 className="buyfit-group-title">
+                  {padSet ? 'Matched by frame (no armrest data published)' : 'Bikes that fit your window'}
+                </h3>
                 {discipline === 'triathlon' && (
                   <p className="buyfit-note">
                     Tri bikes are sized from where your armrests need to be, not from your height. These

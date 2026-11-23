@@ -176,4 +176,15 @@ describe('readSavedMeasurements discipline', () => {
     )
     expect(result?.discipline).toBeUndefined()
   })
+
+  it('reads the armrest fields when saved, and leaves them undefined in older saves', () => {
+    const saved = readSavedMeasurements(
+      JSON.stringify({ inseam: '88.6', height: '183', shoulderWidth: '41', unit: 'cm', armrestStack: '64.0', armrestReach: '43.0' })
+    )
+    expect(saved).toMatchObject({ armrestStack: '64.0', armrestReach: '43.0' })
+
+    const older = readSavedMeasurements(JSON.stringify({ inseam: '88.6', height: '183', shoulderWidth: '41', unit: 'cm' }))
+    expect(older!.armrestStack).toBeUndefined()
+    expect(older!.armrestReach).toBeUndefined()
+  })
 })

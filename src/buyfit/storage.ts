@@ -13,6 +13,9 @@ export interface SavedMeasurements {
   sternumHeight?: string
   armLength?: string
   sitBoneWidth?: string
+  /** Tri only: pad stack and reach in cm, BB centre to the rear of the armrest pad. */
+  armrestStack?: string
+  armrestReach?: string
   sex?: Sex
   /** Absent in saves from before tri mode; BuyFit reads absent as road. */
   discipline?: Discipline
@@ -61,6 +64,8 @@ export function readSavedMeasurements(raw: string | null): SavedMeasurements | n
     sternumHeight: optional(d.sternumHeight),
     armLength: optional(d.armLength),
     sitBoneWidth: optional(d.sitBoneWidth),
+    armrestStack: optional(d.armrestStack),
+    armrestReach: optional(d.armrestReach),
     sex: d.sex === 'male' || d.sex === 'female' ? d.sex : undefined,
     discipline: d.discipline === 'road' || d.discipline === 'triathlon' ? d.discipline : undefined,
   }
