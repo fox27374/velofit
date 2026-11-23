@@ -5,7 +5,9 @@ import { getStackReachWindow, hasArmrestData, matchBikes, matchByArmrest, type B
 // tri rows, for a 183 cm rider. Stack, reach and rider-height bounds in mm; null means
 // the maker gives no value. The data is kept as typed so a change to the matcher is
 // checked against what the shop actually sells.
-// BMC Timemachine is not in the data and is not asserted here.
+// BMC Speedmachine publishes no frame stack/reach: its stack/reach values are armrest-range
+// minimums, so they are null here (the bands stay). BMC Timemachine 01 DISC TWO is included
+// with its frame stack/reach; STA is a seat-tube angle, not a size, and is not used.
 
 const size = (
   label: string,
@@ -78,9 +80,15 @@ const triDb: Bike[] = [
     size('XL', 565, 445, 1860, 1980),
   ]),
   bike('BMC', 'Speedmachine 01', [
-    size('S', 558, 348, null, 1740),
-    size('M', 588, 368, 1720, 1850),
-    size('L', 628, 395, 1800, null),
+    size('S', null, null, null, 1740),
+    size('M', null, null, 1720, 1850),
+    size('L', null, null, 1800, null),
+  ]),
+  bike('BMC', 'Timemachine 01 DISC TWO', [
+    size('S', 480, 393, null, 1700),
+    size('M-S', 515, 377, 1720, 1800),
+    size('M-L', 515, 418, 1780, 1880),
+    size('L', 556, 442, 1860, 1960),
   ]),
   bike('Orbea', 'Ordu M10i LTD PWR UCI', [
     size('XS', null, null, null, 1700),
@@ -96,46 +104,45 @@ describe('tri data for a 183 cm rider', () => {
   const window = getStackReachWindow(RIDER_MM, triDb)
 
   it('computes the window from the banded rows only', () => {
-    // Banded rows: Speedmax M and L, Speedmax CF M, CFR TT M, Trek SLR L, BMC M and L.
+    // Banded rows with stack and reach at 1830 mm: Speedmax M and L, Speedmax CF M, CFR TT M,
+    // Trek SLR L, Timemachine M-L. BMC Speedmachine has bands but no frame stack/reach (its
+    // published values are armrest-range minimums), so it never enters the window.
     expect(window).toEqual({
       stackMin: 481,
-      stackMax: 628,
-      reachMin: 368,
+      stackMax: 544,
+      reachMin: 418,
       reachMax: 463,
-      count: 7,
+      count: 6,
     })
   })
 
-  it('lists Cervélo P-Series 56 (549 / 422), which sits inside the window', () => {
-    const matches = matchBikes(RIDER_MM, 481, 628, 368, 463, triDb)
-    const p56 = matches.find((m) => m.model === 'P-Series' && m.size === '56')
-    expect(p56).toBeDefined()
-    expect(p56!.noHeightBand).toBe(true)
+  it('does not list the Cervélo P-Series 56 (549 / 422): its stack is above the window max', () => {
+    const matches = matchBikes(RIDER_MM, 481, 544, 418, 463, triDb)
+    expect(matches.find((m) => m.model === 'P-Series' && m.size === '56')).toBeUndefined()
+    // No P-Series size is inside 481–544 / 418–463.
+    expect(matches.some((m) => m.model === 'P-Series')).toBe(false)
   })
 
   it('lists the banded matches, plus one unbanded size per bike with none banded', () => {
     const matches = matchBikes(RIDER_MM, window!.stackMin, window!.stackMax, window!.reachMin, window!.reachMax, triDb)
     const labels = matches.map((m) => `${m.brand} ${m.model} ${m.size}`).sort()
-    // Unbanded: from each Cervélo model only the size nearest the window centre
-    // (554.5 / 415.5). P-Series 56 (549/422) is at distance 8.5. P5 58 (535/446) is at
-    // distance sqrt(19.5² + 30.5²) ≈ 36.2, the nearest P5 size; P5 61 is 39.5, P5 56 42.3.
+    // Unbanded: from the Cervélo P5 only the size nearest the window centre (512.5 / 440.5).
+    // P5 56 (516/433) is at distance ≈ 8.3, P5 58 (535/446) ≈ 23.2, P5 54 (498/420) ≈ 25.1.
     expect(labels).toEqual(
       [
-        'BMC Speedmachine 01 L',
-        'BMC Speedmachine 01 M',
+        'BMC Timemachine 01 DISC TWO M-L',
         'Canyon Speedmax CFR TT M',
         'Canyon Speedmax CF M',
         'Canyon Speedmax L',
         'Canyon Speedmax M',
-        'Cervélo P-Series 56',
-        'Cervélo P5 58',
+        'Cervélo P5 56',
         'Trek Speed Concept SLR L',
       ].sort()
     )
   })
 
   it('does not list the Orbea Ordu, which has bands but no stack or reach', () => {
-    const matches = matchBikes(RIDER_MM, 481, 628, 368, 463, triDb)
+    const matches = matchBikes(RIDER_MM, 481, 544, 418, 463, triDb)
     expect(matches.some((m) => m.brand === 'Orbea')).toBe(false)
     expect(window).not.toBeNull()
   })
