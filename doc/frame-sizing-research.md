@@ -913,7 +913,62 @@ themselves do not have, because the numbers on them mean different things.
 70. Slowtwitch forum, "Official FIT ASSISTANCE for Cervelo TT and Triathlon Bikes" (Cervélo fit
     rep answering riders). https://forum.slowtwitch.com/t/official-fit-assistance-for-cervelo-tt-and-triathlon-bikes/775865
     — sizes chosen from pad stack/reach, with back-of-pad vs mid-pad conventions differing.
-    **Forum; manufacturer-representative opinion.**
+    **Forum; manufacturer-representative opinion.** Pages read for §10: page 36 (ericMPro,
+    7 Feb 2021, "425mm (to _back_ of pads)") and page 42 (ericMPro, 20 Jun 2021, "445mm to the
+    back of pad").
+
+**Armrest (pad) stack and reach (§10)**
+
+71. Slowman (Dan Empfield), "Armrest drop", F.I.S.T. step 7, Slowtwitch, 13 Sep 2007.
+    https://www.slowtwitch.com/industry/armrest-drop/ — C = .005D² − .2D (cm), D = BB to saddle
+    top "midpoint between its fore and aft"; "perhaps 75%" of "hundreds of top athletes" within
+    ±1.5 cm; age-groupers "subtract about 1.5cm"; tuned at 77.5° seat angle, ±.0075 on the D
+    coefficient per degree; measured with a level from the saddle nose to a ruler "in the center
+    of the armrest". "Not a determiner of proper armrest drop, it's simply an indicator of where
+    athletes tend to historically fall." **Practitioner, descriptive, data not published.**
+72. Slowman, "Change in fit formula", Slowtwitch forum, 12 Feb 2003.
+    https://forum.slowtwitch.com/forum/Slowtwitch_Forums_C1/Triathlon_Forum_F1/Change_in_fit_formula_P9985/
+    — C = .005D² − .22D − 1.5 cm ± 1.5 cm; the old .2D was "slightly more aggressive than what
+    it is i'm observing in real life". Observation of pros, no data set.
+73. Slowman, "Cockpit length", F.I.S.T., Slowtwitch, 13 Sep 2007.
+    https://slowtwitch.com/industry/cockpit-length/ — shoulder angle target 80–85° (greater
+    trochanter to mid-shoulder to elbow), ~90° torso to upper arm; cockpit "is simply a matter of
+    personal taste"; "This range is what I expect to find, not what I mandate." No length formula.
+74. Slowtwitch forum, "Bike fit exercise results (if you gave me your height and saddle height)",
+    7–8 Aug 2017. https://forum.slowtwitch.com/t/bike-fit-exercise-results-if-you-gave-me-your-height-and-saddle-height/747187
+    — Empfield predicts Pad X/Y from height and saddle height for a direct-sales brand tool, "not
+    bike fit tool! this is the fallback"; algorithm shown only as an image; "performing surgery
+    with a butter knife". About seven predictions, no accuracy figure. **Forum.**
+75. Slowman, "Bike Position: Pro Men Conform", Slowtwitch, 4 Jul 2016.
+    https://slowtwitch.com/industry/bike-position-pro-men-conform/ — about 25 pro and 75 reader
+    positions plotted as pad position vs BB; pros show "not a lot of variance". Chart is an
+    image; no numbers in the text.
+76. BMC Switzerland, *Speedmachine Gen1 Sizing Guide*, V2, October 2024.
+    https://bmc-switzerland.com/cdn/shop/files/bmc-speedmachine-sizing-guide-1.pdf — "All values
+    for Pad X are given to the rear of the armrest pad. Values for Pad Stack and Reach include
+    the cushion." Home method against a room corner (floor and front wall as datums). PDF text
+    read in full. **Manufacturer guidance.**
+77. "New Triathlon Bikes Are Changing Which Bike Fit Numbers Matter", *Triathlete*, 10 Feb 2021.
+    https://www.triathlete.com/gear/bike/new-triathlon-bikes-are-changing-which-bike-fit-numbers-matter/
+    — arm pad reach "refers to the back of the arm pad", "occasionally some manufacturers use the
+    middle of the pad"; Speedmax CF SLX L pad stack 619–729 mm. Author not shown. **Trade press.**
+78. Slowtwitch forum, "Official Fit Assistance For Canyon Speedmax, CFR, SLX, and CF" (Ian Murray,
+    F.I.S.T./Guru instructor, "Canyon endorsed").
+    https://forum.slowtwitch.com/t/official-fit-assistance-for-canyon-speedmax-cfr-slx-and-cf/1284017
+    — sizes from seat height, Pad Y, Pad X; posters disagree whether Canyon's chart is back of pad
+    or "the Canyon Way" centre of pad. **Seen through search excerpts only; forum.**
+79. UCI, "UCI Regulations for road cycling: changes for time trials", press release, in force
+    1 Jan 2023. https://www.uci.org/pressrelease/uci-regulations-for-road-cycling-changes-for-time-trials/1QmN4gRxrsgeQtgahAAfXr
+    — three height categories; BB-axle to extension end 80 / 83 / 85 cm; forearm support less
+    than 10 / 12 / 14 cm below the extension's highest point; forearm-support tilt up to 30°.
+    Regulation text (Art. 1.3.023) itself not read.
+80. Aero Coach, "UCI time trial position regulations for 2026 onwards", 21 Jan 2026.
+    https://www.aero-coach.co.uk/uci-time-trial-position-regulations-for-2026-onwards — same
+    three categories and 100 / 120 / 140 mm pad-to-shifter heights. **Secondary.**
+81. Fintelman DM, Sterling M, Hemida H, Li FX. "Optimal cycling time trial position models:
+    aerodynamics versus power output and metabolic energy." *J Biomech* 2014;47(8):1894–1898.
+    DOI: 10.1016/j.jbiomech.2014.02.029. n = 19 TT cyclists, torso 0–24°; optimum torso angle
+    depends on speed, not on body dimensions. **Abstract only.**
 
 ---
 
@@ -944,6 +999,8 @@ themselves do not have, because the numbers on them mean different things.
 - **There is no ISO/CEN frame sizing standard.** Confirmed by reading the scope of ISO 4210.
 - **Fitters disagree measurably on identical data.** 53 fitters, one video, CVs above tolerance
   on every angle that matters.
+- **UCI TT extension limits by rider height** (§10.4). UCI press release: 80 / 83 / 85 cm from
+  the BB axle to the extension end, for under 180 / 180–189.9 / 190+ cm. Article text not read.
 
 ### Moderately sourced
 
@@ -964,6 +1021,11 @@ themselves do not have, because the numbers on them mean different things.
 - **A steep seat angle moves the hip more than the knee** (§9.1). Price & Donne 1997 (hip range
   of motion smaller at 80°), Heil & Pickels 2019 (knee insensitive, excerpt only), McDonald
   et al. 2022 (knee unchanged once height is re-set). Abstracts and excerpts only.
+- **Pad coordinates are measured on the bike, from the BB, with a level or plumb line** (§10.3).
+  Slowtwitch [67] and BMC [76] give two independent home methods that agree in principle.
+- **Pad reference points differ between brands** (§10.2). Rear of pad: BMC [76] (in print),
+  Retül, Quintana Roo, Giant, Zipp [67], Cervélo's fit rep [70]. Centre: Slowtwitch default
+  [67]. The fact of the difference is sourced; its size in mm is not.
 - **ANSUR II ratios as civilian cyclist norms** (§8.3). The statistics themselves are well
   sourced (computed from the public files). The population is a young, fit US military sample,
   unweighted.
@@ -1017,6 +1079,18 @@ themselves do not have, because the numbers on them mean different things.
   bones. The retailer "+0 for tri" and Kopecky's "+1–3 cm" are opinion.
 - **The reference rider's "Sattelposition 16.3 cm"** (§9.6). Interpreted geometrically as
   horizontal BB-to-saddle offset; the fitter's reference point is not documented.
+- **Pad stack from saddle height via Empfield's armrest drop** (§10.1). The only located rule.
+  One practitioner, descriptive of pros, data never published, ±1.5 cm for about 75%, and two
+  coefficient versions (.2 in 2007, .22 in 2003). Usable only as a plausibility window.
+- **Pad reach from body measurements** (§10.1). No source. Empfield's 2017 height + saddle height
+  algorithm is unpublished (an image) and he calls it a "fallback". Holliday & Swart's null on
+  road reach is the nearest tested result. Shoulder-angle targets (80–85°) would need a body
+  model and a torso angle; nobody publishes one.
+- **Rear-of-pad to centre-of-pad offset** (§10.2). Forum anecdotes only, about 40–50 mm; it
+  depends on the armrest cup.
+- **Canyon's and Orbea's pad reference points** (§10.2). Canyon: forum posters disagree (rear vs
+  "the Canyon Way" centre). Orbea: not published on any page reached. Cervélo's printed P5 arm
+  pad sheet ("centre of the arm pad support plate") was seen only in a search summary.
 - **Sit-bone population norms for Europeans.** Only Taiwanese (Chen 2016/2021) and small US samples
   were located. No population dataset of centre-to-centre sit-bone width was found.
 - **The flexibility self-rating.** No study located relates a self-rating to the Knee Extension
@@ -1038,6 +1112,8 @@ themselves do not have, because the numbers on them mean different things.
    "+1 cm" maps to a different centre-to-centre allowance.
 5. **Find a published fitter arm-length protocol** (landmark at the wrist, and arm hanging vs
    horizontal) before velofit labels arms "long" or "short" next to a fitter's report.
+6. **Ask Canyon and Orbea which pad point their armrest stack/reach rows use** (§10.2), and
+   whether pad stack includes the cushion. BMC is the only brand that states both in print.
 
 ---
 
@@ -1447,3 +1523,155 @@ Male, 183 cm, inseam 88.6 cm. Studio recommendations: Orbea Ordu **M–L**, BMC 
   70°, which does not fit a tri bike. For comparison, UCI time trials require the nose at least
   5 cm behind the BB (relayed by [66]). Treat this reading as **derived, unverified**: ask the
   studio which point they measure to before velofit displays it.
+
+---
+
+## 10. Armrest (pad) stack and reach
+
+Research date: 2026-11-22. Same rules as §8 and §9. Sources are numbered on from §6 (71–81),
+and the gaps are listed in §7. Grades are the §7 ones: **Well sourced**, **Moderately sourced**,
+**Weak**, **No source**, plus **manufacturer guidance**, which is never counted as evidence.
+
+**Terms.** *Pad stack* (Pad Y) is the vertical distance from the BB centre up to the armrest pad.
+*Pad reach* (Pad X) is the horizontal distance from the BB centre forward to the pad. Both are
+fit coordinates (§0): they describe the rider, not the frame [67, 70].
+
+**Summary for implementation.**
+
+| Question | Answer | Grade |
+|---|---|---|
+| Estimate pad stack from the body | Only one rule exists: Empfield's armrest drop below the saddle. Use it as a plausibility window, never as a target. | **Weak** |
+| Estimate pad reach from the body | **Refuse.** No published rule; the nearest tested result is a null. | **No source** |
+| Reference point on the pad | Brands differ: rear of pad (BMC, Cervélo, Retül, Giant, Zipp, QR) vs centre (Slowtwitch default). The app must ask which one. | Moderately sourced; BMC is manufacturer guidance |
+| Measuring at home | Level the bike, take floor and plumb line (or wall) as datums, subtract BB from pad. | Moderately sourced |
+| UCI limits | Limit the extension end (80 / 83 / 85 cm by height), not the pad. Note only. | Well sourced |
+
+### 10.1 Estimating pad stack and reach from body measurements
+
+**No validated method was found.** No peer-reviewed regression predicts pad stack or pad reach
+from height, inseam, sternum height, arm length or torso length. The searches covered
+Slowtwitch / F.I.S.T., Cervélo, Retül, Guru, and the TT literature. Holliday & Swart [1] tested
+road handlebar reach against anthropometry and found nothing (adj R² = −0.10, §2.3); no TT
+version of that study was located. Fintelman et al. [81] model the best torso angle for a TT
+position, but the optimum depends on speed, not on body dimensions. No Retül, Guru or Bike Fit
+Studio pad formula was found.
+
+**Pad stack: one practitioner rule, descriptive.** Empfield's F.I.S.T. *armrest drop* [71] is
+the vertical distance from the saddle top (near the nose) down to the top of the armrest at its
+centre:
+
+    C = 0.005·D² − 0.2·D          (cm; D = BB to saddle top, saddle midpoint)
+    age-groupers: subtract about 1.5 cm;  "perhaps 75%" of athletes within ±1.5 cm
+
+The rule is tuned at a 77.5° seat angle. It comes from "hundreds of top athletes", but the data
+were never published. Empfield states that it is "not a determiner of proper armrest drop, it's
+simply an indicator of where athletes tend to historically fall". An earlier forum version [72]
+uses −0.22·D − 1.5 cm, which gives about 1.5 cm less drop. The two versions do not agree, and
+no source says which one is current.
+
+Pad stack then follows by geometry (*derived*):
+
+    pad Y ≈ D · sin(effective seat angle) − C
+
+**Reference rider (derived).** D = 77.5 cm and an effective seat angle of about 77.9° (§9.6)
+put the saddle top 75.8 cm above the BB. The 2007 rule for age-groupers gives C = 13.0 cm, so
+pad Y ≈ **62.7 cm** (61.2–64.2). The 2003 rule gives C = 11.5 cm, so pad Y ≈ **64.3 cm**
+(62.8–65.8). Empfield's own 2017 prediction for a 183 cm rider with a 78 cm saddle was
+**643 mm** [74]. That agrees, but it is probably the same rule.
+
+**Pad reach: none.** Empfield's cockpit step [73] gives angle targets: shoulder 80–85°, and
+about 90° between torso and upper arm. It gives no length rule, and calls cockpit length "simply
+a matter of personal taste". In 2017 he predicted Pad X/Y from height and saddle height for a
+brand's sizing tool [74]. The algorithm is only in an image. He called it "the fallback", and
+"performing surgery with a butter knife". Riders reported pad Y "pretty close" and pad X off.
+Pro positions cluster tightly [75], but the published chart is an image without numbers. A
+body-segment model (torso and arm length from ANSUR II §8.3, plus a torso angle) could be
+built. Nobody publishes or validates one, and it would need the torso angle, which depends on
+flexibility (§4.3) and on speed [81]. **No source.**
+
+**Rule for velofit.**
+
+1. The rider types pad X and pad Y, from a fit report or measured on their current bike (§10.3),
+   and picks the reference point (rear or centre of pad).
+2. If pad Y is missing, show the armrest-drop window as a check only: "Riders with your saddle
+   height often have their pads about 11–14 cm below the saddle. Measure yours." Grade: **Weak**.
+3. Never estimate pad X. Say: "Pad reach depends on your torso angle and flexibility. No study
+   predicts it from body measurements. Get it from a fit or from your current bike."
+
+### 10.2 Reference-point conventions
+
+**Vertical (pad stack).** Slowtwitch measures to the *top of the pads* [67]. Empfield's armrest
+drop uses a ruler "in the center of the armrest" [71]. BMC measures to the *back* of the pad,
+with the cushion included [76]. If the pad tilts upward (BMC allows 0–15°), the rear and the
+centre of the pad sit at different heights. No brand quantifies this.
+
+**Horizontal (pad reach).**
+
+| Source | Pad reach measured to | Grade |
+|---|---|---|
+| Slowtwitch / Empfield [67] | **Centre** of the pad (his default) | Practitioner |
+| Retül, Quintana Roo, Giant, Zipp (per [67]) | **Rear** of the pad | Relayed by Empfield |
+| BMC Speedmachine [76] | **Rear** of the armrest pad, cushion included in stack and reach | Manufacturer guidance (read in print) |
+| Cervélo P-Series [70] | **Back** of pad (fit rep: "425mm (to _back_ of pads)", "445mm to the back of pad") | Forum, manufacturer rep |
+| Cervélo P5 arm pad sheet | "centre of the arm pad support plate" | Seen only in a search summary; sheet not reached |
+| Canyon Speedmax | Disputed: back of pad, or "the Canyon Way" centre of pad [78] | Forum only |
+| Orbea Ordu | Not stated on any page reached; the Pad XY chart uses cm [68] | **No source** |
+| *Triathlete* [77] | "Typically" the back of the pad; "occasionally" the middle | Trade press |
+
+**How large the difference is.** Empfield says to add the rear-to-centre distance to convert
+[67]. No brand publishes it. Forum riders quote about **40 mm** (centre 455 vs back ~415) and
+about **50 mm** (back 460 vs centre ~510) [70, 78]. It is half the armrest cup length, so it
+depends on the cup. **Weak.** The app should ask the rider for the pad point, or for both
+values. It must not convert with a fixed offset.
+
+**Implication for brand ranges.** BMC "Armrest Stack/Reach", Canyon "Armpad Stack/Reach" and
+Orbea "Armlehnenstapel/-reichweite MIN–MAX" are adjustment ranges per size, not single values
+(the bikedb scraper already parks them as non-frame rows). Matching a rider's pad
+coordinates against them is valid only when both use the same pad point. That is confirmed for
+BMC alone.
+
+### 10.3 Measuring the current pad position at home
+
+Two independent methods agree in principle: Slowtwitch [67] and BMC's sizing guide [76].
+Grade: **Moderately sourced** (practitioner and manufacturer guidance, no error study).
+
+1. **Level the bike.** Put it on a trainer or on a level floor. Empfield holds a 4-foot level
+   against the centres of the front and rear dropouts, so both axles are at the same height
+   [67]. BMC says "even, horizontal floor" [76].
+2. **Choose the datums.** Vertical: the floor. Horizontal: a plumb line or a level held through
+   the BB centre [67]. As an alternative, set the bike parallel to a side wall, with the front
+   wheel against the front wall of a room corner [76].
+3. **Pad Y.** Measure floor to BB axle centre. Measure floor to the pad top (Slowtwitch) or the
+   back of the pad (BMC). Subtract: pad Y = pad height − BB height.
+4. **Pad X.** With the plumb line: measure horizontally from the line forward to the pad point
+   [67]. With the wall: measure wall to BB and wall to the back of the pad. Subtract: pad X =
+   wall-to-BB − wall-to-pad [76].
+5. **Record the convention.** Note the pad point (rear or centre), whether the cushion is
+   included (BMC: yes), and the pad tilt [76].
+6. **Use two people.** Empfield calls it "a 2-man job done accurately" [67].
+
+**Error budget (derived, not sourced).** Over a 500 mm horizontal run, 1° of bike tilt shifts a
+vertical reading by about 9 mm (500 × tan 1°). Levelling matters more than the tape. No
+published repeatability figure was found.
+
+**Suggested UI text.** "Put your bike on level ground. Measure from the floor to the centre of
+the bottom bracket, and from the floor to the top of the armrest pad. The difference is your pad
+stack. Hang a plumb line through the bottom bracket, and measure forward to the pad. That is
+your pad reach. Note whether you measured to the back or the middle of the pad."
+
+### 10.4 UCI limits (note only)
+
+From 1 January 2023, UCI time trials use three rider-height categories [79]:
+
+| Rider height | BB axle to extension end (horizontal) | Forearm support below extension high point |
+|---|---|---|
+| under 180 cm | ≤ 80 cm | < 10 cm |
+| 180–189.9 cm | ≤ 83 cm | < 12 cm |
+| 190 cm and over | ≤ 85 cm | < 14 cm |
+
+The forearm support may tilt up to 30° [79]. Aero Coach confirms the same categories for 2026
+[80]. The UCI saddle-nose rule (5 cm behind the BB) is in §9.6. These rules limit the **end of
+the extensions**, not the pad. Pad reach is limited only indirectly, by the forearm and extension
+length in front of it. Grade: **Well sourced** for the table (UCI press release); the regulation
+text (Art. 1.3.023) was not read. They apply to UCI events only. Triathlon rules were not
+checked.
