@@ -73,7 +73,9 @@ not about evidence.
 Inseam, height, shoulder width. Nothing else is required — every field must
 have a consumer. Four optional fields add detail: **sternum height** (floor to
 the jugular notch), **arm length** (shoulder tip to wrist), **sit-bone width**
-(centre to centre, measured seated) and **sex**.
+(centre to centre, measured seated) and **sex**. In tri, two more: **armrest
+stack** and **armrest reach** (Tri mode). Those two are the only optional fields
+that move the bike matching, and only when both are set.
 
 Sit-bone width sets the saddle width output (§8.1, brand allowance). Sex is
 never a sizing input: it only picks the US Army ANSUR II averages (§8.3) that
@@ -191,7 +193,7 @@ row's source note records that.
 
 ### Matching
 
-Filter to the window, sort by distance from its centre, list **every** model
+Road, and tri with either pad field empty: filter to the window, sort by distance from its centre, list **every** model
 and size that fits with its mm deltas. Never a single winner, never a 0–100
 score: the window usually contains several sizes across several bikes, which is
 the true answer and the useful one when a shop has three of them in stock.
@@ -207,6 +209,11 @@ rows' sort). A maker's several unbanded sizes would otherwise flood the list
 (all six Cervélo P-Series sizes were inside the 183 cm tri window). A size with
 no stack or no reach (Orbea Ordu) cannot match at all. Null is never read as 0, which would drag the
 window's minimum to 0.
+
+**Tri with both armrest fields set.** Sizes with armrest data are matched by
+armrest (see Tri mode). The rest go through the frame matching above, with the
+window still taken from the banded frame rows. Armrest ranges are published
+per size, so they are not a rider-height band and do not need one.
 
 ### Preference, and why it is allowed to exist
 
@@ -257,6 +264,35 @@ measurements; a save from before the switch reads as road). Tri loads the
   The riding allowance does not apply.
 - **Frame list** is labelled a coarse filter, because the front end adds most
   of the stack and adjacent sizes overlap (§9.5).
+- **Armrest matching** (§10). Two optional fields, **armrest stack** and
+  **armrest reach** (cm, one decimal), measured from the BB centre to the
+  **rear of the pad**, stack to the **top** of the pad. Shown in tri only. When
+  both are set, a size whose published armrest range contains the pad position
+  (edges inclusive, no tolerance) is listed under **Fit by armrest**, largest
+  margin first. Each row shows the room left on each side: "+" is how far the
+  pad can still move up or forward, "−" how far down or back. Ranks by the
+  smallest of the four margins, not by height. Height bands do not filter it.
+  Sizes with no armrest data keep the frame matching, under **Matched by frame
+  (no armrest data published)**. Sizes with armrest data leave that list. When
+  either field is empty, the page is exactly as before.
+- **Armrest caveat.** Canyon and Orbea do not state their pad reference point,
+  so their reach ranges can differ from the rider's by about 40–50 mm (§10.2,
+  Weak). BMC states the rear of the pad. The results note names Canyon and Orbea
+  and asks for confirmation before buying. The page never converts between
+  reference points.
+- **No body estimate for the pad.** No validated rule predicts pad stack or reach
+  from the body (§10.1), so the page never fills them in. It only warns:
+  - **Pad stack** is compared with Empfield's armrest-drop prediction, pad Y ≈
+    D·sin(78°) − (0.005·D² − 0.2·D), with D the saddle-height band midpoint in cm.
+    A gap over 50 mm shows "unusual, double-check your measurement". Grade:
+    **Weak**. The 78° is a round value between the 77.5° the rule was tuned at
+    and the 77.9° derived for the reference rider (§9.6). The age-group offset is
+    not applied.
+  - **Pad reach** gets only a range check, 30–70 cm. It is never predicted.
+  - Both warnings are non-blocking and show only after the field is left.
+- **How to measure** adds steps 7–9 in tri mode: level the bike, stack from the
+  floor to the BB centre and to the top of the pad, reach from a plumb line
+  through the BB to the rear of the pad. Two people (§10.3).
 
 Riding preference stays on in tri. It still splits the shortlist into the
 racier and more upright halves, which is a bike-character sort and not a

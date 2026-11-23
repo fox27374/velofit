@@ -7,7 +7,7 @@ import type { Bike, BikeSizeRow } from './matcher'
 
 const DEFAULT_API_URL = ''
 
-interface ApiRow {
+export interface ApiRow {
   brand: string
   model: string
   model_year?: number
@@ -25,9 +25,13 @@ interface ApiRow {
   family?: string
   frame_name?: string
   generation?: string
+  armrest_stack_min_mm?: number | null
+  armrest_stack_max_mm?: number | null
+  armrest_reach_min_mm?: number | null
+  armrest_reach_max_mm?: number | null
 }
 
-function apiRowToBikeSize(row: ApiRow): BikeSizeRow {
+export function apiRowToBikeSize(row: ApiRow): BikeSizeRow {
   return {
     size: row.size,
     // Null, not 0: a 0 would drag the window's minimum to 0. Such a size cannot match.
@@ -39,6 +43,11 @@ function apiRowToBikeSize(row: ApiRow): BikeSizeRow {
     riderHeightMax: row.rider_height_max_mm ?? null,
     barWidth: row.handlebar_width_mm,
     crankLength: row.crank_length_mm,
+    // Null, not 0, as for stack and reach: a 0 would read as a pad range edge.
+    armrestStackMin: row.armrest_stack_min_mm ?? null,
+    armrestStackMax: row.armrest_stack_max_mm ?? null,
+    armrestReachMin: row.armrest_reach_min_mm ?? null,
+    armrestReachMax: row.armrest_reach_max_mm ?? null,
   }
 }
 

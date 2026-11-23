@@ -21,6 +21,14 @@ export interface BikeSizeRow {
   /** What the stock build ships with, where the maker publishes it. */
   barWidth?: number
   crankLength?: number
+  /**
+   * Tri armrest pad ranges, BB centre to the rear of the pad (doc §10.2). Null or absent
+   * means not published. A published single value has min = max.
+   */
+  armrestStackMin?: number | null
+  armrestStackMax?: number | null
+  armrestReachMin?: number | null
+  armrestReachMax?: number | null
 }
 
 export interface Bike {
@@ -81,6 +89,18 @@ export interface FrameGeometryRange {
 }
 
 type Measured<T extends BikeSizeRow> = T & { stack: number; reach: number }
+
+/** A size whose maker publishes all four armrest bounds. */
+export function hasArmrestData(
+  size: BikeSizeRow
+): size is BikeSizeRow & { armrestStackMin: number; armrestStackMax: number; armrestReachMin: number; armrestReachMax: number } {
+  return (
+    size.armrestStackMin != null &&
+    size.armrestStackMax != null &&
+    size.armrestReachMin != null &&
+    size.armrestReachMax != null
+  )
+}
 
 /** A size whose maker publishes both stack and reach. */
 function measured<T extends BikeSizeRow>(size: T): size is Measured<T> {
@@ -213,6 +233,63 @@ export function matchBikes(
       }
     })
     .sort((a, b) => a.distanceFromCentre - b.distanceFromCentre)
+}
+
+/** One size whose armrest ranges contain the rider's pad position (mm). */
+export interface ArmrestMatch {
+  brand: string
+  model: string
+  bikeId: string
+  family: string
+  frameName: string
+  generation: string
+  year: number
+  size: string
+  /** mm the pad can still move up (range max minus pad stack). */
+  stackUp: number
+  /** mm the pad can still move down (pad stack minus range min). */
+  stackDown: number
+  /** mm the pad can still move forward (range max minus pad reach). */
+  reachForward: number
+  /** mm the pad can still move back (pad reach minus range min). */
+  reachBack: number
+  /** Smallest of the four, so the largest margin is the most adjustment left. */
+  margin: number
+}
+
+/**
+ * Sizes whose armrest ranges contain the pad position, edges inclusive. Not
+ * filtered by rider height: the armrest ranges are fit coordinates, not bands.
+ * Largest margin first (doc §10.2). Sizes without armrest data never match.
+ */
+export function matchByArmrest(padStackMm: number, padReachMm: number, db: Bike[]): ArmrestMatch[] {
+  const matches: ArmrestMatch[] = []
+  for (const bike of db) {
+    for (const size of bike.sizes) {
+      if (!hasArmrestData(size)) continue
+      const stackUp = size.armrestStackMax - padStackMm
+      const stackDown = padStackMm - size.armrestStackMin
+      const reachForward = size.armrestReachMax - padReachMm
+      const reachBack = padReachMm - size.armrestReachMin
+      if ([stackUp, stackDown, reachForward, reachBack].some((m) => m < 0)) continue
+      matches.push({
+        brand: bike.brand,
+        model: bike.model,
+        bikeId: bike.bikeId,
+        family: bike.family,
+        frameName: bike.frameName,
+        generation: bike.generation,
+        year: bike.year,
+        size: size.size,
+        stackUp,
+        stackDown,
+        reachForward,
+        reachBack,
+        margin: Math.min(stackUp, stackDown, reachForward, reachBack),
+      })
+    }
+  }
+  return matches.sort((a, b) => b.margin - a.margin)
 }
 
 /**

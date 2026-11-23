@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getStackReachWindow, matchBikes, type Bike, type BikeSizeRow } from './matcher'
+import { getStackReachWindow, hasArmrestData, matchBikes, matchByArmrest, type Bike, type BikeSizeRow } from './matcher'
 
 // Acceptance check for tri mode (doc/frame-sizing-research.md §9.5): real production
 // tri rows, for a 183 cm rider. Stack, reach and rider-height bounds in mm; null means
@@ -138,5 +138,93 @@ describe('tri data for a 183 cm rider', () => {
     const matches = matchBikes(RIDER_MM, 481, 628, 368, 463, triDb)
     expect(matches.some((m) => m.brand === 'Orbea')).toBe(false)
     expect(window).not.toBeNull()
+  })
+})
+
+// Armrest matching (doc/frame-sizing-research.md §10). Published pad ranges, BB centre to the
+// rear of the pad, in mm, with the same height bands as above. Canyon's frame stack/reach
+// are kept; BMC and Orbea publish none. Pad: 183 cm rider, stack 640 mm, reach 430 mm.
+const withArmrest = (
+  base: BikeSizeRow,
+  [stackMin, stackMax]: [number, number],
+  [reachMin, reachMax]: [number, number]
+): BikeSizeRow => ({
+  ...base,
+  armrestStackMin: stackMin,
+  armrestStackMax: stackMax,
+  armrestReachMin: reachMin,
+  armrestReachMax: reachMax,
+})
+
+const armrestDb: Bike[] = [
+  bike('Canyon', 'Speedmax CF', [
+    withArmrest(size('XS', 482, 374, null, 1660), [596, 626], [351, 462]),
+    withArmrest(size('S', 519, 402, 1660, 1740), [633, 663], [377, 488]),
+    withArmrest(size('M', 544, 420, 1740, 1860), [657, 688], [398, 509]),
+    withArmrest(size('L', 578, 443, 1860, 1960), [691, 722], [411, 522]),
+    withArmrest(size('XL', 608, 468, 1960, null), [721, 752], [446, 557]),
+  ]),
+  bike('BMC', 'Speedmachine 01', [
+    withArmrest(size('S', null, null, null, 1740), [525, 650], [348, 502]),
+    withArmrest(size('M', null, null, 1720, 1850), [553, 678], [368, 522]),
+    withArmrest(size('L', null, null, 1800, null), [595, 720], [395, 549]),
+  ]),
+  bike('Orbea', 'Ordu M10i LTD PWR UCI', [
+    withArmrest(size('XS', null, null, null, 1700), [515, 605], [361, 481]),
+    withArmrest(size('SM', null, null, 1700, 1800), [550, 640], [385, 505]),
+    withArmrest(size('ML', null, null, 1750, 1850), [550, 690], [385, 505]),
+    withArmrest(size('XL', null, null, 1850, null), [600, 740], [409, 529]),
+  ]),
+]
+
+// Frame-only bikes from the list above: no armrest data, so they must stay in the frame list.
+const frameOnlyDb = triDb.filter((b) => b.model === 'Speedmax CFR TT' || b.model === 'P-Series')
+const acceptanceDb = [...armrestDb, ...frameOnlyDb]
+
+const PAD_STACK_MM = 640
+const PAD_REACH_MM = 430
+
+describe('armrest matching for a 183 cm rider, pad 640 / 430 mm', () => {
+  it('lists the sizes whose pad ranges contain the pad, largest margin first', () => {
+    const matches = matchByArmrest(PAD_STACK_MM, PAD_REACH_MM, armrestDb)
+    // Margin = smallest distance from the pad to any range edge, in mm:
+    //   Orbea ML 45 (stack 50/90, reach 75/45), BMC M 38 (38/87, 92/62),
+    //   BMC L 35 (80/45, 119/35), Orbea XL 21 (100/40, 99/21), BMC S 10 (10/115, 72/82),
+    //   Canyon Speedmax CF S 7 (23/7, 58/53), Orbea SM 0 (0/90, 75/45).
+    // Orbea SM sits on the stack max (640), so it fits only because the check is inclusive.
+    // Canyon CF XS, M, L, XL are out on stack (626, 657, 691, 721 minimum or maximum).
+    expect(matches.map((m) => `${m.brand} ${m.model} ${m.size}`)).toEqual([
+      'Orbea Ordu M10i LTD PWR UCI ML',
+      'BMC Speedmachine 01 M',
+      'BMC Speedmachine 01 L',
+      'Orbea Ordu M10i LTD PWR UCI XL',
+      'BMC Speedmachine 01 S',
+      'Canyon Speedmax CF S',
+      'Orbea Ordu M10i LTD PWR UCI SM',
+    ])
+    expect(matches.map((m) => m.margin)).toEqual([45, 38, 35, 21, 10, 7, 0])
+  })
+
+  it('reports the room left on each side of the pad', () => {
+    const canyonS = matchByArmrest(PAD_STACK_MM, PAD_REACH_MM, armrestDb).find((m) => m.brand === 'Canyon')
+    expect(canyonS).toMatchObject({ stackUp: 23, stackDown: 7, reachForward: 58, reachBack: 53 })
+  })
+
+  it('never matches a size without armrest data', () => {
+    expect(hasArmrestData(triDb[0].sizes[0])).toBe(false)
+    expect(hasArmrestData(armrestDb[0].sizes[0])).toBe(true)
+    const frameOnly = matchByArmrest(PAD_STACK_MM, PAD_REACH_MM, frameOnlyDb)
+    expect(frameOnly).toEqual([])
+  })
+
+  it('keeps bikes without armrest data in the frame list, and drops sizes that have it', () => {
+    const window = getStackReachWindow(RIDER_MM, acceptanceDb)
+    // What BuyFit does when both pad fields are set: strip the armrest sizes, then match by frame.
+    const frameDb = acceptanceDb.map((b) => ({ ...b, sizes: b.sizes.filter((s) => !hasArmrestData(s)) }))
+    const labels = matchBikes(RIDER_MM, window!.stackMin, window!.stackMax, window!.reachMin, window!.reachMax, frameDb)
+      .map((m) => `${m.brand} ${m.model} ${m.size}`)
+    // Window from banded measured rows at 1830 mm: stack 496–544, reach 420–435. Canyon CF M
+    // (544/420) is inside it but has armrest data, so it is not listed here.
+    expect(labels).toEqual(['Canyon Speedmax CFR TT M'])
   })
 })

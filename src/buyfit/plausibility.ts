@@ -169,3 +169,49 @@ export function checkOptionalMeasurements(
 
   return fields
 }
+
+/**
+ * Tri armrest plausibility (doc §10.1). Warnings only, never blocking.
+ *
+ * Seat angle: §10.1 gives no general value. The rule was tuned at 77.5° and the
+ * reference rider's derived effective angle is 77.9° (§9.6); 78° sits between them.
+ * Pad stack is compared with the armrest-drop prediction within 50 mm. Reach has no
+ * predictor (§10.1), so it gets only a range check.
+ */
+export const ARMREST = {
+  seatAngleDeg: 78,
+  stackToleranceCm: 5,
+  reachCm: { min: 30, max: 70 },
+}
+
+/**
+ * @param saddleHeightCm - BB centre to saddle top, the midpoint of the saddle-height band
+ * @param padStackCm - typed pad stack; NaN means empty
+ * @param padReachCm - typed pad reach; NaN means empty
+ */
+export function checkArmrest(
+  saddleHeightCm: number,
+  padStackCm: number,
+  padReachCm: number
+): { stack: string | null; reach: string | null } {
+  let stack: string | null = null
+  if (!Number.isNaN(padStackCm) && !Number.isNaN(saddleHeightCm)) {
+    // Empfield's armrest drop, C = 0.005·D² − 0.2·D (top athletes, not the age-group offset).
+    const drop = 0.005 * saddleHeightCm ** 2 - 0.2 * saddleHeightCm
+    const predicted = saddleHeightCm * Math.sin((ARMREST.seatAngleDeg * Math.PI) / 180) - drop
+    if (Math.abs(padStackCm - predicted) > ARMREST.stackToleranceCm) {
+      stack =
+        `Pad stack ${padStackCm} cm is unusual for a saddle height of ${saddleHeightCm.toFixed(1)} cm ` +
+        `(about ${predicted.toFixed(1)} cm is typical). Double-check your measurement.`
+    }
+  }
+
+  let reach: string | null = null
+  if (!Number.isNaN(padReachCm) && (padReachCm < ARMREST.reachCm.min || padReachCm > ARMREST.reachCm.max)) {
+    reach =
+      `Pad reach should be ${ARMREST.reachCm.min}–${ARMREST.reachCm.max} cm, measured from the BB ` +
+      `centre to the rear of the pad. Double-check your measurement.`
+  }
+
+  return { stack, reach }
+}

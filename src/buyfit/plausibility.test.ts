@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkMeasurements, checkOptionalMeasurements } from './plausibility'
+import { checkArmrest, checkMeasurements, checkOptionalMeasurements } from './plausibility'
 
 describe('checkMeasurements', () => {
   it('case 1: valid measurements all in range', () => {
@@ -122,3 +122,29 @@ describe('checkOptionalMeasurements', () => {
     expect(checkOptionalMeasurements(NaN, NaN, NaN, NaN, 9).sitBoneWidth).toBeNull()
   })
 })
+
+describe('checkArmrest', () => {
+  // D = 78.2 cm (saddle-height band midpoint for inseam 88.6 cm). Predicted pad stack is
+  // about 61.6 cm (78.2·sin 78° − (0.005·78.2² − 0.2·78.2)).
+  it('is silent for the reference rider, and for empty fields', () => {
+    expect(checkArmrest(78.2, 64.0, 43.0)).toEqual({ stack: null, reach: null })
+    expect(checkArmrest(78.2, NaN, NaN)).toEqual({ stack: null, reach: null })
+  })
+
+  it('warns when the typed stack is more than 50 mm from the prediction', () => {
+    expect(checkArmrest(78.2, 50.0, 43.0).stack).toMatch(/unusual/)
+    expect(checkArmrest(78.2, 75.0, 43.0).stack).toMatch(/unusual/)
+  })
+
+  it('keeps stack quiet within 50 mm of the prediction', () => {
+    expect(checkArmrest(78.2, 57.0, 43.0).stack).toBeNull()
+    expect(checkArmrest(78.2, 66.0, 43.0).stack).toBeNull()
+  })
+
+  it('range-checks reach at 30–70 cm, with no body estimate', () => {
+    expect(checkArmrest(78.2, 64.0, 29.9).reach).toMatch(/30–70/)
+    expect(checkArmrest(78.2, 64.0, 70.1).reach).toMatch(/30–70/)
+    expect(checkArmrest(78.2, 64.0, 30).reach).toBeNull()
+  })
+})
+
